@@ -26,3 +26,5 @@ mdg:validated-method
 mdg:validation-error
 react-meteor-data
 aldeed:simple-schema
+twbs:bootstrap
+less
