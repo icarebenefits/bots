@@ -21,12 +21,16 @@
       "eslint:recommended",
       "plugin:meteor/recommended"
     ],
+    "env": {
+      "browser": true
+    },
     "settings": {
       "import/resolver": "meteor"
     },
     "rules": {
       "react/jsx-uses-vars": 1,
-      "react/jsx-uses-react": 1
+      "react/jsx-uses-react": 1,
+      "no-console": 0
     }
   },
   "dependencies": {
