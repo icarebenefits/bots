@@ -71,13 +71,13 @@ export const setSLA = () => {
 
   export const R2 = new RuleEngine(rules2);
 
-  // R2.execute(fact2, function (result) {
-  //   console.log(result);
-  //   // if (result.result) {
-  //   //   console.log("touch the threshold of engine 2 - notify");
-  //   // } else {
-  //   //   console.log("still ok with engine 2");
-  //   // }
-  // });
+  R2.execute(fact2, function (result) {
+    console.log(result);
+    if (result.result) {
+      console.log("touch the threshold of engine 2 - notify");
+    } else {
+      console.log("still ok with engine 2");
+    }
+  });
   // console.log(R2.toJSON());
 };
