@@ -36,13 +36,15 @@
   "dependencies": {
     "babel-runtime": "^6.23.0",
     "classnames": "^2.2.5",
+    "colors": "^1.1.2",
     "lodash": "^4.17.4",
     "meteor-node-stubs": "~0.2.0",
     "node-rules": "^3.1.0",
     "react": "^15.4.2",
     "react-addons-pure-render-mixin": "^15.4.2",
     "react-dom": "^15.4.2",
-    "react-mounter": "^1.2.0"
+    "react-mounter": "^1.2.0",
+    "request": "^2.79.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",

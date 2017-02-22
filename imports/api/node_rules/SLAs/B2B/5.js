@@ -1,4 +1,5 @@
 import RuleEngine from 'node-rules';
+import {FBapi} from '../../../facebook/index';
 
 export const SLA_B2B_5 = () => {
     const
@@ -21,13 +22,15 @@ export const SLA_B2B_5 = () => {
         ],
         fact5 = {
             status: "resigned",
-            period:3,
-            groupId: 10000321,
+            period: 3,
+            groupId: 583378391828836, // Engineering
+            personateId: 100011637135507, //vinhcq
             noOfMatchedMember: 1100,
         }
         ;
 
-    export const R5 = new RuleEngine(rules5);
+    var R5 = new RuleEngine();
+    R5.register(rules5);
 
     R5.execute(fact5, function (result) {
 
@@ -36,6 +39,7 @@ export const SLA_B2B_5 = () => {
         } else {
             console.log(`touch the threshold of "${result.name}" - send notify`);
             console.log(`"${result.message}" posted to facebook groupId:${result.groupId}`);
+            FBapi("# Test from Meteor \n"+result.message ,result.groupId, result.personateId);
         }
         // console.log(result);
     });
