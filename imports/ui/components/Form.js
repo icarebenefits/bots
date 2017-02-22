@@ -12,7 +12,6 @@ class Form extends Component {
 
     fields.map(field => data[field.id] = this.refs[field.id].getValue());
 
-    console.log(data);
     return data;
   }
 
@@ -24,6 +23,7 @@ class Form extends Component {
     return (
       <form className="Form">
         {fields.map(field => {
+          console.log(field)
           const preFilled = initialData && initialData[field.id];
 
           if(!readonly) {
@@ -58,7 +58,7 @@ Form.propTypes = {
       options: PropTypes.arrayOf(PropTypes.string)
     })
   ).isRequired,
-  initialData: PropTypes.Object,
+  initialData: PropTypes.any,
   readonly: PropTypes.bool
 };
 
