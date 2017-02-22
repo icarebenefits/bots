@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import _ from 'lodash';
 
 // components
 import Button from '../components/Button';
@@ -7,14 +8,21 @@ import FormInput from '../components/FormInput';
 import Form from '../components/Form';
 import Actions from '../components/Actions';
 import Dialog from '../components/Dialog';
+import B2BForm from '../containers/B2BForm';
+import schema from './schema';
 
 class Discover extends Component {
 
-  componentDidMount() {
-    console.log(this.refs);
-  }
-
   render() {
+    let data = JSON.parse(localStorage.getItem('data') || '{}');
+
+    // default example data, read from the schema
+    if(_.isEmpty(data)) {
+      data= {};
+      schema.forEach(item => data[item.id] = item.sample);
+      data = [data];
+    }
+    
     return (
       <div>
         <h1>
@@ -110,8 +118,12 @@ class Discover extends Component {
           </Dialog>
         </div>
 
-        <h2>Excel</h2>
+        <h2>B2BForm</h2>
         <div>
+          <B2BForm
+            schema={schema}
+            initialData={data}
+          />
         </div>
       </div>
     );

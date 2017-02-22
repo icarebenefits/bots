@@ -7,7 +7,7 @@ import Dialog from './Dialog';
 import Form from './Form';
 import FormInput from './FormInput';
 
-export class Excel extends Component {
+class Excel extends Component {
   constructor(props) {
     super(props);
 
@@ -148,7 +148,7 @@ export class Excel extends Component {
     const
       {dialog, data} = this.state,
       first = data[dialog.idx],
-      nameguess = first[Object.keys(first)[0]]
+      nameGuess = first[Object.keys(first)[0]]
       ;
 
     return (
@@ -158,7 +158,7 @@ export class Excel extends Component {
         confirmLabel="Delete"
         onAction={this._deleteConfirmationClick.bind(this)}
       >
-        {`Are you sure you want to delete "${nameguess}"?`}
+        {`Are you sure you want to delete "${nameGuess}"?`}
       </Dialog>
     );
   }
@@ -241,7 +241,6 @@ export class Excel extends Component {
                   <td
                     className={classNames({
                       [`schema-${schema.id}`]: true,
-                      'ExcelEditable': !isRating,
                       'ExcelDataLeft': schema.align === 'left',
                       'ExcelDataRight': schema.align === 'right',
                       'ExcelDataCenter': schema.align !== 'left' && schema.align !== 'right',
@@ -284,3 +283,5 @@ Excel.propTypes = {
   ),
   onDataChange: PropTypes.func,
 };
+
+export default Excel

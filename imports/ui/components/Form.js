@@ -23,7 +23,6 @@ class Form extends Component {
     return (
       <form className="Form">
         {fields.map(field => {
-          console.log(field)
           const preFilled = initialData && initialData[field.id];
 
           if(!readonly) {
