@@ -1,5 +1,5 @@
 # bots
 
-# Up and Running
-meteor npm install
-meteor
+### Up and Running ###
+* meteor npm install
+* meteor

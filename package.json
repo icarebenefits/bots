@@ -3,9 +3,68 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "lint": "eslint .",
+    "pretest": "meteor npm run lint --silent",
+    "test": "meteor test --once --driver-package dispatch:mocha-phantomjs",
+    "test-watch": "meteor test --driver-package practicalmeteor:mocha",
+    "test-app-watch": "meteor test --full-app --driver-package practicalmeteor:mocha",
     "start": "meteor run"
   },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "allowImportExportEverywhere": true,
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "meteor",
+      "babel",
+      "react"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:meteor/recommended"
+    ],
+    "env": {
+      "browser": true,
+      "node": true,
+      "mocha": true
+    },
+    "settings": {
+      "import/resolver": "meteor"
+    },
+    "rules": {
+      "react/jsx-uses-vars": 1,
+      "react/jsx-uses-react": 1,
+      "no-console": 0
+    }
+  },
   "dependencies": {
-    "meteor-node-stubs": "~0.2.0"
+    "babel-runtime": "^6.23.0",
+    "classnames": "^2.2.5",
+    "colors": "^1.1.2",
+    "lodash": "^4.17.4",
+    "meteor-node-stubs": "~0.2.0",
+    "moment": "^2.17.1",
+    "node-comparison": "^0.1.1",
+    "node-rules": "^3.1.0",
+    "react": "^15.4.2",
+    "react-addons-pure-render-mixin": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "react-mounter": "^1.2.0",
+    "request": "^2.79.0",
+    "string": "^3.3.3"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "eslint": "^3.16.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-import-resolver-meteor": "^0.3.4",
+    "eslint-plugin-babel": "^4.0.1",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-meteor": "^4.0.1",
+    "eslint-plugin-react": "^6.10.0"
   }
 }
