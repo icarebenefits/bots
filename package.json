@@ -53,11 +53,8 @@
     "react-addons-pure-render-mixin": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-mounter": "^1.2.0",
-<<<<<<< Updated upstream
-    "request": "^2.79.0"
-=======
+    "request": "^2.79.0",
     "string": "^3.3.3"
->>>>>>> Stashed changes
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
