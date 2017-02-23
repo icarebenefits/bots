@@ -134,8 +134,6 @@ const compare = (arg) => {
     }
   };
 
-  console.log({type, compare: comparison[type]});
-
   return comparison[type];
 };
 
