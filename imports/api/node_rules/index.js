@@ -26,7 +26,7 @@ export const B2B_1 = () => {
     // console.log(result)
     if(result.notify) {
       //test only
-      const fbRequest = new FbRequest("TEST - SLA B2B 1: There are 120 customers without any iCare Members.", 583378391828836, 100011637135507);
+      const fbRequest = new FbRequest("TEST - SLA B2B 1: There are 120 customers without any iCare Members.", 583378391828836, 100015398923627);
       fbRequest.post();
     } else {
       console.log(`log into log file`);
@@ -59,7 +59,7 @@ export const B2B_14 = () => {
     // console.log(result)
     if(result.notify) {
       //test only
-      const fbRequest = new FbRequest("TEST - SLA B2B 14: over 60% of iCare Members are female in last 6 months", 583378391828836, 100011637135507);
+      const fbRequest = new FbRequest("TEST - SLA B2B 14: over 60% of iCare Members are female in last 6 months", 257279828017220, 100015398923627);
       fbRequest.post();
     } else {
       console.log(`log into log file`);
@@ -86,13 +86,13 @@ export const B2B_5 = () => {
     notify: false
   };
 
-  const SLA_B2B_1 = createSLA(ruleConditions);
+  const SLA_B2B_5 = createSLA(ruleConditions);
 
-  SLA_B2B_1.execute(fact, function(result) {
+  SLA_B2B_5.execute(fact, function(result) {
     // console.log(result)
     if(result.notify) {
       //test only
-      const fbRequest = new FbRequest("TEST - SLA B2B 14: over 60% of iCare Members are female in last 6 months", 583378391828836, 100011637135507);
+      const fbRequest = new FbRequest("TEST - SLA B2B 14: over 60% of iCare Members are female in last 6 months", 583378391828836, 100015398923627);
       fbRequest.post();
     } else {
       console.log(`log into log file`);
