@@ -68,31 +68,16 @@ export const B2B_14 = () => {
 };
 
 
-export const B2B_5 = () => {
-  // Test rule 5
-  const ruleConditions = [
-    {
-      name: 'rule_noOfResignedMemberInLast3Weeks',
-      priority: 1,
-      condition: "femaleIcareMembersAreFemaleInLast6Months",
-      operator: "greaterThanOrEqual",
-      threshold: 1100
-    }
-  ];
+export const executeSLA = (ruleConditions, fact) => {
 
-  const fact = {
-    id: 1,
-    femaleIcareMembersAreFemaleInLast6Months: 300,
-    notify: false
-  };
+  const SLA_B2B = createSLA(ruleConditions);
 
-  const SLA_B2B_5 = createSLA(ruleConditions);
-
-  SLA_B2B_5.execute(fact, function(result) {
+  SLA_B2B.execute(fact, function(result) {
+    const {notify, message, groupId, userId} = result;
     // console.log(result)
-    if(result.notify) {
+    if(notify) {
       //test only
-      const fbRequest = new FbRequest("TEST - SLA B2B 14: over 60% of iCare Members are female in last 6 months", 583378391828836, 100015398923627);
+      const fbRequest = new FbRequest(message, groupId, userId);
       fbRequest.post();
     } else {
       console.log(`log into log file`);
