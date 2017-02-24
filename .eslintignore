@@ -1,7 +1,7 @@
 # /node_modules/* and /bower_components/* ignored by default
 
-# Ignore built files except build/index.js
+# Ignore built files except build/jobs.js
 client/*
-#!build/index.js
+#!build/jobs.js
 private/*
 public/*
