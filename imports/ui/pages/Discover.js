@@ -8,7 +8,7 @@ import FormInput from '../components/FormInput';
 import Form from '../components/Form';
 import Actions from '../components/Actions';
 import Dialog from '../components/Dialog';
-import B2BForm from '../containers/B2BForm';
+import B2BForm from '/B2BForm';
 import schema from './schema';
 
 class Discover extends Component {

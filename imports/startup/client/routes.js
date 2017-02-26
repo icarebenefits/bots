@@ -2,7 +2,10 @@ import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
 
 // components
-import Discover from '../../ui/containers/Discover';
+import Discover from '../../ui/pages/Discover';
+
+// pages
+import ConditionsBuilder from '../../ui/pages/ConditionsBuilder';
 
 FlowRouter.route('/', {
   name: 'home',
@@ -16,4 +19,12 @@ FlowRouter.route('/discovery', {
   action() {
     mount(Discover);
   },
+});
+
+
+FlowRouter.route('/conditions-builder', {
+  name: 'condition-builder',
+  action() {
+    mount(ConditionsBuilder);
+  }
 });

@@ -8,7 +8,7 @@
     "test": "meteor test --once --driver-package dispatch:mocha-phantomjs",
     "test-watch": "meteor test --driver-package practicalmeteor:mocha",
     "test-app-watch": "meteor test --full-app --driver-package practicalmeteor:mocha",
-    "start": "meteor run"
+    "start": "meteor run --settings settings.json"
   },
   "eslintConfig": {
     "parser": "babel-eslint",
