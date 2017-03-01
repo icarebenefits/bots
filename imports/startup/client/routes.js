@@ -1,30 +1,50 @@
+import React from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
 
+// layouts
+import MainLayout from '../../ui/layouts/MainLayout';
+
 // components
 import Discover from '../../ui/pages/Discover';
-
-// pages
-import ConditionsBuilder from '../../ui/pages/ConditionsBuilder';
+import PreferencesPage from '../../ui/pages/PreferencesPage';
+import B2BPage from '../../ui/pages/B2BPage';
 
 FlowRouter.route('/', {
   name: 'home',
   action() {
-    mount(() => (<div>Icare bots</div>));
-  },
+    mount(MainLayout, {
+      content() {
+        return (
+          <Discover />
+        );
+      }
+    });
+  }
 });
 
-FlowRouter.route('/discovery', {
-  name: 'discovery',
+FlowRouter.route('/b2b', {
+  name: 'b2b',
   action() {
-    mount(Discover);
-  },
+    mount(MainLayout, {
+      content() {
+        return (
+          <B2BPage />
+        );
+      }
+    })
+  }
 });
 
-
-FlowRouter.route('/conditions-builder', {
-  name: 'condition-builder',
+FlowRouter.route('/preferences', {
+  name: 'preferences',
   action() {
-    mount(ConditionsBuilder);
+    mount(MainLayout, {
+      content() {
+        return (
+          <PreferencesPage />
+        );
+      }
+    });
   }
 });

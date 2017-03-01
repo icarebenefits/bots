@@ -30,6 +30,7 @@ class Dialog extends Component {
             >Cancel</span>
               : null
             }
+            {' '}
             <Button
               onClick={onAction.bind(this, hasCancel ? 'confirm' : 'dismiss')}
             >{confirmLabel}</Button>

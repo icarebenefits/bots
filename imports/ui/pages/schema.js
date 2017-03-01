@@ -1,4 +1,158 @@
 import classification from './classification';
+import {FlowRouter} from 'meteor/kadira:flow-router';
+
+export const NavigationTabsSchema = [
+  {
+    id: 'home',
+    href: '#',
+    title: FlowRouter.path('home')
+  },
+  {
+    id: 'preferences',
+    href: FlowRouter.path('preferences'),
+    title: 'Preferences',
+  }
+];
+
+export const BreadcrumbsSchema = [
+  {
+    id: ''
+  }
+];
+
+export const schema = {
+  defaultCondition: [
+    { // cell: not
+      id: 'not',
+      label: 'Not',
+      type: 'checkbox',
+      value: false,
+    },
+    { // cell: openParens
+      id: 'openParens',
+      label: 'Parens',
+      type: 'select',
+      options: classification.conditionsBuilder.openParens,
+      value: classification.conditionsBuilder.openParens[0],
+    },
+    { // cell: filter
+      id: 'filter',
+      label: 'Filter',
+      type: 'select',
+      options: classification.conditionsBuilder.filters,
+      value: classification.conditionsBuilder.filters[0],
+    },
+    { // cell: 
+      id: 'description',
+      label: 'Description',
+      type: 'label',
+      operator: "",
+      value: "",
+    },
+    { // cell: closeParens
+      id: 'closeParens',
+      label: 'Parens',
+      type: 'select',
+      options: classification.conditionsBuilder.closeParens,
+      value: classification.conditionsBuilder.closeParens[0],
+    },
+    { // cell: bitwise
+      id: 'bitwise',
+      label: 'And/Or',
+      type: 'select',
+      options: classification.conditionsBuilder.bitwise,
+      value: classification.conditionsBuilder.bitwise[0],
+    },
+  ],
+  conditions: [
+    [
+      { // cell: not
+        id: 'not',
+        label: 'Not',
+        type: 'checkbox',
+        value: false,
+      },
+      { // cell: openParens
+        id: 'openParens',
+        label: 'Parens',
+        type: 'select',
+        options: classification.conditionsBuilder.openParens,
+        value: classification.conditionsBuilder.openParens[0],
+      },
+      { // cell: filter
+        id: 'filter',
+        label: 'Filter',
+        type: 'select',
+        options: classification.conditionsBuilder.filters,
+        value: classification.conditionsBuilder.filters[0],
+      },
+      { // cell: 
+        id: 'description',
+        label: 'Description',
+        type: 'label',
+        operator: "is",
+        value: "Chris",
+      },
+      { // cell: closeParens
+        id: 'closeParens',
+        label: 'Parens',
+        type: 'select',
+        options: classification.conditionsBuilder.closeParens,
+        value: classification.conditionsBuilder.closeParens[0],
+      },
+      { // cell: bitwise
+        id: 'bitwise',
+        label: 'And/Or',
+        type: 'select',
+        options: classification.conditionsBuilder.bitwise,
+        value: classification.conditionsBuilder.bitwise[1],
+      },
+    ],
+    // [
+    //   { // cell: not
+    //     id: 'not',
+    //     label: 'Not',
+    //     type: 'checkbox',
+    //     value: true,
+    //   },
+    //   { // cell: openParens
+    //     id: 'openParens',
+    //     label: 'Parens',
+    //     type: 'select',
+    //     options: classification.conditionsBuilder.openParens,
+    //     value: classification.conditionsBuilder.openParens[1],
+    //   },
+    //   { // cell: filter
+    //     id: 'filter',
+    //     label: 'Filter',
+    //     type: 'select',
+    //     options: classification.conditionsBuilder.filters,
+    //     value: classification.conditionsBuilder.filters[3],
+    //   },
+    //   { // cell:
+    //     id: 'description',
+    //     label: 'Description',
+    //     type: 'input',
+    //     operator: "is",
+    //     value: "Developer",
+    //   },
+    //   { // cell: closeParens
+    //     id: 'closeParens',
+    //     label: 'Parens',
+    //     type: 'select',
+    //     options: classification.conditionsBuilder.closeParens,
+    //     value: classification.conditionsBuilder.closeParens[0],
+    //   },
+    //   { // cell: bitwise
+    //     id: 'bitwise',
+    //     label: 'And/Or',
+    //     type: 'select',
+    //     options: classification.conditionsBuilder.bitwise,
+    //     value: classification.conditionsBuilder.bitwise[0],
+    //   },
+    // ]
+  ]
+};
 
 export default [
   {

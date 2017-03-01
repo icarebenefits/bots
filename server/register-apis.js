@@ -10,3 +10,6 @@ import '/imports/api/facebook/index';
 import '/imports/api/jobs';
 // slas
 import '/imports/api/slas';
+// clients
+// B2B
+import '/imports/api/clients/b2b';
