@@ -8,7 +8,7 @@ class Suggest extends Component {
   
   render() {
     const 
-      {options, defaultValue} = this.props,
+      {options, defaultValue, className} = this.props,
       randomId = Math.random().toString(16).substring(2)
     ;
     
@@ -18,6 +18,7 @@ class Suggest extends Component {
           list={randomId}
           defaultValue={defaultValue}
           ref="lowLevelInput"
+          className={className}
         />
         <datalist
           id={randomId}

@@ -4,11 +4,11 @@ import _ from 'lodash';
 // components
 import Button from '../components/Button';
 import Suggest from '../components/Suggest';
+import Select from '../components/Select';
 import FormInput from '../components/FormInput';
 import Form from '../components/Form';
 import Actions from '../components/Actions';
 import Dialog from '../components/Dialog';
-import B2BForm from '../containers/B2BForm';
 import schema from './schema';
 
 class Discover extends Component {
@@ -32,7 +32,7 @@ class Discover extends Component {
         <h2>Buttons</h2>
         <div>Button with onClick:
           <Button
-            onClick={() => alert('ouch')}
+            onClick={() => console.log(this.refs.select.getValue())}
           >Click me</Button>
         </div>
         <div>A link:
@@ -48,6 +48,14 @@ class Discover extends Component {
         <h2>Suggest</h2>
         <div>
           <Suggest
+            options={['eenie', 'meenie', 'miney', 'mo']}
+          />
+        </div>
+
+        <h2>Select</h2>
+        <div>
+          <Select
+            ref="select"
             options={['eenie', 'meenie', 'miney', 'mo']}
           />
         </div>
@@ -118,13 +126,6 @@ class Discover extends Component {
           </Dialog>
         </div>
 
-        <h2>B2BForm</h2>
-        <div>
-          <B2BForm
-            schema={schema}
-            initialData={data}
-          />
-        </div>
       </div>
     );
   }

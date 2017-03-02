@@ -17,11 +17,11 @@ class Form extends Component {
 
   render() {
     const
-      {fields, initialData, readonly} = this.props
+      {fields, initialData, readonly, onSubmit = e => e.preventDefault()} = this.props
     ;
 
     return (
-      <form className="Form">
+      <form className="Form" onSubmit={onSubmit}>
         {fields.map(field => {
           const preFilled = initialData && initialData[field.id];
 
