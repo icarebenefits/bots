@@ -10,9 +10,10 @@ import Discover from '../../ui/pages/Discover';
 import Home from '../../ui/pages/Home';
 import PreferencesPage from '../../ui/pages/PreferencesPage';
 import ConditionBuilderTree from '../../ui/pages/ConditionBuilderTree';
+import CreateSLA from '../../ui/containers/slas/CreateSLA';
 
 // containers
-import SLAsList from '../../ui/containers/slas/SLAsList';
+import SLAsList from '../../ui/containers/slas/ViewSLAs';
 
 FlowRouter.route('/', {
   name: 'home',
@@ -76,19 +77,29 @@ b2bRoutes.route('/slas', {
 
 b2bRoutes.route('/slas/condition-builder/:action', {
   name: 'condition-builder-tree',
-  action(params) {
+  action(params, queryParams) {
+    const {action} = params;
     mount(MainLayout, {
       crumbs: [
         {id: 'b2b', href: FlowRouter.path('b2b-root'), title: 'B2B'},
         {id: 'slas', href: FlowRouter.path('b2b-slas'), title: 'SLAs'},
-        {id: 'condition-builder', href: '#', title: 'Condition builder'},
+        {id: action, href: '#', title: action},
       ],
-      activeCrumb: "condition-builder",
-      pageHeader: 'Condition Builder Tree',
+      activeCrumb: action,
+      pageHeader: `${action} SLA`,
       content() {
-        return (
-          <ConditionBuilderTree />
-        );
+        switch (action) {
+          case 'view': {
+            return (
+              <ConditionBuilderTree />
+            );
+          }
+          case 'create': {
+            return (
+              <CreateSLA />
+            );
+          }
+        }
       }
     })
   }
@@ -111,5 +122,12 @@ b2bRoutes.route('/condition-builder/expr', {
         );
       }
     })
+  }
+});
+
+FlowRouter.route('/condition-builder', {
+  name: 'condition-builder',
+  action() {
+    mount(PreferencesPage);
   }
 });

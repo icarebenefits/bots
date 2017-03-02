@@ -1,4 +1,5 @@
 import React, {Component, PropTypes} from 'react';
+import moment from 'moment';
 
 // components
 import FormInput from '../FormInput';
@@ -63,8 +64,12 @@ class ConditionRow extends Component {
 
     const {operator, value} = this.refs.form.getData();
     const index = newCells.findIndex(x => x.id === "description");
+
     newCells[index].operator = operator;
-    newCells[index].value = value;
+    moment.isDate(value)
+      ? newCells[index].value = moment(value).format('YYYY-MM-DD hh:mm:ss')
+      : newCells[index].value = value;
+
 
     this.setState({
       dialog: null,
@@ -83,7 +88,7 @@ class ConditionRow extends Component {
         },
         {
           id: 'value',
-          type: 'input',
+          type: 'date',
           label: '',
         }
       ];

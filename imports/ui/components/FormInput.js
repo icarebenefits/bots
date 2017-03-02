@@ -4,10 +4,13 @@ import React, {Component, PropTypes} from 'react';
 // components
 import Suggest from './Suggest';
 import Select from './Select';
+import DatePicker from './DatePicker';
 
 class FormInput extends Component {
 
   getValue() {
+    // console.log(this.refs.input.value);
+
     return 'value' in this.refs.input
       ? this.refs.input.type === 'checkbox' ? this.refs.input.checked : this.refs.input.value
       : this.refs.input.getValue()
@@ -16,7 +19,7 @@ class FormInput extends Component {
 
   render() {
     const
-      {id, type, defaultValue, options, ab} = this.props,
+      {id, type = 'input', defaultValue, options} = this.props,
       commonProps = {
         id,
         defaultValue,
@@ -42,6 +45,19 @@ class FormInput extends Component {
           />
         );
       }
+      case 'date': {
+        return (
+          <DatePicker
+            {...commonProps}
+            label=""
+            option={{ startView: 2, todayBtn: "linked", keyboardNavigation: false, forceParse: false, autoclose: true }}
+            isDateObject={true}
+            value={new Date()}
+            disabled={false}
+            onChange={date => console.log(date)}
+          />
+        );
+      }
       case 'checkbox': {
         return (
           <input {...commonProps} type="checkbox"/>
@@ -54,7 +70,7 @@ class FormInput extends Component {
       }
       default: {
         return (
-          <input {...commonProps} type="text"/>
+          <input {...commonProps} type={type} />
         );
       }
     }
@@ -62,7 +78,7 @@ class FormInput extends Component {
 }
 
 FormInput.propTypes = {
-  type: PropTypes.oneOf(['text', 'suggest', 'input', 'select', 'checkbox']),
+  type: PropTypes.oneOf(['text', 'suggest', 'input', 'select', 'checkbox', 'date']),
   id: PropTypes.string,
   defaultValue: PropTypes.any,
   options: PropTypes.arrayOf(

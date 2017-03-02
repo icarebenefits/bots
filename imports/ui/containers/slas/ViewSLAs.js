@@ -25,17 +25,20 @@ class SLAsList extends Component {
     const
       headers = [
         {id: 'id', label: 'ID'},
+        {id: 'tenant', label: 'Tenant'},
         {id: 'name', label: 'Name'},
         {id: 'expr', label: 'Expression'},
       ],
       data = [
         [
           '1234',
+          'Vietnam',
           "Chris's emails",
           'Email is Chris',
         ],
         [
           '334312',
+          'Cambodia',
           "hire member",
           'Hire date on YYYY/MM/DD hh:mm:ss'
         ]

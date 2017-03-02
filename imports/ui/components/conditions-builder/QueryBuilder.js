@@ -64,7 +64,7 @@ class QueryBuilder extends Component {
     const {fields, operators, combinators, controlElements, controlClassnames} = this.props;
     const classNames = Object.assign({}, QueryBuilder.defaultControlClassnames, controlClassnames);
     const controls = Object.assign({}, QueryBuilder.defaultControlElements, controlElements);
-    // console.log(controls)
+    
     this.setState({
       root: this.getInitialQuery(),
       schema: {
@@ -132,8 +132,6 @@ class QueryBuilder extends Component {
       value: '',
       operator: operators[0].name
     };
-
-    console.log(rule);
 
     return rule;
   }

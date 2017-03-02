@@ -33,19 +33,18 @@ class ConditionBuilderTree extends Component {
   }
 
   logPreview() {
-    // console.log(this.state.query);
-    // console.log(JSON.stringify(this.state.query));
     const {query} = this.state;
-    console.log('' + JSON.stringify(query));
+    // console.log('' + JSON.stringify(query));
     let querybuilt = Condition.buildQuery(query);
-    console.log('' + querybuilt);
+    // console.log('' + querybuilt);
     alert(querybuilt);
   }
 
   render() {
     const
       listFields = Object.keys(Fields),
-      fields = []
+      fields = [],
+      {handleSaveConditions} = this.props
       ;
     let
       combinators = [],
@@ -70,11 +69,18 @@ class ConditionBuilderTree extends Component {
       {name: 'or', label: 'Or'},
     ];
 
-    const {query} = this.state;
-    // console.log(query);
-
     return (
       <div>
+        <div style={{marginBottom: 5}}>
+          <Button
+            onClick={this.logPreview}
+          >Preview</Button>
+          {' '}
+          <Button
+            className="btn-success"
+            onClick={handleSaveConditions}
+          >Preview</Button>
+        </div>
         <div>
           <QueryBuilder
             fields={fields}
@@ -82,9 +88,6 @@ class ConditionBuilderTree extends Component {
             operators={operators}
             onQueryChange={this.logQuery}
           />
-          <Button
-            onClick={this.logPreview}
-          >Preview</Button>
         </div>
       </div>
     );

@@ -75,6 +75,9 @@ class ConditionsBuilder extends Component {
   _onSaveConditions() {
     const {conditions} = this.state;
 
+    alert(Expression.create(Expression.build(conditions)));
+    // return Expression.create(Expression.build(conditions));
+
   }
 
   _renderTable() {
@@ -120,7 +123,7 @@ class ConditionsBuilder extends Component {
             type="button"
             className="btn-group btn-default"
             onClick={this._onSaveConditions.bind(this)}
-          >Build</Button>
+          >Preview</Button>
           {' '}
           <Button
             type="button"

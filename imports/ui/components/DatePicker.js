@@ -3,8 +3,20 @@ import moment from 'moment';
 
 class DatePicker extends Component {
 
+  constructor() {
+    super();
+
+    this.state = {
+      value: null
+    };
+  }
+
   el = null;
   isForce = false;
+
+  getValue() {
+    return this.state.value;
+  }
 
   componentDidMount() {
     if (!this.props.disabled) {
@@ -50,11 +62,14 @@ class DatePicker extends Component {
    */
   _onChange = val => {
     const {isDateObject, onChange = () => null} = this.props;
+    let value = new Date();
     if (isDateObject) {
-      onChange(moment(val, 'MM/DD/YYYY').toDate());
+      value = moment(val, 'MM/DD/YYYY').toDate();
     } else {
-      onChange(val);
+      value = val;
     }
+    onChange(value);
+    this.setState({value});
   }
 
   render() {
