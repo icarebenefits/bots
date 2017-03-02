@@ -90,8 +90,8 @@ export const schema = {
         id: 'description',
         label: 'Description',
         type: 'label',
-        operator: "is",
-        value: "Chris",
+        operator: "",
+        value: "",
       },
       { // cell: closeParens
         id: 'closeParens',
@@ -105,7 +105,7 @@ export const schema = {
         label: 'And/Or',
         type: 'select',
         options: classification.conditionsBuilder.bitwise,
-        value: classification.conditionsBuilder.bitwise[1],
+        value: classification.conditionsBuilder.bitwise[2],
       },
     ],
     // [

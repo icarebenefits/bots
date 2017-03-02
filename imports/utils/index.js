@@ -13,6 +13,7 @@ export const Expression = {
   build: (conditions) => {
     check(conditions, Array);
 
+    // console.log(conditions);
     let expression = [];
 
     conditions.map(condition => {
@@ -22,12 +23,15 @@ export const Expression = {
           newCond['operator'] = cond.operator;
           newCond['value'] = cond.value;
         } else {
-          newCond[cond.id] = cond.value || cond.defaultValue;
+          console.log(cond)
+          newCond[cond.id] = cond.value || '';
         }
         delete newCond.description;
       });
       expression.push(newCond);
     });
+
+    // console.log(expression);
     
     return expression;
   },
@@ -36,6 +40,7 @@ export const Expression = {
 
     const expr = [];
     expression.map(e => {
+      // console.log(e);
       const {not, openParens, filter, operator, value, closeParens, bitwise} = e;
       expr.push(`${(not ? '!' : '')} ${openParens} ${filter} ${operator} ${value} ${closeParens} ${bitwise}`);
     });
@@ -105,7 +110,7 @@ export const Conditions = {
 export const Operators = {
   get: (field) => {
     check(field, String);
-    
+
     const
       {operators, fieldTypes} = classification.conditionsBuilder,
       type = fieldTypes[field]
@@ -114,3 +119,22 @@ export const Operators = {
     return operators[type];
   }
 };
+
+export const FormFields = {
+  create: (operator) => {
+    const fields = [
+      {
+        id: 'operator',
+        type: 'select',
+        label: '',
+        options: operators
+      },
+      {
+        id: 'value',
+        type: 'input',
+        label: '',
+      }
+    ];
+  }
+};
+

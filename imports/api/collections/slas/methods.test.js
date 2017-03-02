@@ -5,8 +5,8 @@ import { resetDatabase } from 'meteor/xolvio:cleaner';
 import { Random } from 'meteor/random';
 import {ValidationError} from 'meteor/mdg:validation-error';
 
-import SLAs from '/imports/api/slas/slas';
-import '/imports/api/slas/methods';
+import SLAs from '/imports/api/collections/slas/slas';
+import '/imports/api/collections/slas/methods';
 
 describe('SLA methods', function() {
   describe('create', function() {

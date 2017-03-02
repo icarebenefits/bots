@@ -8,7 +8,7 @@ import MainLayout from '../../ui/layouts/MainLayout';
 // components
 import Discover from '../../ui/pages/Discover';
 import PreferencesPage from '../../ui/pages/PreferencesPage';
-import B2BPage from '../../ui/pages/B2BPage';
+import ConditionBuilderTree from '../../ui/pages/ConditionBuilderTree';
 
 FlowRouter.route('/', {
   name: 'home',
@@ -23,13 +23,13 @@ FlowRouter.route('/', {
   }
 });
 
-FlowRouter.route('/b2b', {
+FlowRouter.route('/b2b/condition-builder/tree', {
   name: 'b2b',
   action() {
     mount(MainLayout, {
       content() {
         return (
-          <B2BPage />
+          <ConditionBuilderTree />
         );
       }
     })

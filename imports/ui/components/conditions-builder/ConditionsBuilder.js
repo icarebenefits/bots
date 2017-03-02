@@ -31,7 +31,8 @@ class ConditionsBuilder extends Component {
   getExpression() {
     const {conditions} = this.state;
 
-    return Expression.build(conditions);
+    console.log(conditions);
+    return Expression.create(Expression.build(conditions));
   }
 
   _onAddCondition() {
@@ -40,17 +41,19 @@ class ConditionsBuilder extends Component {
       ;
 
     // verify last condition
-    const lastCondition = newConditions[newConditions.length - 1];
-    const filterIndex = lastCondition.findIndex(condition => condition.id === 'filter');
-    if (filterIndex !== -1) {
-      const lastFilterValue = lastCondition[filterIndex].value;
-      if (_.isEmpty(lastFilterValue)) {
-        return this.setState({
-          showError: true,
-          error: 'please enter value(s) for filter'
-        });
-      }
-    }
+    // const lastCondition = newConditions[newConditions.length - 1];
+    // const filterIndex = lastCondition.findIndex(condition => condition.id === 'filter');
+    // console.log(filterIndex);
+    // if (filterIndex !== -1) {
+    //   const lastFilterValue = lastCondition[filterIndex].value;
+    //   // console.log(lastFilterValue);
+    //   if (_.isEmpty(lastFilterValue)) {
+    //     return this.setState({
+    //       showError: true,
+    //       error: 'please enter value(s) for filter'
+    //     });
+    //   }
+    // }
 
     newConditions.push(schema.defaultCondition);
     this.setState({

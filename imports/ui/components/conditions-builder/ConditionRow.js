@@ -27,6 +27,9 @@ class ConditionRow extends Component {
     return this.state.cells;
   }
 
+  _createFormFields(operator) {
+  }
+
   _onChangeData(row, key) {
     if (key === 'filter') {
       const value = this.refs[key].getValue();
@@ -41,13 +44,12 @@ class ConditionRow extends Component {
         editFilter: {row, key},
         operators
       });
-    } else {
-      const newCells = this.state.cells;
-      newCells[row].value = this.refs[key].getValue();
-      this.setState({
-        cells: newCells
-      });
     }
+    const newCells = this.state.cells;
+    newCells[row].value = this.refs[key].getValue();
+    this.setState({
+      cells: newCells
+    });
   }
 
   _saveDataDialog(action) {
@@ -107,6 +109,7 @@ class ConditionRow extends Component {
           : <Form
               ref="form"
               fields={fields}
+              onSubmit={this._saveDataDialog.bind(this)}
             />
         }
       </Dialog>
@@ -127,7 +130,7 @@ class ConditionRow extends Component {
     return (
       <tr>
         {cells.map((cell, idx) => {
-          // cell.defaultValue = cell.value;
+          cell.defaultValue = cell.value;
           return (
             <td
               key={idx}
