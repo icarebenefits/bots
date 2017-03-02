@@ -16,10 +16,11 @@ class ConditionBuilderTree extends Component {
     this.state = {
       query: null
     };
+
+    this.logQuery = this.logQuery.bind(this);
   }
 
   logQuery(query) {
-    console.log(query);
     this.setState({query});
   }
 

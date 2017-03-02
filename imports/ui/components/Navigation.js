@@ -2,12 +2,12 @@ import React, {PropTypes} from 'react';
 import classNames from 'classnames';
 
 const Navigation = (props) => {
-  const {tabs, activeTab} = props;
+  const {tabs, activeTab, handleOnClick} = props;
 
   return (
     <ul className={classNames("nav nav-pills", props.classNames)}>
       {tabs.map((tab, idx) => {
-        const {id, href, title, active, ...actions} = tab;
+        const {id, href, title, ...actions} = tab;
         return (
           <li
             role="presentation"
@@ -15,7 +15,7 @@ const Navigation = (props) => {
             key={idx}
             {...actions}
           >
-            <a href={href}>{title}</a>
+            <a id={id} href={href} onClick={e => handleOnClick(e.target.id)}>{title}</a>
           </li>
         );
       })}

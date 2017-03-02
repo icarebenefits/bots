@@ -23,8 +23,13 @@ FlowRouter.route('/', {
   }
 });
 
-FlowRouter.route('/b2b/condition-builder/tree', {
+const b2bRoutes = FlowRouter.group({
   name: 'b2b',
+  prefix: '/b2b'
+});
+
+b2bRoutes.route('/condition-builder/tree', {
+  name: 'condition-builder',
   action() {
     mount(MainLayout, {
       content() {
@@ -33,18 +38,5 @@ FlowRouter.route('/b2b/condition-builder/tree', {
         );
       }
     })
-  }
-});
-
-FlowRouter.route('/preferences', {
-  name: 'preferences',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return (
-          <PreferencesPage />
-        );
-      }
-    });
   }
 });

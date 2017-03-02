@@ -71,10 +71,7 @@ class PreferencesPage extends Component {
         <h2>B2B Preferences</h2>
         <h4>Conditions Builder</h4>
         <div>
-          <QueryBuilder
-            fields={fields}
-            onQueryChange={this.logQuery}
-          />
+          
         </div>
       </div>
     );
