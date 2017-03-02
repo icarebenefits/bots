@@ -1,48 +1,42 @@
 import React, {Component, PropTypes} from 'react';
+import moment from 'moment';
+
+// components
+import DatePicker from '../../DatePicker';
 
 class ValuesEditor extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  getValue() {
-
-  }
 
   render() {
-    const {field, operator, value, handleOnChange} = this.props;
-    const exceptionOperators = ['within', 'between'];
+    const
+      {type, value, handleOnChange} = this.props,
+      isDate = moment.isDate(value)
+      ;
 
-    // handle operators has more than 1 value.
-    if(exceptionOperators.indexOf(operator) > -1 ) {
+    if (type === 'date') {
       return (
-        <div>
-            <label htmlFor="">from: </label>
-            <input type="text"
-                   value={value}
-                   onChange={e => handleOnChange(e.target.value)} />
-
-            <label htmlFor="">to: </label>
-            <input type="text"
-                   value={value}
-                   onChange={e => handleOnChange(e.target.value)} />
-        </div>
-
+        <DatePicker
+          label=""
+          option={{ startView: 2, todayBtn: "linked", keyboardNavigation: false, forceParse: false, autoclose: true }}
+          isDateObject={true}
+          value={isDate ? value : new Date()}
+          disabled={false}
+          onChange={date => handleOnChange(date)}
+        />
+      );
+    } else {
+      return (
+        <input
+          type="text"
+          value={isDate ? "" : value}
+          onChange={e => handleOnChange(e.target.value)}
+        />
       );
     }
-
-    return (
-      <input type="text"
-             value={value}
-             onChange={e => handleOnChange(e.target.value)} />
-    );
   }
 }
 
 ValuesEditor.propTypes = {
-  field: PropTypes.string,
-  operator: PropTypes.string,
-  values: PropTypes.array,
+  value: PropTypes.string,
   handleOnChange: PropTypes.func,
 };
 

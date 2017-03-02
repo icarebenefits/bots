@@ -16,11 +16,16 @@ class ConditionBuilderTree extends Component {
     super();
 
     this.state = {
-      query: null
+      query: null,
+      startDate: new Date()
     };
 
     this.logQuery = this.logQuery.bind(this);
     this.logPreview = this.logPreview.bind(this);
+  }
+
+  _onFieldChange = (field, value) => {
+    console.log({field, value})
   }
 
   logQuery(query) {
@@ -50,10 +55,10 @@ class ConditionBuilderTree extends Component {
     // should create function to get data inside of object
     listFields.map(field => {
       const
-        {id: name, description: label, operators: ops} = Fields[field](),
+        {id: name, description: label, operators: ops, getType} = Fields[field](),
         listOps = Object.keys(ops)
         ;
-      fields.push({name, label});
+      fields.push({name, label, getType});
       listOps.map(op => {
         const {id: name, description: label} = ops[op];
         operators.push({id: field, name, label});
@@ -70,8 +75,6 @@ class ConditionBuilderTree extends Component {
 
     return (
       <div>
-        <h2>B2B</h2>
-        <h4>Conditions Builder</h4>
         <div>
           <QueryBuilder
             fields={fields}

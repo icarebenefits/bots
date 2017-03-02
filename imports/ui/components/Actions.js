@@ -1,23 +1,18 @@
 import React, {PropTypes} from 'react';
 
+import Button from './Button';
+
 const Actions = props =>
-  <div className="Actions">
-    <span
-      tabIndex="0"
-      className="ActionsInfo"
-      title="More info"
-      onClick={props.onAction.bind(null, 'info')}
-    >&#8505;</span>
-    <span
-      tabIndex="0"
-      className="ActionsEdit"
+  <div className="form-inline">
+    <Button
+      className="btn-default"
       onClick={props.onAction.bind(null, 'edit')}
-    >&#10000;</span>
-    <span
-      tabIndex="0"
-      className="ActionsDelete"
+    ><span className="glyphicon glyphicon-pencil" /></Button>
+    {' '}
+    <Button
+      className="btn-danger"
       onClick={props.onAction.bind(null, 'delete')}
-    >x</span>
+    ><span className="glyphicon glyphicon-remove" /></Button>
   </div>
 
 Actions.propTypes = {

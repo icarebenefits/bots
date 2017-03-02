@@ -52,12 +52,16 @@
     "node-rules": "^3.1.0",
     "react": "^15.4.2",
     "react-addons-pure-render-mixin": "^15.4.2",
+    "react-datepicker": "^0.41.1",
+    "react-day-picker": "^5.0.0",
     "react-dom": "^15.4.2",
     "react-mounter": "^1.2.0",
     "request": "^2.79.0",
     "string": "^3.3.3",
     "uuid": "^3.0.1",
-    "winston": "^2.3.1"
+    "winston": "^2.3.1",
+    "react-onclickoutside": "^5.9.0",
+    "tether": "^1.4.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",

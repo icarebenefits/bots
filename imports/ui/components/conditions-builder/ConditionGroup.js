@@ -119,17 +119,17 @@ class ConditionGroup extends Component {
             );
           })
         }
-          </div>
-          );
-          }
-        }
+      </div>
+    );
+  }
+}
 
-        ConditionGroup.defaultProps = {
-        id: null,
-        parentId: null,
-        rules: [],
-        combinator: 'and',
-        schema: {},
-      };
+ConditionGroup.defaultProps = {
+  id: null,
+  parentId: null,
+  rules: [],
+  combinator: 'and',
+  schema: {},
+};
 
-        export default ConditionGroup
+export default ConditionGroup

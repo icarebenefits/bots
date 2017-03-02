@@ -45,8 +45,9 @@ class Condition extends Component {
         marginRight: 5
       }
       ;
-    
-    // console.log(operator);
+
+    const index = fields.findIndex(f => f.name === field);
+    const type = fields[index].getType();
 
 
     return (
@@ -72,6 +73,7 @@ class Condition extends Component {
         <div className="form-group" style={style}>
           <ValuesEditor
             field={field}
+            type={type}
             operator={operator}
             value={value}
             className={`rule-value ${classNames.value}`}

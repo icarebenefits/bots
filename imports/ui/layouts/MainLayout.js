@@ -2,8 +2,9 @@ import React, {Component, PropTypes} from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 
 // components
+import NavBar from '../components/NavBar';
 import Navigation from '../components/Navigation';
-// import Breadcrumbs from '../components/Breadcrumbs';
+import Breadcrumbs from '../components/Breadcrumbs';
 import Footer from '../components/Footer';
 
 class MainLayout extends Component {
@@ -27,34 +28,48 @@ class MainLayout extends Component {
         {
           id: 'home',
           href: FlowRouter.path('home'),
-          title: 'Discovery',
+          title: 'iCare bots',
         },
         {
           id: 'b2b',
-          href: FlowRouter.path('condition-builder'),
+          href: FlowRouter.path('b2b-slas'),
           title: 'B2B',
         }
       ],
       {
         content = () => {
-        }
+        },
+        crumbs = [],
+        activeCrumb,
+        pageHeader
       } = this.props,
       {activeTab} = this.state
       ;
 
     return (
       <div className="container">
-        {/* .. Navigation .. */}
-        <div className="row">
-          <Navigation
-            tabs={tabs}
-            activeTab={activeTab}
-            handleOnClick={this.handleTabChange}
-          />
-        </div>
+        {/* .. NavBar .. */}
+        <NavBar
+          tabs={tabs}
+          activeTab={activeTab}
+          handleTabChange={this.handleTabChange}
+        />
 
         {/* .. Breadcrumbs .. */}
+        {!_.isEmpty(crumbs) && (
+          <div className="row">
+            <Breadcrumbs
+              crumbs={crumbs}
+              active={activeCrumb}
+            />
+          </div>
+        )}
 
+        {/* .. Page Header .. */}
+        <div className="page-header">
+          <h1>{pageHeader}</h1>
+        </div>
+        
         {/* .. Content .. */}
         <div className="row">
           {content()}
@@ -64,6 +79,7 @@ class MainLayout extends Component {
       </div>
     );
   }
-};
+}
+;
 
 export default MainLayout

@@ -49,14 +49,14 @@ class QueryBuilder extends Component {
 
   static get defaultControlElements() {
     return {
-      addGroupAction: ActionElement,
-      removeGroupAction: ActionElement,
-      addRuleAction: ActionElement,
-      removeRuleAction: ActionElement,
-      combinatorSelector: ValueSelector,
-      fieldSelector: ValueSelector,
-      operatorSelector: ValueSelector,
-      valueEditor: ValueEditor
+      // addGroupAction: ActionElement,
+      // removeGroupAction: ActionElement,
+      // addRuleAction: ActionElement,
+      // removeRuleAction: ActionElement,
+      // combinatorSelector: ValueSelector,
+      // fieldSelector: ValueSelector,
+      // operatorSelector: ValueSelector,
+      // valueEditor: ValueEditor
     };
   }
 
@@ -96,29 +96,6 @@ class QueryBuilder extends Component {
   componentDidMount() {
     this._notifyQueryChange(null);
   }
-  
-  isRuleGroup(rule) {
-    return !!(rule.combinator && rule.rules);
-  }
-
-  createRule() {
-    const {fields, operators} = this.state.schema;
-
-    return {
-      id: `r-${uniqueId()}`,
-      field: fields[0].name,
-      value: '',
-      operator: operators[0].name
-    };
-  }
-
-  createRuleGroup() {
-    return {
-      id: `g-${uniqueId()}`,
-      rules: [],
-      combinator: this.props.combinators[0].name,
-    };
-  }
 
   getOperators(field) {
 
@@ -132,7 +109,7 @@ class QueryBuilder extends Component {
     const ops = [];
     this.props.operators.map(op => {
       const {id, name, label} = op;
-      if(id === field) {
+      if (id === field) {
         ops.push({name, label})
       }
     });
@@ -141,6 +118,32 @@ class QueryBuilder extends Component {
 
     // console.log({field, operators: this.props.operators});
     // return this.props.operators;
+  }
+
+  isRuleGroup(rule) {
+    return !!(rule.combinator && rule.rules);
+  }
+
+  createRule() {
+    const {fields, operators} = this.state.schema;
+    const rule = {
+      id: `r-${uniqueId()}`,
+      field: fields[0].name,
+      value: '',
+      operator: operators[0].name
+    };
+
+    console.log(rule);
+
+    return rule;
+  }
+
+  createRuleGroup() {
+    return {
+      id: `g-${uniqueId()}`,
+      rules: [],
+      combinator: this.props.combinators[0].name,
+    };
   }
 
   onRuleAdd(rule, parentId) {

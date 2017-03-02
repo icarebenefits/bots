@@ -49,4 +49,4 @@ var condition = {
         }
     ]
 };
-console.log(Condition.getQuery(condition));
+// console.log(Condition.getQuery(condition));

@@ -1,18 +1,20 @@
 import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
+import _ from 'lodash';
 
 class ValueSelector extends Component {
   constructor(props) {
     super(props);
 
-    // console.log(props.options, props.value);
+    let name = "", label = "";
 
-    const
-      name = props.value,
-      index = props.options.findIndex(option => option.name === name),
-      {label} = props.options[index]
-    ;
-
+    if (!_.isEmpty(props.defaultValue)) {
+      label = props.defaultValue;
+    } else {
+      name = props.value;
+      const index = props.options.findIndex(option => option.name === name);
+      label = props.options[index].label;
+    }
     this.state = {
       selected: {
         name,
@@ -38,6 +40,8 @@ class ValueSelector extends Component {
       {options, className} = this.props,
       {selected: {name, label}} = this.state
       ;
+
+    // console.log({name, label})
 
     return (
       <div className="dropdown">

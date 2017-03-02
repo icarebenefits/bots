@@ -6,12 +6,17 @@ const Breadcrumbs = (props) => {
   return (
     <ol className="breadcrumb">
       {crumbs.map(item => {
-        const {id, href, title} = item;
+        const {id, href = '#', title} = item;
         return (
           <li
             key={`bread-${id}`}
             className={classNames({'active': id === active})}
-          ><a href={href}>{title}</a></li>
+          >
+            {id === active
+              ? title
+              : <a href={href}>{title}</a>
+            }
+          </li>
         );
       })}
     </ol>
@@ -25,7 +30,7 @@ Breadcrumbs.propTypes = {
       href: PropTypes.string,
       title: PropTypes.string,
     })
-  ).isRequired,
+  ),
   active: PropTypes.string,
 };
 
