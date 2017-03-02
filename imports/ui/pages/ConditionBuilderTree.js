@@ -7,6 +7,8 @@ import QueryBuilder from '../components/conditions-builder';
 // fields
 import Fields from '/imports/api/fields/custom/fields';
 import Operators from '/imports/api/fields/operators';
+import Condition from '/imports/api/expression/condition';
+
 
 class ConditionBuilderTree extends Component {
 
@@ -18,10 +20,21 @@ class ConditionBuilderTree extends Component {
     };
 
     this.logQuery = this.logQuery.bind(this);
+    this.logPreview = this.logPreview.bind(this);
   }
 
   logQuery(query) {
     this.setState({query});
+  }
+
+  logPreview() {
+    // console.log(this.state.query);
+    // console.log(JSON.stringify(this.state.query));
+    const {query} = this.state;
+    console.log('' + JSON.stringify(query));
+    let querybuilt = Condition.buildQuery(query);
+    console.log('' + querybuilt);
+    alert(querybuilt);
   }
 
   render() {
@@ -52,6 +65,8 @@ class ConditionBuilderTree extends Component {
       {name: 'or', label: 'Or'},
     ];
 
+    const {query} = this.state;
+    // console.log(query);
 
     return (
       <div>
@@ -64,6 +79,9 @@ class ConditionBuilderTree extends Component {
             operators={operators}
             onQueryChange={this.logQuery}
           />
+          <Button
+            onClick={this.logPreview}
+          >Preview</Button>
         </div>
       </div>
     );
