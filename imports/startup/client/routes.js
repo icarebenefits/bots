@@ -12,6 +12,9 @@ import PreferencesPage from '../../ui/pages/PreferencesPage';
 import ConditionBuilderTree from '../../ui/pages/ConditionBuilderTree';
 import CreateSLA from '../../ui/containers/slas/CreateSLA';
 
+import {AllElements} from '../../ui/components/netsuite-builder/AllElements';
+import {ConditionGroup} from '../../ui/components/netsuite-builder/ConditionGroup';
+
 // containers
 import SLAsList from '../../ui/containers/slas/ViewSLAs';
 
@@ -129,5 +132,19 @@ FlowRouter.route('/condition-builder', {
   name: 'condition-builder',
   action() {
     mount(PreferencesPage);
+  }
+});
+
+FlowRouter.route('/all-elements', {
+  name: 'all-elements',
+  action() {
+    mount(AllElements);
+  }
+});
+
+FlowRouter.route('/condition-builder-example', {
+  name: 'condition-builder-example',
+  action() {
+    mount(ConditionGroup);
   }
 });

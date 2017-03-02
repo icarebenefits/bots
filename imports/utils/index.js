@@ -117,6 +117,11 @@ export const Operators = {
       ;
 
     return operators[type];
+  },
+  getType: (field) => {
+    const {fieldTypes} = classification.conditionsBuilder;
+
+    return fieldTypes[field];
   }
 };
 

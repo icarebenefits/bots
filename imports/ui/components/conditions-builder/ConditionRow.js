@@ -33,7 +33,10 @@ class ConditionRow extends Component {
 
   _onChangeData(row, key) {
     if (key === 'filter') {
-      const value = this.refs[key].getValue();
+      const
+        value = this.refs[key].getValue(),
+        fieldType = Operators.getType(value)
+        ;
       let operators = [];
 
       if(!_.isEmpty(value)) {
@@ -43,7 +46,8 @@ class ConditionRow extends Component {
       this.setState({
         dialog: true,
         editFilter: {row, key},
-        operators
+        operators,
+        fieldType
       });
     }
     const newCells = this.state.cells;
@@ -78,7 +82,7 @@ class ConditionRow extends Component {
   }
 
   _renderFormDialog(readonly) {
-    const {dialog, operators} = this.state,
+    const {dialog, operators, fieldType} = this.state,
       fields = [
         {
           id: 'operator',
@@ -88,7 +92,7 @@ class ConditionRow extends Component {
         },
         {
           id: 'value',
-          type: 'date',
+          type: fieldType === 'date' ? 'date' : 'input',
           label: '',
         }
       ];
