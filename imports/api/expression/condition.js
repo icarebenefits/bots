@@ -34,7 +34,7 @@ const buildExpr = function (exprs) {
 };
 
 const buildQuery = function (condition) {
-  var tmp = [], i;
+  let tmp = [], i;
   // console.log( condition);
   if (condition.rules) {
     if (condition.rules.length == 1) {
@@ -53,9 +53,7 @@ const buildQuery = function (condition) {
 };
 
 const toQuery = function (rule) {
-  let rs = `(${rule.field} ${rule.operator} ${rule.value})`;
-  // console.log(rs);
-  return rs;
+  return `(${rule.field} ${rule.operator} "${rule.value}")`;
 };
 
 const parseExpr = function (str) {

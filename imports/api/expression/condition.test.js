@@ -50,3 +50,36 @@ var condition = {
     ]
 };
 // console.log(Condition.getQuery(condition));
+
+
+var newCondition = {
+  "rules": [
+    {
+      "field": "Email",
+      "value": "eng",
+      "operator": "startsWith"
+    },
+    {
+      "field": "Email",
+      "value": "icare",
+      "operator": "contains"
+    },
+    {
+      "rules": [
+        {
+          "field": "HireDate",
+          "value": "2015-01-01",
+          "operator": "before"
+        },
+        {
+          "field": "BirthDay",
+          "value": "1999-01-01",
+          "operator": "after"
+        }
+      ],
+      "combinator": "and"
+    }
+  ],
+  "combinator": "or"
+};
+console.log(Condition.buildQuery(newCondition));
