@@ -6,7 +6,7 @@ export class Checkbox extends Component {
     return (
       <input 
         type="checkbox"
-        value={value}
+        checked={value}
         onChange={e => handleOnChange(e.target.checked)}
       />
     );
