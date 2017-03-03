@@ -8,6 +8,7 @@ import {Label} from './Label';
 import {Dialog} from './Dialog';
 import {Form} from './Form';
 import {Schema} from './schema';
+import Button from '../Button';
 
 export class Condition extends Component {
 
@@ -27,6 +28,7 @@ export class Condition extends Component {
       hidden: true, // flag for second value of dialog form,
     };
 
+    this._clearDescription = this._clearDescription.bind(this);
     this._handleNotChange = this._handleNotChange.bind(this);
     this._handleOpenParensChange = this._handleOpenParensChange.bind(this);
     this._handleFieldChange = this._handleFieldChange.bind(this);
@@ -40,6 +42,20 @@ export class Condition extends Component {
     this._saveDataDialog = this._saveDataDialog.bind(this);
   }
 
+  getCondition() {
+    const {not, openParens, filter, operator, value1, value2, closeParens, bitwise} = this.state;
+
+    return [not, openParens, filter, operator, value1, value2, closeParens, bitwise];
+  }
+
+  _clearDescription() {
+    this.setState({
+      operator: '',
+      value1: '',
+      value2: ''
+    });
+  }
+
   _handleNotChange(value) {
     return this.setState({not: value});
   }
@@ -49,9 +65,22 @@ export class Condition extends Component {
   }
 
   _handleFieldChange(value) {
+    const {fieldType} = this.getFieldProps(value);
+    if(fieldType === 'date') {
+      return this.setState({
+        filter: value,
+        dialog: value,
+        operator: '',
+        value1: null,
+        value2: null
+      });
+    }
     return this.setState({
       filter: value,
       dialog: value,
+      operator: '',
+      value1: '',
+      value2: ''
     })
   }
 
@@ -89,6 +118,9 @@ export class Condition extends Component {
   }
 
   _saveDataDialog(action) {
+    if(action === 'dismiss') {
+      this._clearDescription();
+    }
     this._closeDialog();
   }
 
@@ -137,23 +169,6 @@ export class Condition extends Component {
       const {id: name, description: label, noOfParams, code} = this.getOperatorProps(op);
       fieldOptions.push({name, label, noOfParams});
     });
-
-    // get suitable values
-    // if (fieldType === 'date') {
-    //   if(!moment.isDate(value1)) {
-    //     data1 = new Date();
-    //   }
-    //   if(!moment.isDate(value2)) {
-    //     data2 = new Date();
-    //   }
-    //   // if (moment.isDate(value1)) {
-    //   //   value1 = new Date(value[0])
-    //   // } else {
-    //   //   this.setState({values: })
-    //   // }
-    //   // value1 = moment.isDate(values[0]) ? new Date(values[0]) : new Date();
-    //   // value2 = moment.isDate(values[1]) ? new Date(values[1]) : new Date();
-    // }
 
     // operator field
     fields.push({
@@ -216,14 +231,17 @@ export class Condition extends Component {
 
   render() {
     const
+      {id, initialCond, handleInsertCondition, handleRemoveCondition} = this.props,
+      {not, openParens, filter, operator, value1, value2, closeParens, bitwise} = this.state,
       {listFields} = Schema,
-      filters = [{name: '', label: ''}],
-      {not, openParens, filter, operator, value1, value2, closeParens, bitwise} = this.state
+      filters = [{name: '', label: ''}]
       ;
     let
       description = !_.isEmpty(operator) ? `${operator} ${value1} ${value2}` : '',
       expression = ''
       ;
+
+    console.log(this.props);
 
     // get simple expression
     // operator could be replace with the code using getOperatorProps
@@ -291,7 +309,17 @@ export class Condition extends Component {
           />
         </td>
         <td>
-          <Label value={expression}/>
+          <div>
+            <Button
+              className="btn-default"
+              onClick={e => handleInsertCondition(id)}
+            >Insert</Button>
+            {' '}
+            <Button
+              className="btn-default"
+              onClick={e => handleRemoveCondition(id)}
+            >Remove</Button>
+          </div>
         </td>
         <td>
           {this._renderDialog()}

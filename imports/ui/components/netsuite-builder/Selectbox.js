@@ -11,7 +11,7 @@ export class Selectbox extends Component {
         {options.map(option => {
           const {name, label} = option;
           return (
-            <option key={name} value={name}>{label}</option>
+            <option key={name} value={name} onClick={e => console.log(e.target.value)}>{label}</option>
           );
         })}
       </select>
