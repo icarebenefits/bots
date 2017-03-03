@@ -92,12 +92,14 @@ b2bRoutes.route('/slas/condition-builder/:action', {
       pageHeader: `${action} SLA`,
       content() {
         switch (action) {
-          case 'view': {
+          case 'view':
+          {
             return (
               <ConditionBuilderTree />
             );
           }
-          case 'create': {
+          case 'create':
+          {
             return (
               <CreateSLA />
             );
@@ -145,6 +147,19 @@ FlowRouter.route('/all-elements', {
 FlowRouter.route('/condition-builder-example', {
   name: 'condition-builder-example',
   action() {
-    mount(ConditionGroup);
+    mount(MainLayout, {
+      crumbs: [
+        {id: 'b2b', href: '/b2b', title: 'B2B'},
+        {id: 'condition-builder', href: '/b2b/condition-builder', title: 'Condition-Builder'},
+        {id: 'example', href: '#', title: 'Example'},
+      ],
+      activeCrumb: "expr",
+      pageHeader: 'Condition builder example',
+      content() {
+        return (
+          <ConditionGroup />  
+        );
+      }
+    });
   }
 });

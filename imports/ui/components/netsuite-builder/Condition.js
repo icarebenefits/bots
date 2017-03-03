@@ -115,7 +115,7 @@ export class Condition extends Component {
             {' '}
             <Button
               onClick={e => handleRemoveCondition(id)}
-              className="btn-default"
+              className="btn-danger"
             >Remove</Button>
           </div>
         </td>

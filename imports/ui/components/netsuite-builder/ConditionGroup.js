@@ -346,17 +346,14 @@ export class ConditionGroup extends Component {
     return (
       <div className="container">
         <div className="row">
-          <Button
-            className="btn-default"
-          >Preview</Button>
-          {' '}
+          <h3>Expression:</h3>
+          <h5>{expression}</h5>
+        </div>
+        <div className="row">
           <Button
             className="btn-default"
             onClick={this._addCondition}
-          >Add</Button>
-        </div>
-        <div className="row">
-          <h3>{expression}</h3>
+          ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
         </div>
         <div className="row">
           <table className="table">
