@@ -17,12 +17,14 @@ export class ConditionGroup extends Component {
       conditions: this.getDefaultConditions(),
       dialog: {}, // get field had been change, {row, fieldId}
       hidden: true, // flag for second value of dialog form,
+      edit: 0,
     };
 
     // handlers
     this.handleFieldChange = this.handleFieldChange.bind(this);
     this.handleRemoveCondition = this.handleRemoveCondition.bind(this);
     this.handleInsertCondition = this.handleInsertCondition.bind(this);
+    this._handleClickCondition = this._handleClickCondition.bind(this);
 
     // helpers
     this.getDescription = this.getDescription.bind(this);
@@ -43,6 +45,36 @@ export class ConditionGroup extends Component {
     this.setState({conditions});
   }
 
+  _addCondition() {
+    const
+      {conditions} = this.state,
+      condition = this.getDefaultCondition()
+      ;
+
+    if(!_.isEmpty(conditions)) {
+      const {filter, operator, values} = conditions[0];
+      if(_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
+        return alert(`Please enter value(s) for Filter, Description`);
+      }
+    }
+
+    conditions.push(condition);
+
+    return this.setState({
+      conditions,
+      edit: conditions.length -1
+    });
+  }
+
+  _handleClickCondition(e) {
+    const {row} = e.target.dataset;
+
+    console.log(row);
+    this.setState({
+      edit: row
+    });
+  }
+
   handleFieldChange(row, key, value, index) {
 
     const
@@ -60,14 +92,18 @@ export class ConditionGroup extends Component {
         {values} = condition,
         newValues = []
         ;
+      console.log(row, key, value, index)
+
+      console.log('values changing');
+      console.log(values);
 
       if (_.isEmpty(values)) {
         newValues.push(value);
       } else {
         // console.log({values, idx, value});
         values.map((val, idx) => {
-          console.log('change values');
-          console.log(idx);
+          console.log('changed exists values');
+          console.log(idx, index);
           if (idx === index) {
             newValues.push(value);
           } else {
@@ -130,7 +166,8 @@ export class ConditionGroup extends Component {
     conditions.splice(row, 1);
 
     return this.setState({
-      conditions
+      conditions,
+      edit: row - 1 // enable editable for previous row
     });
   }
 
@@ -140,7 +177,8 @@ export class ConditionGroup extends Component {
     conditions.splice(row + 1, 0, this.getDefaultCondition());
 
     return this.setState({
-      conditions
+      conditions,
+      edit: row + 1 // enable edited row for new row inserted
     });
   }
 
@@ -158,12 +196,13 @@ export class ConditionGroup extends Component {
       getFieldProps: this.getFieldProps,
       handleRemoveCondition: this.handleRemoveCondition,
       handleInsertCondition: this.handleInsertCondition,
+      handleClickCondition: this._handleClickCondition,
       getDescription: this.getDescription,
     };
   }
 
   getDescription(condition) {
-    console.log(condition);
+    // console.log(condition);
     const {operator, values} = condition;
     let description = '';
 
@@ -289,15 +328,17 @@ export class ConditionGroup extends Component {
     // values fields
     for (i = 0; i < noOfValueSupported; i++) {
       if (i !== 0) {
+        // console.log(i);
         fields.push({
           id: i, label: '', type: fieldType, value: conditions[row].values[i],
-          handleOnChange: (value) => this.handleFieldChange(row, 'values', value.toString(), i),
+          handleOnChange: (value) => this.handleFieldChange(row, 'values', value.toString(), this.id),
           hidden: hidden
         });
       } else {
+        // console.log(i);
         fields.push({
           id: i, row, label: '', type: fieldType, value: conditions[row].values[i],
-          handleOnChange: (value) => this.handleFieldChange(row, 'values', value.toString(), i)
+          handleOnChange: (value) => this.handleFieldChange(row, 'values', value.toString(), this.id)
         });
       }
     }
@@ -319,22 +360,9 @@ export class ConditionGroup extends Component {
     });
   }
 
-  _addCondition() {
-    const
-      {conditions} = this.state,
-      condition = this.getDefaultCondition()
-      ;
-
-    conditions.push(condition);
-
-    return this.setState({
-      conditions
-    });
-  }
-
   render() {
     const
-      {conditions} = this.state,
+      {conditions, edit} = this.state,
       expression = this.getExpression(conditions)
       ;
     let {handlers} = this.props;
@@ -356,7 +384,7 @@ export class ConditionGroup extends Component {
           ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
         </div>
         <div className="row">
-          <table className="table">
+          <table className="table table-striped">
             <thead>
             <tr>
               <th>Not</th>
@@ -368,14 +396,18 @@ export class ConditionGroup extends Component {
               <th>Actions</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody
+              onDoubleClick={this._handleClickCondition}
+            >
             {conditions.map((condition, idx) => {
+              console.log(edit === idx);
               return (
                 <Condition
                   key={idx}
                   id={idx}
                   ref={`condition-${idx}`}
                   condition={condition}
+                  readonly={Number(edit) === idx ? false : true}
                   handlers={handlers}
                 />
               );

@@ -41,7 +41,8 @@ export class Condition extends Component {
           handleRemoveCondition,
           handleInsertCondition,
           getDescription,
-        }
+        },
+        readonly = true,
       } = this.props,
       {listFields} = Schema,
       filters = [{name: '', label: ''}],
@@ -53,60 +54,77 @@ export class Condition extends Component {
       filters.push({name, label});
     });
 
+    console.log(readonly);
+
     return (
       <tr>
-        <td>
-          <Checkbox
+        <td data-row={id}>
+          {readonly
+            ? not
+            : (<Checkbox
             value={not}
             handleOnChange={value => handleFieldChange(id, 'not', value)}
-          />
+          />)
+          }
         </td>
-        <td>
-          <Selectbox
+        <td data-row={id}>
+          {readonly
+            ? openParens
+            : (<Selectbox
             value={openParens}
             options={[
-              {name: '', label: ''},
-              {name: '(', label: '('},
-              {name: '((', label: '(('},
-              {name: '(((', label: '((('},
-            ]}
+                {name: '', label: ''},
+                {name: '(', label: '('},
+                {name: '((', label: '(('},
+                {name: '(((', label: '((('},
+              ]}
             handleOnChange={value => handleFieldChange(id, 'openParens', value)}
-          />
+          />)
+          }
         </td>
-        <td>
-          <Selectbox
+        <td data-row={id}>
+          {readonly
+            ? filter
+            : (<Selectbox
             value={filter || ''}
             options={filters}
             handleOnChange={value => handleFieldChange(id, 'filter', value)}
-          />
+          />)
+          }
         </td>
-        <td>
+        <td data-row={id}>
           <Label value={description}/>
         </td>
-        <td>
-          <Selectbox
+        <td data-row={id}>
+          {readonly
+            ? closeParens
+            : (<Selectbox
             value={closeParens}
             options={[
-              {name: '', label: ''},
-              {name: ')', label: ')'},
-              {name: '))', label: '))'},
-              {name: ')))', label: ')))'},
-            ]}
+                {name: '', label: ''},
+                {name: ')', label: ')'},
+                {name: '))', label: '))'},
+                {name: ')))', label: ')))'},
+              ]}
             handleOnChange={value => handleFieldChange(id, 'closeParens', value)}
-          />
+          />)
+          }
         </td>
-        <td>
-          <Selectbox
+        <td data-row={id}>
+          {readonly
+            ? bitwise
+            : (<Selectbox
             value={bitwise}
             options={[
-              {name: '', label: ''},
-              {name: 'and', label: 'And'},
-              {name: 'or', label: 'Or'},
-            ]}
+                {name: '', label: ''},
+                {name: 'and', label: 'And'},
+                {name: 'or', label: 'Or'},
+              ]}
             handleOnChange={value => handleFieldChange(id, 'bitwise', value)}
-          />
+          />)
+          }
         </td>
-        <td>
+        <td data-row={id}>
           <div>
             <Button
               onClick={e => handleInsertCondition(id)}
