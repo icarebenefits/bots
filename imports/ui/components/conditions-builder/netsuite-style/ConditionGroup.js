@@ -224,7 +224,7 @@ export class ConditionGroup extends Component {
     return description;
   }
 
-  getExpression(conditions) {
+  getExpression(conditions = []) {
     let expression = '';
 
     conditions.map(condition => {
