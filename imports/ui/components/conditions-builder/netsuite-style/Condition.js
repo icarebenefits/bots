@@ -44,7 +44,7 @@ export class Condition extends Component {
       <tr>
         <td data-row={id}>
           {readonly
-            ? not
+            ? not ? '!' : ''
             : (<Checkbox
             value={not}
             handleOnChange={value => handleFieldChange(id, 'not', value)}
