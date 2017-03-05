@@ -1,8 +1,8 @@
 import React, {Component, PropTypes} from 'react';
 
 // components
-import Table from '../../components/Table';
-import Button from '../../components/Button';
+import Table from '../../components/elements/Table';
+import Button from '../../components/elements/Button';
 
 class SLAsList extends Component {
 

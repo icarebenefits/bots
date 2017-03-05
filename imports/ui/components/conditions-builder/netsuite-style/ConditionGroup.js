@@ -3,9 +3,9 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import {Condition} from './Condition';
-import Button from '../Button';
-import {Dialog} from './Dialog';
-import {Form} from './Form';
+import Button from '../../elements/Button';
+import {Dialog} from '../../elements/Dialog';
+import {Form} from '../../elements/Form';
 import {Schema} from './schema';
 
 export class ConditionGroup extends Component {
@@ -92,10 +92,10 @@ export class ConditionGroup extends Component {
         {values} = condition,
         newValues = []
         ;
-      console.log(row, key, value, index)
-
-      console.log('values changing');
-      console.log(values);
+      // console.log(row, key, value, index)
+      //
+      // console.log('values changing');
+      // console.log(values);
 
       if (_.isEmpty(values)) {
         newValues.push(value);
@@ -400,7 +400,6 @@ export class ConditionGroup extends Component {
               onDoubleClick={this._handleClickCondition}
             >
             {conditions.map((condition, idx) => {
-              console.log(edit === idx);
               return (
                 <Condition
                   key={idx}

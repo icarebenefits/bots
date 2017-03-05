@@ -2,30 +2,16 @@ import React, {Component} from 'react';
 import _ from 'lodash';
 import moment from 'moment';
 
-import {Checkbox} from './Checkbox';
-import {Selectbox} from './Selectbox';
-import {Label} from './Label';
+import {Checkbox} from '../../elements/Checkbox';
+import {Selectbox} from '../../elements/Selectbox';
+import {Label} from '../../elements/Label';
 import {Schema} from './schema';
-import Button from '../Button';
+import Button from '../../elements/Button';
 
 export class Condition extends Component {
 
   constructor(props) {
     super(props);
-
-    // const defaultState = getDefaultState();
-
-    // this.state = {
-    //   operator: '',
-    //   operatorType: '',
-    //   dialog: null, // get field had been change,
-    //   hidden: true, // flag for second value of dialog form,
-    // };
-
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // when props change
   }
 
   render() {
@@ -53,8 +39,6 @@ export class Condition extends Component {
       const {id: name, description: label} = getFieldProps(fieldId);
       filters.push({name, label});
     });
-
-    console.log(readonly);
 
     return (
       <tr>

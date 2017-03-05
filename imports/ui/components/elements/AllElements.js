@@ -4,11 +4,11 @@ import _ from 'lodash';
 import {Checkbox} from './Checkbox';
 import {Selectbox} from './Selectbox';
 import {Label} from './Label';
-import {Button} from './Button';
+import Button from './Button';
 // import Dialog from '../Dialog';
 import {Dialog} from './Dialog';
 import {Form} from './Form';
-import {Schema} from './schema';
+import {Schema} from '../conditions-builder/netsuite-style/schema';
 
 export class AllElements extends Component {
 

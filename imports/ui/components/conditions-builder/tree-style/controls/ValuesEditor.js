@@ -2,7 +2,7 @@ import React, {Component, PropTypes} from 'react';
 import moment from 'moment';
 
 // components
-import DatePicker from '../../DatePicker';
+import {DatePicker} from '../../../elements/DatePicker';
 
 class ValuesEditor extends Component {
 

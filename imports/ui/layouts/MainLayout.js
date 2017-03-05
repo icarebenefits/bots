@@ -2,10 +2,10 @@ import React, {Component, PropTypes} from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 
 // components
-import NavBar from '../components/NavBar';
-import Navigation from '../components/Navigation';
-import Breadcrumbs from '../components/Breadcrumbs';
-import Footer from '../components/Footer';
+import NavBar from '../components/common/NavBar';
+import Navigation from '../components/common/Navigation';
+import Breadcrumbs from '../components/common/Breadcrumbs';
+import Footer from '../components/common/Footer';
 
 class MainLayout extends Component {
 
@@ -31,9 +31,9 @@ class MainLayout extends Component {
           title: 'iCare bots',
         },
         {
-          id: 'b2b',
-          href: FlowRouter.path('b2b-slas'),
-          title: 'B2B',
+          id: 'examples',
+          href: FlowRouter.path('conditions-builder', {style: 'netsuite'}),
+          title: 'Examples',
         }
       ],
       {

@@ -2,8 +2,7 @@ import React, {Component, PropTypes} from 'react';
 import _ from 'lodash';
 
 // components
-import ConditionsBuilder from '../components/conditions-builder/ConditionsBuilder';
-import Button from '../components/Button';
+import Button from '../../components/elements/Button';
 
 // data handler
 import {schema} from './schema';
