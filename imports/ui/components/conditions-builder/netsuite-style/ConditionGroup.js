@@ -27,6 +27,7 @@ export class ConditionGroup extends Component {
     this._handleClickCondition = this._handleClickCondition.bind(this);
 
     // helpers
+    this._clearDescription = this._clearDescription.bind(this);
     this.getDescription = this.getDescription.bind(this);
 
     // dialog
@@ -34,7 +35,6 @@ export class ConditionGroup extends Component {
     this._createFormFields = this._createFormFields.bind(this);
     this._saveDataDialog = this._saveDataDialog.bind(this);
     this._closeDialog = this._closeDialog.bind(this);
-    this._saveDataDialog = this._saveDataDialog.bind(this);
 
     // internal
     this._addCondition = this._addCondition.bind(this);
@@ -180,6 +180,19 @@ export class ConditionGroup extends Component {
       conditions,
       edit: row + 1 // enable edited row for new row inserted
     });
+  }
+
+  _clearDescription() {
+    const {conditions, edit: row} = this.state;
+
+    const newConds = conditions.reduce((newConds, condition, idx) => {
+      (idx === row)
+        ? newConds.push({...condition, values: [], operator: ''})
+        : newConds.push(condition);
+      return newConds;
+    }, []);
+
+    return newConds;
   }
 
   getDefaultConditions() {
@@ -348,16 +361,26 @@ export class ConditionGroup extends Component {
   }
 
   _saveDataDialog(action) {
+    console.log('saveDialog', action);
+    let newConds = [];
     if (action === 'dismiss') {
-      this._clearDescription();
+      newConds = this._clearDescription();
     }
-    this._closeDialog();
+    console.log(newConds)
+    this._closeDialog(newConds);
   }
 
-  _closeDialog() {
-    this.setState({
-      dialog: {}
-    });
+  _closeDialog(newConds) {
+    if(!_.isEmpty(newConds)) {
+      this.setState({
+        dialog: {},
+        conditions: newConds
+      })
+    } else {
+      this.setState({
+        dialog: {}
+      });
+    }
   }
 
   render() {
