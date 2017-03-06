@@ -1,6 +1,6 @@
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {check} from 'meteor/check';
-import classification from '/imports/ui/pages/classification';
+import classification from '/imports/ui/pages/examples/classification';
 
 export const IDValidator = {
   _id: {
@@ -117,6 +117,11 @@ export const Operators = {
       ;
 
     return operators[type];
+  },
+  getType: (field) => {
+    const {fieldTypes} = classification.conditionsBuilder;
+
+    return fieldTypes[field];
   }
 };
 
