@@ -5,10 +5,10 @@ import {mount} from 'react-mounter';
 // layouts
 import MainLayout from '../../ui/layouts/MainLayout';
 
-// components
-import Discover from '../../ui/pages/Discover';
-import PreferencesPage from '../../ui/pages/PreferencesPage';
-import ConditionBuilderTree from '../../ui/pages/ConditionBuilderTree';
+// pages
+import Home from '../../ui/pages/Home';
+import ConditionBuilderTree from '../../ui/pages/examples/ConditionBuilderTree';
+import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
 
 FlowRouter.route('/', {
   name: 'home',
@@ -16,35 +16,46 @@ FlowRouter.route('/', {
     mount(MainLayout, {
       content() {
         return (
-          <Discover />
+          <Home />
         );
       }
     });
   }
 });
 
-FlowRouter.route('/b2b/condition-builder/tree', {
-  name: 'b2b',
-  action() {
+const examplesRoutes = FlowRouter.group({
+  name: 'examples',
+  prefix: '/examples'
+});
+
+examplesRoutes.route('/conditions-builder/:style', {
+  name: 'conditions-builder',
+  action(params, queryParams) {
+    const {style} = params;
     mount(MainLayout, {
+      crumbs: [
+        {id: 'examples', href: FlowRouter.path('examples'), title: 'Examples'},
+        {id: 'conditions-builder', href: FlowRouter.path('conditions-builder'), title: 'Conditions builder'},
+        {id: style, href: '#', title: style},
+      ],
+      activeCrumb: style,
+      pageHeader: style,
       content() {
-        return (
-          <ConditionBuilderTree />
-        );
+        switch (style) {
+          case 'tree':
+          {
+            return (
+              <ConditionBuilderTree />
+            );
+          }
+          case 'netsuite':
+          {
+            return (
+              <ConditionGroup />
+            );
+          }
+        }
       }
     })
-  }
-});
-
-FlowRouter.route('/preferences', {
-  name: 'preferences',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return (
-          <PreferencesPage />
-        );
-      }
-    });
   }
 });

@@ -1,2 +1,2 @@
-import QueryBuilder from './QueryBuilder';
-export default QueryBuilder;
+export {default as QueryBuilder} from './tree-style/QueryBuilder';
+export {ConditionGroup} from './netsuite-style/ConditionGroup';

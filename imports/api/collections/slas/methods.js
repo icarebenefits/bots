@@ -17,18 +17,19 @@ const Methods = {};
  */
 Methods.create = new ValidatedMethod({
   name: 'slas.create',
-  validate: new SimpleSchema({
-    name: {
-      type: String
-    },
-    expression: {
-      type: String
-    },
-    countries: {
-      type: [String],
-      allowedValues: COUNTRIES
-    }
-  }).validator(),
+  validate: null,
+  // validate: new SimpleSchema({
+  //   name: {
+  //     type: String
+  //   },
+  //   expression: {
+  //     type: Object
+  //   },
+  //   countries: {
+  //     type: [String],
+  //     allowedValues: COUNTRIES
+  //   }
+  // }).validator(),
   run({name, expression, countries}) {
     return SLAs.insert({name, expression, countries});
   }

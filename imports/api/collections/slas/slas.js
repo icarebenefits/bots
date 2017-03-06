@@ -39,7 +39,7 @@ SLAs.schema = new SimpleSchema({
     unique: true,
   },
   expression: {
-    type: String,
+    type: Object,
   },
   schedule: {
     type: String,
@@ -63,7 +63,7 @@ SLAs.schema = new SimpleSchema({
   }
 });
 
-SLAs.attachSchema(SLAs.schema);
+// SLAs.attachSchema(SLAs.schema);
 
 /**
  * Helpers
