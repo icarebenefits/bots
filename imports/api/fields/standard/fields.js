@@ -20,7 +20,7 @@ const NumberField = () => {
   return {
     id: 'number',
     description: 'number',
-    operators: Object.assign({}, {equal, lessThan, greaterThan, lessThanOrEqual, greaterThanOrEqual, between}),
+    operators: Object.assign({}, {equal, lessThan, greaterThan, lessThanOrEqual, greaterThanOrEqual}),
   }
 };
 
@@ -30,7 +30,7 @@ const DateField = () => {
   return {
     id: 'date',
     description: 'date',
-    operators: Object.assign({}, {on, before, after, onOrBefore, onOrAfter, within}),
+    operators: Object.assign({}, {on, before, after, onOrBefore, onOrAfter}),
   }
 };
 
