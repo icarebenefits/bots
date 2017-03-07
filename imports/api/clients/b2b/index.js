@@ -26,14 +26,14 @@ const getToken = (callback) => {
         }
         const result = JSON.parse(body);
         var access_token = result.access_token;
-        console.log('access_token:' + access_token);
+        // console.log('access_token:' + access_token);
         callback(access_token);
     });
 };
 
 const searchCustomer = (keyword, callback) => {
     check(callback, Function);
-    console.log("keyword:" + keyword);
+    // console.log("keyword:" + keyword);
     getToken(function (access_token) {
         const
             {id, secret, username, password, baseUrl, tenant: {Cambodia: tenant}} = Meteor.settings.clients.b2b,
@@ -56,7 +56,7 @@ const searchCustomer = (keyword, callback) => {
                 throw new Meteor.Error('SEARCH_B2B_FAILED', statusMessage);
             }
             const result = JSON.parse(body);
-            console.log(body + '');
+            // console.log(body + '');
             callback(result.total);
         });
 
