@@ -34,6 +34,11 @@ class MainLayout extends Component {
           id: 'examples',
           href: FlowRouter.path('conditions-builder', {style: 'netsuite'}),
           title: 'Examples',
+        },
+        {
+          id: 'group',
+          href: FlowRouter.path('group'),
+          title: 'workplace group',
         }
       ],
       {
@@ -69,7 +74,7 @@ class MainLayout extends Component {
         <div className="page-header">
           <h1>{pageHeader}</h1>
         </div>
-        
+
         {/* .. Content .. */}
         <div className="row">
           {content()}

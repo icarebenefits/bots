@@ -7,6 +7,7 @@ import MainLayout from '../../ui/layouts/MainLayout';
 
 // pages
 import Home from '../../ui/pages/Home';
+import WorkplaceGroup from '../../ui/pages/WorkplaceGroup';
 import ConditionBuilderTree from '../../ui/pages/examples/ConditionBuilderTree';
 import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
 
@@ -17,6 +18,19 @@ FlowRouter.route('/', {
       content() {
         return (
           <Home />
+        );
+      }
+    });
+  }
+});
+
+FlowRouter.route('/group', {
+  name: 'group',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <WorkplaceGroup />
         );
       }
     });
