@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-export class Input extends Component {
+export class Textbox extends Component {
   render() {
     const {name, className, value, handleOnChange} = this.props;
     return (
@@ -13,3 +13,5 @@ export class Input extends Component {
     );
   }
 }
+
+export default Textbox

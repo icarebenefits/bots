@@ -111,12 +111,12 @@ export class Condition extends Component {
         <td data-row={id}>
           <div>
             <Button
-              onClick={e => handleInsertCondition(id)}
+              onClick={e => {e.preventDefault(); handleInsertCondition(id);}}
               className="btn-default"
             >Insert</Button>
             {' '}
             <Button
-              onClick={e => handleRemoveCondition(id)}
+              onClick={e => {e.preventDefault(); handleRemoveCondition(id);}}
               className="btn-danger"
             >Remove</Button>
           </div>

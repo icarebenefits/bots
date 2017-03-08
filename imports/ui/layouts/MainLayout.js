@@ -7,6 +7,9 @@ import {
   Header,
   Footer
 } from '../../ui/components/common';
+import {
+  PageSideBar,
+} from '../../ui/components';
 
 
 class MainLayout extends Component {
@@ -22,7 +25,7 @@ class MainLayout extends Component {
       <div className="page-header-fixed page-sidebar-closed-hide-logo">
         <div className="wrapper">
           {/* Header */}
-          <Header 
+          <Header
             tabs={tabs}
           />
 
@@ -31,14 +34,8 @@ class MainLayout extends Component {
               {/* Breadcrumbs */}
 
               <div className="page-content-container">
-                <div className="page-content-row">
-                  {/* Page Sidebar */}
-                  <div className="page-sidebar">
-                  </div>
-
-                  {/* Content */}
-                  {content()}
-                </div>
+                {/* Content */}
+                {content()}
               </div>
             </div>
 

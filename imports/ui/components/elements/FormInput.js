@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
 import {Checkbox} from './Checkbox';
-import {Input} from './Input';
+import {Textbox} from './Textbox';
 import {Selectbox} from './Selectbox';
 import {DatePicker} from './DatePicker';
 
@@ -44,9 +44,11 @@ export class FormInput extends Component {
       }
       default: {
         return (
-          <Input {...common} />
+          <Textbox {...common} />
         );
       }
     }
   }
 }
+
+export default FormInput

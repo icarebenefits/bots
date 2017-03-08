@@ -45,7 +45,8 @@ export class ConditionGroup extends Component {
     this.setState({conditions});
   }
 
-  _addCondition() {
+  _addCondition(e) {
+    e.preventDefault();
     const
       {conditions} = this.state,
       condition = this.getDefaultCondition()
@@ -395,15 +396,15 @@ export class ConditionGroup extends Component {
     }
 
     return (
-      <div className="container">
+      <div>
         <div className="row">
-          <h3>Expression:</h3>
+          <h4>Conditions:</h4>
           <h5>{expression}</h5>
         </div>
         <div className="row">
           <Button
             className="btn-default"
-            onClick={this._addCondition}
+            onClick={e => this._addCondition(e)}
           ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
         </div>
         <div className="row">

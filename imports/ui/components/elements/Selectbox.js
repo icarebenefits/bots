@@ -18,3 +18,5 @@ export class Selectbox extends Component {
     );
   }
 }
+
+export default Selectbox

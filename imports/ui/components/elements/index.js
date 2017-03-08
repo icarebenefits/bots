@@ -1,2 +1,10 @@
 export {default as Button} from './Button';
+export {default as Checkbox} from './Checkbox';
+export {default as Selectbox} from './Selectbox';
+export {default as Suggest} from './Suggest';
+export {default as DatePicker} from './DatePicker';
+export {default as Textbox} from './Textbox';
+export {default as Label} from './Label';
+export {default as Dialog} from './Dialog';
+export {default as FormInput} from './FormInput';
 export {default as Form} from './Form';
