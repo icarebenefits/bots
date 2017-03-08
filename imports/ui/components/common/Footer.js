@@ -1,22 +1,14 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
 
-const Footer = (props) => {
+const Footer = () => {
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="pull-left">
-          <strong>iCare bots</strong>
-        </div>
-        <div className="pull-right">
-          <strong>Copyright</strong> icarebenefits.com &copy; 2017
-        </div>
-      </div>
-    </footer>
+    <div>
+      <p className="copyright"> 2017 &copy; iCare Benefits</p>
+      <a href="#index" className="go2top">
+        <i className="icon-arrow-up"></i>
+      </a>
+    </div>
   );
-};
-
-Footer.propTypes = {
-
 };
 
 export default Footer

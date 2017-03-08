@@ -5,7 +5,6 @@ export function FbRequest() {
 }
 
 FbRequest.prototype = {
-
   post: function (personalId, groupId, message) {
     const app_token = Meteor.settings.facebook.appToken;
     const prefix_url = Meteor.settings.facebook.prefixUrl;
