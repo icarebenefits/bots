@@ -3,25 +3,75 @@ import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
 
 // layouts
-import MainLayout from '../../ui/layouts/MainLayout';
+import {
+  MainLayout,
+  BlankLayout
+} from '../../ui/layouts';
 
 // pages
-import Home from '../../ui/pages/Home';
-import ConditionBuilderTree from '../../ui/pages/examples/ConditionBuilderTree';
+import {
+  CountriesPage,
+  WorkplacesPage,
+  SLAsPage,
+
+  BlankPage,
+
+  Discover,
+  ConditionBuilderTree,
+  Redux,
+} from '../../ui/pages';
 import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
 
 FlowRouter.route('/', {
-  name: 'home',
+  name: 'countries',
   action() {
     mount(MainLayout, {
       content() {
         return (
-          <Home />
+          <CountriesPage />
         );
       }
     });
   }
 });
+
+FlowRouter.route('/setup/:country', {
+  name: 'SLAs',
+  action(params, queryParams) {
+    const
+      {country} = params,
+      {tab} = queryParams
+      ;
+    mount(MainLayout, {
+      tabs: [
+        {id: 'workplaces', name: 'Workplaces'},
+        {id: 'slas', name: 'SLAs'},
+      ],
+      content() {
+        switch (tab) {
+          case 'workplaces':
+          {
+            return (
+              <WorkplacesPage />
+            );
+          }
+          case 'slas':
+          {
+            return (
+              <SLAsPage />
+            );
+          }
+          default:
+          {
+            return (
+              <WorkplacesPage />
+            );
+          }
+        }
+      }
+    });
+  }
+})
 
 const examplesRoutes = FlowRouter.group({
   name: 'examples',
@@ -33,13 +83,6 @@ examplesRoutes.route('/conditions-builder/:style', {
   action(params, queryParams) {
     const {style} = params;
     mount(MainLayout, {
-      crumbs: [
-        {id: 'examples', href: FlowRouter.path('examples'), title: 'Examples'},
-        {id: 'conditions-builder', href: FlowRouter.path('conditions-builder'), title: 'Conditions builder'},
-        {id: style, href: '#', title: style},
-      ],
-      activeCrumb: style,
-      pageHeader: style,
       content() {
         switch (style) {
           case 'tree':
@@ -57,5 +100,18 @@ examplesRoutes.route('/conditions-builder/:style', {
         }
       }
     })
+  }
+});
+
+examplesRoutes.route('/discovery', {
+  name: 'discovery',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <Discover />
+        );
+      }
+    });
   }
 });
