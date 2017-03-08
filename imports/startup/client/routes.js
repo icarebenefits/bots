@@ -8,7 +8,6 @@ import {
   BlankLayout
 } from '../../ui/layouts';
 
-
 // pages
 import {
   CountriesPage,
@@ -19,6 +18,7 @@ import {
 
   Discover,
   ConditionBuilderTree,
+  Redux,
 } from '../../ui/pages';
 import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
 
@@ -38,7 +38,7 @@ FlowRouter.route('/', {
 FlowRouter.route('/setup/:country', {
   name: 'SLAs',
   action(params, queryParams) {
-    const 
+    const
       {country} = params,
       {tab} = queryParams
       ;
@@ -48,18 +48,21 @@ FlowRouter.route('/setup/:country', {
         {id: 'slas', name: 'SLAs'},
       ],
       content() {
-        switch(tab) {
-          case 'workplaces': {
+        switch (tab) {
+          case 'workplaces':
+          {
             return (
               <WorkplacesPage />
             );
           }
-          case 'slas': {
+          case 'slas':
+          {
             return (
               <SLAsPage />
             );
           }
-          default: {
+          default:
+          {
             return (
               <WorkplacesPage />
             );
