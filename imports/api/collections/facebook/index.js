@@ -29,7 +29,7 @@ Meteor.methods({
     check(groupName, String);
 
     WorkplaceGroups.insert({
-      facebookId: groupId,
+      id: groupId,
       createdAt: new Date(),
       name: groupName,
       country: country,
@@ -64,7 +64,7 @@ Meteor.methods({
   'groups.fetchFB': (groupId) => {
     let result = {};
     if (!this.isSimulation) {
-      console.log('groupId', groupId)
+      console.log('groupId', groupId);
       const fb = new FbRequest();
       const FBValidateSync = Meteor.wrapAsync(fb.validateAsync);
       const validateResult = FBValidateSync(groupId).body;
