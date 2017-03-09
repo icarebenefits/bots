@@ -34,11 +34,6 @@ export default class Group extends Component {
             onClick={this.deleteThisGroup.bind(this)}>
             <span className="glyphicon glyphicon-remove"/>
           </button>
-          <button
-            className="btn-success"
-            onClick={this.toSLA.bind(this)}>
-            <span className="glyphicon glyphicon-arrow-right"/>
-          </button>
         </td>
       </tr>
 

@@ -6,6 +6,8 @@ import {createContainer} from 'meteor/react-meteor-data';
 import {Meteor} from 'meteor/meteor';
 import {WorkplaceGroups} from '../../api/collections/workplaces'
 import Group from './Group'
+import {FlowRouter} from 'meteor/kadira:flow-router';
+
 import {
   PageSideBar
 } from '../components';
@@ -14,7 +16,7 @@ class Workplaces extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      country: 'vn',
+      country: FlowRouter.getParam("country"),
       showName: true
     };
   }
@@ -157,6 +159,6 @@ Workplaces.propTypes = {
 export default createContainer(() => {
   Meteor.subscribe('groups');
   return {
-    groups: WorkplaceGroups.find({}, {sort: {createdAt: -1}}).fetch(),
+    groups: WorkplaceGroups.find({country: FlowRouter.getParam("country")}, {sort: {createdAt: -1}}).fetch(),
   };
 }, Workplaces);
