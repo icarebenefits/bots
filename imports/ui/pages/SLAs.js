@@ -33,13 +33,14 @@ class SLAs extends Component {
 
   handleChangeMode(event, action, row) {
     event.preventDefault();
-    console.log('handleChangeMode', {row, action});
+    // console.log('handleChangeMode', {row, action});
     this.setState({mode: action});
   }
 
   handleActionSLA(event, action, row) {
     event.preventDefault();
     console.log('handleActionSLA', {row, action});
+    console.log('handleActionSLA data', this.refs.SLA.getData());
     this.setState({action});
   }
 
@@ -74,7 +75,7 @@ class SLAs extends Component {
           ],
           handleDoubleClick: (dataset) => {
             const {row, cell} = dataset;
-            console.log('click on field', {row, cell});
+            // console.log('click on field', {row, cell});
           },
         },
       }
@@ -144,11 +145,12 @@ class SLAs extends Component {
       }
     }
 
-    console.log('_renderSingleSLA', {mode, actions});
+    // console.log('_renderSingleSLA', {mode, actions});
 
     return (
       <div className="row">
         <SingleSLA
+          ref="SLA"
           mode={mode}
           actions={actions}
         />

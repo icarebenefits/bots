@@ -48,6 +48,10 @@ export class ConditionGroup extends Component {
       this.setState({conditions});
   }
 
+  getConditions() {
+    return this.state.conditions;
+  }
+
   _addCondition(e) {
     e.preventDefault();
     const
