@@ -7,7 +7,7 @@ import {Mongo} from 'meteor/mongo';
 import {check} from 'meteor/check';
 import {FbRequest} from '/imports/api/facebook'
 
-export const WorkplaceGroups = new Mongo.Collection('workplace-groups');
+export const WorkplaceGroups = new Mongo.Collection('workplaces');
 
 if (Meteor.isServer) {
   // This code only runs on the server

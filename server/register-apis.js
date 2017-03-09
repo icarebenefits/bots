@@ -9,7 +9,7 @@
 import '/imports/api/jobs';
 // db collections
 import '/imports/api/collections/slas';
-import '/imports/api/collections/facebook';
+import '/imports/api/collections/workplaces';
 
 /**
  * Fields
@@ -22,7 +22,7 @@ import '/imports/api/fields';
  */
 // node-rules
 import '/imports/api/node_rules/register-server';
-// facebook
+// workplaces
 import '/imports/api/facebook/index';
 // clients
 // B2B

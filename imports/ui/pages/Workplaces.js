@@ -4,7 +4,7 @@ import {Form} from '../components/elements'
 import ReactDOM from 'react-dom';
 import {createContainer} from 'meteor/react-meteor-data';
 import {Meteor} from 'meteor/meteor';
-import {WorkplaceGroups} from '../../api/collections/facebook'
+import {WorkplaceGroups} from '../../api/collections/workplaces'
 import Group from './Group'
 import {
   PageSideBar
