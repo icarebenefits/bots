@@ -28,12 +28,16 @@ const ListItem = (props) => {
         {hasActions
           ? <td>
               <div className="btn-group">
-                {actions.map(action => (
-                  <Button
-                    key={action.name}
-                    className="btn-default"
-                  >{action.label}</Button>
-                ))}
+                {actions.map(action => {
+                  const {id, label, handleAction} = action;
+                  return (
+                    <Button
+                      key={id}
+                      className="btn-default"
+                      onClick={e => handleAction(e, id, row)}
+                    >{label}</Button>
+                  );
+                })}
               </div>
             </td>
           : null

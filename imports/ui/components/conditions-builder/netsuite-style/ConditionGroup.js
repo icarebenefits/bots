@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
 import _ from 'lodash';
-import moment from 'moment';
 
+import {
+  Button,
+  Dialog,
+  Form,
+  Label,
+} from '../../elements';
 import {Condition} from './Condition';
-import Button from '../../elements/Button';
-import {Dialog} from '../../elements/Dialog';
-import {Form} from '../../elements/Form';
 import {Schema} from './schema';
 
 export class ConditionGroup extends Component {
@@ -42,7 +44,8 @@ export class ConditionGroup extends Component {
 
   componentWillReceiveProps(nextProps) {
     const {conditions} = nextProps;
-    this.setState({conditions});
+    if (!_.isEmpty(conditions))
+      this.setState({conditions});
   }
 
   _addCondition(e) {
@@ -52,9 +55,9 @@ export class ConditionGroup extends Component {
       condition = this.getDefaultCondition()
       ;
 
-    if(!_.isEmpty(conditions)) {
+    if (!_.isEmpty(conditions)) {
       const {filter, operator, values} = conditions[0];
-      if(_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
+      if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
         return alert(`Please enter value(s) for Filter, Description`);
       }
     }
@@ -63,7 +66,7 @@ export class ConditionGroup extends Component {
 
     return this.setState({
       conditions,
-      edit: conditions.length -1
+      edit: conditions.length - 1
     });
   }
 
@@ -220,11 +223,11 @@ export class ConditionGroup extends Component {
     const {operator, values} = condition;
     let description = '';
 
-    if(operator) {
+    if (operator) {
       description = `${operator} `;
-      if(values.length > 1) {
+      if (values.length > 1) {
         values.map((value, idx) => {
-          if(idx === values.length -1) {
+          if (idx === values.length - 1) {
             description = `${description} "${value}"`;
           } else {
             description = `${description} "${value}" and `;
@@ -244,7 +247,7 @@ export class ConditionGroup extends Component {
     conditions.map(condition => {
       const {not, openParens, filter, closeParens, bitwise} = condition;
 
-      if(!_.isEmpty(filter)) {
+      if (!_.isEmpty(filter)) {
         expression = `${expression} ${not ? '!' : ''} ${openParens} ${filter} ${this.getDescription(condition)} ${closeParens} ${bitwise}`;
       }
     });
@@ -372,7 +375,7 @@ export class ConditionGroup extends Component {
   }
 
   _closeDialog(newConds) {
-    if(!_.isEmpty(newConds)) {
+    if (!_.isEmpty(newConds)) {
       this.setState({
         dialog: {},
         conditions: newConds
@@ -396,14 +399,17 @@ export class ConditionGroup extends Component {
     }
 
     return (
-      <div>
+      <div className="col-md-12">
         <div className="row">
-          <h4>Conditions:</h4>
+          <Label
+            className="col-md-12 bold uppercase pull-left"
+            value="Conditions: "
+          />
           <h5>{expression}</h5>
         </div>
         <div className="row">
           <Button
-            className="btn-default"
+            className="btn-default pull-right"
             onClick={e => this._addCondition(e)}
           ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
         </div>

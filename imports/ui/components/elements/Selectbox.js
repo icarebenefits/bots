@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
+import classNames from 'classnames';
 
 export class Selectbox extends Component {
   render() {
-    const {value, handleOnChange, options} = this.props;
+    const {value, className, handleOnChange, options} = this.props;
     return (
       <select
         value={value}
+        className={classNames('select2', className)}
         onChange={e => handleOnChange(e.target.value)}
       >
         {options.map(option => {

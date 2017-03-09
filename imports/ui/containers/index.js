@@ -1,2 +1,2 @@
-export {default as ViewSLAs} from './ViewSLAs';
-export {default as EditSLAs} from './EditSLAs';
+export {default as ListSLAs} from './slas/ListSLAs';
+export {default as SingleSLA} from './slas/SingleSLA';
