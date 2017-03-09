@@ -1,12 +1,12 @@
 import React, {Component} from 'react';
-import _ from 'lodash';
-import moment from 'moment';
 
-import {Checkbox} from '../../elements/Checkbox';
-import {Selectbox} from '../../elements/Selectbox';
-import {Label} from '../../elements/Label';
+import {
+  Checkbox,
+  Selectbox,
+  Label,
+  Button,
+} from '../../elements';
 import {Schema} from './schema';
-import Button from '../../elements/Button';
 
 export class Condition extends Component {
 
@@ -46,6 +46,7 @@ export class Condition extends Component {
           {readonly
             ? not ? '!' : ''
             : (<Checkbox
+            className="form-control"
             value={not}
             handleOnChange={value => handleFieldChange(id, 'not', value)}
           />)
@@ -55,6 +56,7 @@ export class Condition extends Component {
           {readonly
             ? openParens
             : (<Selectbox
+            className="form-control"
             value={openParens}
             options={[
                 {name: '', label: ''},
@@ -70,6 +72,7 @@ export class Condition extends Component {
           {readonly
             ? filter
             : (<Selectbox
+            className="form-control"
             value={filter || ''}
             options={filters}
             handleOnChange={value => handleFieldChange(id, 'filter', value)}
@@ -83,6 +86,7 @@ export class Condition extends Component {
           {readonly
             ? closeParens
             : (<Selectbox
+            className="form-control"
             value={closeParens}
             options={[
                 {name: '', label: ''},
@@ -98,6 +102,7 @@ export class Condition extends Component {
           {readonly
             ? bitwise
             : (<Selectbox
+            className="form-control"
             value={bitwise}
             options={[
                 {name: '', label: ''},
@@ -111,12 +116,12 @@ export class Condition extends Component {
         <td data-row={id}>
           <div>
             <Button
-              onClick={e => handleInsertCondition(id)}
+              onClick={e => {e.preventDefault(); handleInsertCondition(id);}}
               className="btn-default"
             >Insert</Button>
             {' '}
             <Button
-              onClick={e => handleRemoveCondition(id)}
+              onClick={e => {e.preventDefault(); handleRemoveCondition(id);}}
               className="btn-danger"
             >Remove</Button>
           </div>

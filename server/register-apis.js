@@ -7,8 +7,9 @@
  */
 // jobs-collection
 import '/imports/api/jobs';
-// slas
+// db collections
 import '/imports/api/collections/slas';
+import '/imports/api/collections/facebook';
 
 /**
  * Fields
