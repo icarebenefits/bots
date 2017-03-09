@@ -59,3 +59,5 @@ Dialog.defaultProps = {
   onAction: () => {},
   hasCancel: true
 };
+
+export default Dialog

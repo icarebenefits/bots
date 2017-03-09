@@ -1,17 +1,21 @@
 import React, {Component, PropTypes} from 'react';
 
-class ViewSLAs extends Component {
+class Modal extends Component {
   render() {
     return (
       <div>
-        List SLAs
+
       </div>
     );
   }
 }
 
-ViewSLAs.propTypes = {
+Modal.propTypes = {
 
 };
 
-export default ViewSLAs
+Modal.defaultProps = {
+
+};
+
+export default Modal
