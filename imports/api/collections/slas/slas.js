@@ -42,6 +42,9 @@ SLAs.schema = new SimpleSchema({
     type: String,
     optional: true,
   },
+  workplace: {
+    type: String,
+  },
   frequency: {
     type: String,
     optional: true,
@@ -75,9 +78,8 @@ SLAs.schema = new SimpleSchema({
     optional: true,
   },
   status: {
-    type: String,
-    allowedValues: ['active', 'inactive'],
-    defaultValue: 'inactive',
+    type: Number,
+    defaultValue: 0,
   },
   country: {
     type: String,

@@ -42,7 +42,27 @@ FlowRouter.route('/setup/:country', {
       {country} = params,
       {tab} = queryParams
       ;
+    let slogan = '';
+    switch(country) {
+      case 'vn': {
+        slogan = 'Vietnam';
+        break;
+      }
+      case 'kh': {
+        slogan = 'Cambodia';
+        break;
+      }
+      case 'la': {
+        slogan = 'Laos';
+        break;
+      }
+      default: {
+        slogan = '';
+      }
+    }
+
     mount(MainLayout, {
+      slogan,
       tabs: [
         {id: 'workplaces', name: 'Workplaces'},
         {id: 'slas', name: 'SLAs'},

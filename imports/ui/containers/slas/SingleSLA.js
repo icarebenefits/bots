@@ -22,9 +22,77 @@ class SingleSLA extends Component {
 
   render() {
     const
-      {mode, actions} = this.props;
+      {mode, actions, Workplaces, SLA} = this.props;
 
-    console.log('SingleSLA', {mode, actions});
+    const wpOptions = Workplaces.map(w => ({
+      name: w.id,
+      label: w.name,
+    }));
+
+    if (mode === 'view') {
+      const {name, description, workplace, frequency, status, conditions} = SLA;
+      return (
+        <div>
+          <form className="form-horizontal" role="form" style={{width: 900}}>
+            <div className="form-body">
+              <div className="form-group">
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value="Name: "
+                />
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value={name}
+                />
+              </div>
+              <div className="form-group">
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value="Description: "
+                />
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value={description}
+                />
+              </div>
+              <div className="form-group">
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value="Workplace: "
+                />
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value={workplace}
+                />
+              </div>
+              <div className="form-group">
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value="Frequency: "
+                />
+                <Label
+                  className="col-md-2 control-label pull-left"
+                  value={frequency}
+                />
+              </div>
+            </div>
+          </form>
+
+          <div className="row">
+            <div className="col-md-12">
+              <ConditionGroup
+                readonly={true}
+                ref="conditions"
+              />
+            </div>
+          </div>
+
+          <FormActions
+            {...actions}
+          />
+        </div>
+      );
+    }
     return (
       <div>
         <form className="form-horizontal" role="form" style={{width: 900}}>
@@ -68,9 +136,7 @@ class SingleSLA extends Component {
                   type="select"
                   ref="workplace"
                   className="form-control input-medium"
-                  options={[
-                    {name: '244483225939000', label: 'iCare Reloaded'}
-                  ]}
+                  options={wpOptions}
                   handleOnChange={() => {}}
                 />
               </div>

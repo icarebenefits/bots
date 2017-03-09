@@ -396,7 +396,7 @@ export class ConditionGroup extends Component {
       {conditions, edit} = this.state,
       expression = this.getExpression(conditions)
       ;
-    let {handlers} = this.props;
+    let {handlers, readonly} = this.props;
 
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();
@@ -440,7 +440,7 @@ export class ConditionGroup extends Component {
                   id={idx}
                   ref={`condition-${idx}`}
                   condition={condition}
-                  readonly={Number(edit) === idx ? false : true}
+                  readonly={readonly || (Number(edit) === idx ? false : true)}
                   handlers={handlers}
                 />
               );

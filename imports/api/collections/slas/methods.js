@@ -20,31 +20,82 @@ Methods.create = new ValidatedMethod({
   // validate: null,
   validate: new SimpleSchema({
     name: {
-      type: String
+      type: String,
+      unique: true,
     },
     description: {
+      type: String,
+      optional: true,
+    },
+    workplace: {
+      type: String,
+    },
+    frequency: {
       type: String,
       optional: true,
     },
     conditions: {
       type: [Object]
     },
-    frequency: {
+    "conditions.$.not": {
+      type: Boolean,
+      optional: true,
+    },
+    "conditions.$.openParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.filter": {
+      type: String,
+    },
+    "conditions.$.operator": {
+      type: String,
+    },
+    "conditions.$.values": {
+      type: [String]
+    },
+    "conditions.$.closeParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.bitwise": {
       type: String,
       optional: true,
     },
     status: {
-      type: String,
-      allowedValues: ['active', 'inactive'],
-      defaultValue: 'inactive',
+      type: Number,
+      defaultValue: 0,
     },
     country: {
       type: String,
       allowedValues: COUNTRIES
     }
   }).validator(),
-  run({name, description, workplace, frequency, conditions, country}) {
-    return SLAs.insert({name, description, workplace, frequency, conditions, country});
+  run({name, description, workplace, frequency, conditions, status, country}) {
+    return SLAs.insert({name, description, workplace, frequency, conditions, status, country});
+  }
+});
+
+/**
+ * Method set status an SLA
+ * @param {} name - description
+ * @return {}
+ */
+Methods.setStatus = new ValidatedMethod({
+  name: 'slas.setStatus',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    status: {
+      type: Number,
+    }
+  }).validator(),
+  run({_id, status}) {
+    const
+      selector = {_id},
+      modifier = {status}
+      ;
+
+    return SLAs.update(selector, {$set: modifier});
   }
 });
 
@@ -102,30 +153,6 @@ Methods.edit = new ValidatedMethod({
  * @param {} name - description
  * @return {}
  */
-Methods.addCountry = new ValidatedMethod({
-  name: 'slas.addCountry',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    country: {
-      type: String,
-      regEx: SimpleSchema.RegEx.Id,
-    }
-  }).validator(),
-  run({_id, country}) {
-    const
-      selector = {_id},
-      modifier = {country}
-      ;
-
-    return SLAs.update(selector, {$addToSet: modifier});
-  }
-});
-
-/**
- * Method remove an SLA
- * @param {} name - description
- * @return {}
- */
 Methods.remove = new ValidatedMethod({
   name: 'slas.remove',
   validate: new SimpleSchema({
@@ -136,28 +163,5 @@ Methods.remove = new ValidatedMethod({
   }
 });
 
-/**
- * Method set status an SLA
- * @param {} name - description
- * @return {}
- */
-Methods.setStatus = new ValidatedMethod({
-  name: 'slas.setStatus',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    status: {
-      type: String,
-      // allowedValues: [SLAs.status.active, SLAs.status.inactive]
-    }
-  }).validator(),
-  run({_id, status}) {
-    const
-      selector = {_id},
-      modifier = {status}
-      ;
-
-    return SLAs.update(selector, {$set: modifier});
-  }
-});
 
 export default Methods
