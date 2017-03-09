@@ -17,21 +17,34 @@ const Methods = {};
  */
 Methods.create = new ValidatedMethod({
   name: 'slas.create',
-  validate: null,
-  // validate: new SimpleSchema({
-  //   name: {
-  //     type: String
-  //   },
-  //   expression: {
-  //     type: Object
-  //   },
-  //   countries: {
-  //     type: [String],
-  //     allowedValues: COUNTRIES
-  //   }
-  // }).validator(),
-  run({name, expression, countries}) {
-    return SLAs.insert({name, expression, countries});
+  // validate: null,
+  validate: new SimpleSchema({
+    name: {
+      type: String
+    },
+    description: {
+      type: String,
+      optional: true,
+    },
+    conditions: {
+      type: [Object]
+    },
+    frequency: {
+      type: String,
+      optional: true,
+    },
+    status: {
+      type: String,
+      allowedValues: ['active', 'inactive'],
+      defaultValue: 'inactive',
+    },
+    country: {
+      type: String,
+      allowedValues: COUNTRIES
+    }
+  }).validator(),
+  run({name, description, workplace, frequency, conditions, country}) {
+    return SLAs.insert({name, description, workplace, frequency, conditions, country});
   }
 });
 

@@ -38,10 +38,39 @@ SLAs.schema = new SimpleSchema({
     type: String,
     unique: true,
   },
-  expression: {
-    type: Object,
+  description: {
+    type: String,
+    optional: true,
   },
-  schedule: {
+  frequency: {
+    type: String,
+    optional: true,
+  },
+  conditions: {
+    type: [Object]
+  },
+  "conditions.$.not": {
+    type: Boolean,
+    optional: true,
+  },
+  "conditions.$.openParens": {
+    type: String,
+    optional: true,
+  },
+  "conditions.$.filter": {
+    type: String,
+  },
+  "conditions.$.operator": {
+    type: String,
+  },
+  "conditions.$.values": {
+    type: [String]
+  },
+  "conditions.$.closeParens": {
+    type: String,
+    optional: true,
+  },
+  "conditions.$.bitwise": {
     type: String,
     optional: true,
   },
@@ -50,10 +79,9 @@ SLAs.schema = new SimpleSchema({
     allowedValues: ['active', 'inactive'],
     defaultValue: 'inactive',
   },
-  countries: {
-    type: [String],
-    // regEx: [SimpleSchema.RegEx.Id],
-    allowedValues: COUNTRIES,
+  country: {
+    type: String,
+    allowedValues: COUNTRIES
   },
   createdAt: {
     type: Date,
@@ -63,7 +91,7 @@ SLAs.schema = new SimpleSchema({
   }
 });
 
-// SLAs.attachSchema(SLAs.schema);
+SLAs.attachSchema(SLAs.schema);
 
 /**
  * Helpers
@@ -75,8 +103,8 @@ SLAs.helpers({
   name() {
     return this.name;
   },
-  countries() {
-    return this.countries;
+  country() {
+    return this.country;
   },
   status() {
     return this.status;

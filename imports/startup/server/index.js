@@ -15,12 +15,19 @@ import '/imports/startup/server/routes';
 // import '../imports/api/api.js';
 
 import later from 'later';
+import {Countries} from '/imports/api/collections/countries';
 import JobList from '/imports/api/jobs/collections';
 import Jobs from '/imports/api/jobs/functions/jobs';
 import JobServer from '/imports/api/jobs/functions/job-server';
 import Workers from '/imports/api/jobs/functions/workers';
 
 Meteor.startup(function() {
+  if(Countries.find().count() === 0) {
+    Countries.insert({code: 'vn', name: 'Vietnam', status: 'active'});
+    Countries.insert({code: 'kh', name: 'Cambodia', status: 'active'});
+    Countries.insert({code: 'la', name: 'Laos', status: 'active'});
+  }
+  
   let type = "";
   
   // startup for B2BJobs

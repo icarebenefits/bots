@@ -8,7 +8,8 @@
 // jobs-collection
 import '/imports/api/jobs';
 // db collections
-import '/imports/api/collections/slas';
+import '/imports/api/collections/countries/register.server';
+import '/imports/api/collections/slas/register.server';
 import '/imports/api/collections/workplaces';
 
 /**
