@@ -46,6 +46,34 @@ SLAs.schema = new SimpleSchema({
     type: String,
   },
   frequency: {
+    type: Object,
+    optional: true,
+  },
+  'frequency.first': {
+    type: Object,
+    optional: true,
+  },
+  'frequency.first.preps': {
+    type: String,
+    optional: true,
+  },
+  'frequency.first.range': {
+    type: String,
+    optional: true,
+  },
+  'frequency.first.unit': {
+    type: String,
+    optional: true,
+  },
+  'frequency.second': {
+    type: Object,
+    optional: true,
+  },
+  'frequency.second.preps': {
+    type: String,
+    optional: true,
+  },
+  'frequency.second.range': {
     type: String,
     optional: true,
   },
@@ -93,7 +121,7 @@ SLAs.schema = new SimpleSchema({
   }
 });
 
-SLAs.attachSchema(SLAs.schema);
+// SLAs.attachSchema(SLAs.schema);
 
 /**
  * Helpers

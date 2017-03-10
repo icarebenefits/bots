@@ -13,11 +13,12 @@ class ScheduleBuilder extends Component {
   constructor(props) {
     super(props);
 
+    console.log('builder', props.frequency);
     this.state = {
-      preps: !_.isEmpty(props.first) ? props.first.preps : 'on the',
-      preps2: !_.isEmpty(props.second) ? props.second.preps : 'on',
-      first: !_.isEmpty(props.first) ? props.first : {},
-      second: !_.isEmpty(props.second) ? props.second : {},
+      preps: !_.isEmpty(props.frequency) ? props.frequency.first.preps : 'on the',
+      preps2: !_.isEmpty(props.frequency) ? props.frequency.second.preps : 'on',
+      first: !_.isEmpty(props.frequency) ? props.frequency.first : {},
+      second: !_.isEmpty(props.frequency) ? props.frequency.second : {},
     };
 
     this.getScheduleText = this.getScheduleText.bind(this);
@@ -32,10 +33,10 @@ class ScheduleBuilder extends Component {
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      preps: !_.isEmpty(nextProps.first) ? props.first.preps : 'on the',
-      preps2: !_.isEmpty(nextProps.second) ? props.second.preps : 'on',
-      first: !_.isEmpty(nextProps.first) ? props.first : {},
-      second: !_.isEmpty(nextProps.second) ? props.second : {},
+      preps: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.first.preps : 'on the',
+      preps2: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.second.preps : 'on',
+      first: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.first : {},
+      second: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.second : {},
     });
   }
 
@@ -164,6 +165,7 @@ class ScheduleBuilder extends Component {
               ref="preps"
               type="select"
               className="form-control"
+              value={first.preps}
               options={firstPart.prepsOpts}
               handleOnChange={value => this.setState({first: {...first, preps: value}, preps: value})}
             />
@@ -173,6 +175,7 @@ class ScheduleBuilder extends Component {
               ref="range"
               type="select"
               className="form-control"
+              value={first.range}
               options={firstPart.rangeOpts[preps]}
               handleOnChange={value => this.setState({first: {...first, range: value}})}
             />
@@ -186,6 +189,7 @@ class ScheduleBuilder extends Component {
               ref="unit"
               type="select"
               className="form-control"
+              value={first.unit}
               options={firstPart.unitOpts[preps]}
               handleOnChange={value => this.setState({first: {...first, unit: value}})}
             />
@@ -196,6 +200,7 @@ class ScheduleBuilder extends Component {
               <FormInput
                 type="select"
                 className="form-control"
+                value={second.preps}
                 options={secondPart.prepsOpts}
                 handleOnChange={value => this.setState({second: {...second, preps: value}, preps2: value})}
               />
@@ -206,6 +211,7 @@ class ScheduleBuilder extends Component {
               <FormInput
                 type="select"
                 className="form-control"
+                value={second.range}
                 options={secondPart.rangeOpts[preps2]}
                 handleOnChange={value => this.setState({second: {...second, range: value}})}
               />

@@ -54,20 +54,20 @@ class SLAs extends Component {
       country = FlowRouter.getParam('country')
       ;
 
-    console.log(frequency);
-    // const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
-    //
-    // _.isEmpty(name) && alert(`Name of SLA is required.`);
-    // _.isEmpty(wpName) && alert(`Workplace of SLA is required.`);
-    // (_.isEmpty(conditions[0].filter) ||
-    // _.isEmpty(conditions[0].operator) ||
-    // _.isEmpty(conditions[0].values)) && alert(`Condition of SLA is required.`);
-    //
-    // Methods.create.call({name, description, workplace: wpName, frequency, status, conditions, country},
-    //   (error, result) => {
-    //     if (error) alert(error.reason);
-    //     else return this.setState({mode: 'list', action: null});
-    //   });
+    // console.log(frequency);
+    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
+
+    _.isEmpty(name) && alert(`Name of SLA is required.`);
+    _.isEmpty(wpName) && alert(`Workplace of SLA is required.`);
+    (_.isEmpty(conditions[0].filter) ||
+    _.isEmpty(conditions[0].operator) ||
+    _.isEmpty(conditions[0].values)) && alert(`Condition of SLA is required.`);
+
+    Methods.create.call({name, description, workplace: wpName, frequency, status, conditions, country},
+      (error, result) => {
+        if (error) alert(error.reason);
+        else return this.setState({mode: 'list', action: null});
+      });
   }
 
   _editSLA(SLA, status) {
@@ -163,6 +163,24 @@ class SLAs extends Component {
     }
   }
 
+  getScheduleText(freq) {
+    const
+      {
+        first: {preps, range, unit},
+        second: {preps: preps2, range: range2},
+      } = freq
+      ;
+    let text = '';
+
+    !_.isEmpty(preps) && (text = `${preps}`);
+    !_.isEmpty(range) && (text = `${text} ${range}`);
+    !_.isEmpty(unit) && (preps === 'at') ? (text = `${text}:${unit}`) : (text = `${text} ${unit}`);
+    !_.isEmpty(preps2) && (text = `${text} ${preps2}`);
+    !_.isEmpty(range2) && (text = `${text} ${range2}`);
+
+    return text;
+  }
+
   _renderListSLAs() {
     const
       {SLAsList} = this.props,
@@ -195,10 +213,12 @@ class SLAs extends Component {
       }
       ;
 
+
+
     const dataList = SLAsList.map(s => ([
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: s.workplace},
-      {id: 'frequency', type: 'input', value: s.frequency},
+      {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
       {id: 'status', type: 'input', value: s.status ? 'active' : 'inactive'},
     ]));
 
@@ -271,8 +291,6 @@ class SLAs extends Component {
       }
     }
 
-    console.log('state', this.state);
-
     return (
       <div className="row">
         <SingleSLA
@@ -281,6 +299,7 @@ class SLAs extends Component {
           Workplaces={Workplaces}
           SLA={SLAsList[row]}
           actions={actions}
+          getScheduleText={this.getScheduleText}
         />
       </div>
     );

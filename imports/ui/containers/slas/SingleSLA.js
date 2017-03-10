@@ -21,6 +21,10 @@ class SingleSLA extends Component {
     };
   }
 
+  parseFrequencyToText(freq) {
+
+  }
+
   render() {
     const
       {mode, actions, Workplaces, SLA} = this.props;
@@ -32,7 +36,7 @@ class SingleSLA extends Component {
 
 
     if (mode === 'view') {
-      const {name = '', description = '', workplace = '', frequency = '', status, conditions} = SLA;
+      const {name = '', description = '', workplace = '', frequency = {}, status, conditions} = SLA;
       return (
         <div>
           <form className="form-horizontal" role="form" style={{width: 900}}>
@@ -43,7 +47,7 @@ class SingleSLA extends Component {
                   value="Name: "
                 />
                 <Label
-                  className="col-md-2 control-label pull-left"
+                  className="col-md-2 control-label text-align-left"
                   value={name}
                 />
               </div>
@@ -74,7 +78,7 @@ class SingleSLA extends Component {
                 />
                 <Label
                   className="col-md-2 control-label pull-left"
-                  value={frequency}
+                  value={this.props.getScheduleText(frequency)}
                 />
               </div>
             </div>
@@ -156,6 +160,7 @@ class SingleSLA extends Component {
             <ScheduleBuilder
               ref="frequency"
               label="Frequency"
+              frequency={mode === 'edit' ? SLA.frequency : {}}
             />
           </div>
         </div>
