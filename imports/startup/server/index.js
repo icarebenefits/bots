@@ -14,7 +14,8 @@ import '/imports/startup/server/routes';
 // as an API to the client.
 // import '../imports/api/api.js';
 
-import later from 'later';
+// import later from 'later';
+import {later} from 'meteor/mrt:later';
 import {Countries} from '/imports/api/collections/countries';
 import JobList from '/imports/api/jobs/collections';
 import Jobs from '/imports/api/jobs/functions/jobs';

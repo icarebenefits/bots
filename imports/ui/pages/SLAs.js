@@ -38,7 +38,8 @@ class SLAs extends Component {
     this.handleActionSLA = this.handleActionSLA.bind(this);
 
     // helpers
-    this._saveSLA = this._saveSLA.bind(this);
+    this._addSLA = this._addSLA.bind(this);
+    this._editSLA = this._editSLA.bind(this);
     this._enableSLA = this._enableSLA.bind(this);
 
     // render
@@ -46,33 +47,53 @@ class SLAs extends Component {
     this._renderSingleSLA = this._renderSingleSLA.bind(this);
   }
 
-  _saveSLA({status}) {
+  _addSLA({status}) {
+    const
+      {Workplaces} = this.props,
+      {name, description, workplace, frequency, conditions} = this.refs.SLA.getData(),
+      country = FlowRouter.getParam('country')
+      ;
+
+    console.log(frequency);
+    // const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
+    //
+    // _.isEmpty(name) && alert(`Name of SLA is required.`);
+    // _.isEmpty(wpName) && alert(`Workplace of SLA is required.`);
+    // (_.isEmpty(conditions[0].filter) ||
+    // _.isEmpty(conditions[0].operator) ||
+    // _.isEmpty(conditions[0].values)) && alert(`Condition of SLA is required.`);
+    //
+    // Methods.create.call({name, description, workplace: wpName, frequency, status, conditions, country},
+    //   (error, result) => {
+    //     if (error) alert(error.reason);
+    //     else return this.setState({mode: 'list', action: null});
+    //   });
+  }
+
+  _editSLA(SLA, status) {
     const
       {Workplaces} = this.props,
       {name, description, workplace, frequency, conditions} = this.refs.SLA.getData(),
       country = FlowRouter.getParam('country')
       ;
     const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
+    const
+      newSLA = {...SLA, ...this.refs.SLA.getData(), workplace: wpName, status, country}
+      ;
 
-    _.isEmpty(name) && alert(`Name of SLA is required.`);
-    _.isEmpty(wpName) && alert(`Workplace of SLA is required.`);
-    (_.isEmpty(conditions[0].filter) ||
-    _.isEmpty(conditions[0].operator) ||
-    _.isEmpty(conditions[0].values)) && alert(`Condition of SLA is required.`);
+    delete newSLA.createdAt;
+    delete newSLA.updatedAt;
 
-    Methods.create.call({name, description, workplace: wpName, frequency, status, conditions, country},
-      (error, result) => {
-        if (error) alert(error.reason);
-        else return this.setState({mode: 'list', action: null});
-      });
+    Methods.edit.call(newSLA, (error, result) => {
+      if (error) alert(error.reason);
+      else alert(`SLA saved`);
+    });
   }
-  
-  _enableSLA(id) {
 
+  _enableSLA(id) {
     const {_id, status} = this.props.SLAsList[id];
-    // console.log('_enableSLA', {id, sla: this.props.SLAsList[id]});
     Methods.setStatus.call({_id, status: Number(!Boolean(status))}, (error, result) => {
-      if(error) alert(error.reason);
+      if (error) alert(error.reason);
       else return this.setState({mode: 'list', action: null});
     });
   }
@@ -84,10 +105,10 @@ class SLAs extends Component {
 
   handleActionSLA(event, action, row) {
     event.preventDefault();
-    console.log('handleActionSLA', {row, action});
 
     switch (action) {
-      case 'back': {
+      case 'back':
+      {
       }
       case 'cancel':
       {
@@ -100,24 +121,40 @@ class SLAs extends Component {
       }
       case 'validate':
       {
-        console.log('show dialog with conditions');
+        alert(`good to go`);
         return this.setState({action});
       }
       case 'saveDraft':
       {
-        this._saveSLA({status: 0});
+        if (this.state.mode === 'edit') {
+          this._editSLA(this.props.SLAsList[this.state.row], 0);
+        } else {
+          this._addSLA({status: 0});
+        }
         return this.setState({action});
       }
       case 'save':
       {
-        this._saveSLA({status: 1})
+        if (this.state.mode === 'edit') {
+          this._editSLA(this.props.SLAsList[this.state.row], 1);
+        } else {
+          this._addSLA({status: 1});
+        }
         return this.setState({action});
       }
       case 'saveRun':
       {
-        this._saveSLA({status: 1});
+        if (this.state.mode === 'edit') {
+          this._editSLA(this.props.SLAsList[this.state.row], 1);
+        } else {
+          this._addSLA({status: 1});
+        }
         console.log('run job immediately');
         return this.setState({action});
+      }
+      case 'edit':
+      {
+        return this.setState({mode: action, action});
       }
       default:
       {
@@ -233,6 +270,8 @@ class SLAs extends Component {
         alert(`Unknown action: ${mode}`);
       }
     }
+
+    console.log('state', this.state);
 
     return (
       <div className="row">

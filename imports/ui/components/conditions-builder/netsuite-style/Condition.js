@@ -19,7 +19,7 @@ export class Condition extends Component {
       {
         id,
         condition: {
-          not, openParens, filter, operator, values, closeParens, bitwise
+          not = false, openParens = '', filter = '', operator = '', values = [], closeParens = '', bitwise = ''
         },
         handlers: {
           handleFieldChange,
@@ -114,17 +114,20 @@ export class Condition extends Component {
           }
         </td>
         <td data-row={id}>
-          <div>
-            <Button
-              onClick={e => {e.preventDefault(); handleInsertCondition(id);}}
-              className="btn-default"
-            >Insert</Button>
-            {' '}
-            <Button
-              onClick={e => {e.preventDefault(); handleRemoveCondition(id);}}
-              className="btn-danger"
-            >Remove</Button>
-          </div>
+          {readonly
+            ? null
+            : <div>
+              <Button
+                onClick={e => {e.preventDefault(); handleInsertCondition(id);}}
+                className="btn-default"
+              >Insert</Button>
+              {' '}
+              <Button
+                onClick={e => {e.preventDefault(); handleRemoveCondition(id);}}
+                className="btn-danger"
+              >Remove</Button>
+            </div>
+          }
         </td>
       </tr>
     );

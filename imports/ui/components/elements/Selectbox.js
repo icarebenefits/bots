@@ -8,18 +8,19 @@ export class Selectbox extends Component {
   }
 
   render() {
-    const {value, className, handleOnChange, options} = this.props;
+    const {value, defaultValue, className, handleOnChange, options} = this.props;
     return (
       <select
-        value={value}
         ref="select"
+        value={value}
+        defaultValue={defaultValue}
         className={classNames('select2', className)}
         onChange={e => handleOnChange(e.target.value)}
       >
         {options.map(option => {
           const {name, label} = option;
           return (
-            <option key={name} value={name} onClick={e => console.log(e.target.value)}>{label}</option>
+            <option key={name} value={name} onClick={() => {}}>{label}</option>
           );
         })}
       </select>

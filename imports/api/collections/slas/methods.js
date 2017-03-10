@@ -113,36 +113,69 @@ Methods.edit = new ValidatedMethod({
     ...IDValidator,
     name: {
       type: String,
-      optional: true
+      unique: true,
     },
-    expression: {
+    description: {
       type: String,
-      optional: true
+      optional: true,
     },
-    schedule: {
+    workplace: {
       type: String,
-      optional: true
-    }
+    },
+    frequency: {
+      type: String,
+      optional: true,
+    },
+    conditions: {
+      type: [Object]
+    },
+    "conditions.$.not": {
+      type: Boolean,
+      optional: true,
+    },
+    "conditions.$.openParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.filter": {
+      type: String,
+    },
+    "conditions.$.operator": {
+      type: String,
+    },
+    "conditions.$.values": {
+      type: [String]
+    },
+    "conditions.$.closeParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.bitwise": {
+      type: String,
+      optional: true,
+    },
+    status: {
+      type: Number,
+      defaultValue: 0,
+    },
+    country: {
+      type: String,
+      allowedValues: COUNTRIES
+    },
   }).validator(),
-  run({_id, name, expression, schedule}) {
+  run({_id, name, description, workplace, frequency, conditions, status, country}) {
     const
       selector = {_id},
       modifier = {}
       ;
 
-    if (!name && !expression && !schedule) {
-      console.log(`throw error`);
-      throw new ValidationError([{
-        name: 'modifier',
-        type: 'MISSING_MODIFIERS',
-        reason: 'Should have 1 field to update.'
-      }]);
-    }
-
     !_.isEmpty(name) && (modifier.name = name);
-    !_.isEmpty(expression) && (modifier.expression = expression);
-    !_.isEmpty(schedule) && (modifier.schedule = schedule);
-    console.log(selector, modifier);
+    !_.isEmpty(description) && (modifier.description = description);
+    !_.isEmpty(workplace) && (modifier.workplace = workplace);
+    !_.isEmpty(frequency) && (modifier.frequency = frequency);
+    !_.isEmpty(conditions) && (modifier.conditions = conditions);
+    !_.isEmpty(status) && (modifier.status = status);
+    !_.isEmpty(country) && (modifier.country = country);
 
     return SLAs.update(selector, {$set: modifier});
   }

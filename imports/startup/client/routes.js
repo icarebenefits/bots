@@ -21,6 +21,7 @@ import {
   Redux,
 } from '../../ui/pages';
 import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
+import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
 
 FlowRouter.route('/', {
   name: 'countries',
@@ -130,6 +131,19 @@ examplesRoutes.route('/discovery', {
       content() {
         return (
           <Discover />
+        );
+      }
+    });
+  }
+});
+
+examplesRoutes.route('/schedule-builder', {
+  name: 'schedule-builder',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <ScheduleBuilder />
         );
       }
     });
