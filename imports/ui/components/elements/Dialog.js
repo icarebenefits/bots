@@ -25,13 +25,14 @@ export class Dialog extends Component {
           <div className="DialogFooter">
             {hasCancel
               ? <span
-              className="DialogDismiss"
+              className="DialogDismiss link"
               onClick={onAction.bind(this, 'dismiss')}
             >Cancel</span>
               : null
             }
             {' '}
             <Button
+              className="btn-default"
               onClick={onAction.bind(this, hasCancel ? 'confirm' : 'dismiss')}
             >{confirmLabel}</Button>
           </div>

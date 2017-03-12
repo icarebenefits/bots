@@ -20,7 +20,7 @@ import {
   ConditionBuilderTree,
   Redux,
 } from '../../ui/pages';
-import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
+import ConditionGroup from '../../ui/components/conditions-builder/ConditionGroup';
 import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
 
 FlowRouter.route('/', {

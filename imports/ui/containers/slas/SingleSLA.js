@@ -6,7 +6,7 @@ import {
   FormActions,
 } from '../../components/elements';
 
-import {ConditionGroup} from '../../components/conditions-builder/netsuite-style/ConditionGroup';
+import {ConditionsBuilder} from '../../components/conditions-builder';
 import ScheduleBuilder from '../../components/schedule-builder/ScheduleBuilder';
 
 class SingleSLA extends Component {
@@ -86,7 +86,7 @@ class SingleSLA extends Component {
 
           <div className="row">
             <div className="col-md-12">
-              <ConditionGroup
+              <ConditionsBuilder
                 readonly={true}
                 ref="conditions"
                 conditions={conditions}
@@ -167,7 +167,7 @@ class SingleSLA extends Component {
 
         <div className="row">
           <div className="col-md-12">
-            <ConditionGroup
+            <ConditionsBuilder
               ref="conditions"
               conditions={mode === 'edit' ? SLA.conditions : []}
             />

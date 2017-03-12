@@ -8,3 +8,4 @@ Meteor.publish('slasList', function() {
 
   return SLAs.find();
 });
+
