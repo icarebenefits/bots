@@ -17,88 +17,88 @@ const Methods = {};
  */
 Methods.create = new ValidatedMethod({
   name: 'slas.create',
-  validate: null,
-  // validate: new SimpleSchema({
-  //   name: {
-  //     type: String,
-  //     unique: true,
-  //   },
-  //   description: {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   workplace: {
-  //     type: String,
-  //   },
-  //   frequency: {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.first': {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.first.preps': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.first.range': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.first.unit': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.second': {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.second.preps': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.second.range': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   conditions: {
-  //     type: [Object]
-  //   },
-  //   "conditions.$.not": {
-  //     type: Boolean,
-  //     optional: true,
-  //   },
-  //   "conditions.$.openParens": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   "conditions.$.filter": {
-  //     type: String,
-  //   },
-  //   "conditions.$.operator": {
-  //     type: String,
-  //   },
-  //   "conditions.$.values": {
-  //     type: [String]
-  //   },
-  //   "conditions.$.closeParens": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   "conditions.$.bitwise": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   status: {
-  //     type: Number,
-  //     defaultValue: 0,
-  //   },
-  //   country: {
-  //     type: String,
-  //     allowedValues: COUNTRIES
-  //   }
-  // }).validator(),
+  // validate: null,
+  validate: new SimpleSchema({
+    name: {
+      type: String,
+      unique: true,
+    },
+    description: {
+      type: String,
+      optional: true,
+    },
+    workplace: {
+      type: String,
+    },
+    frequency: {
+      type: Object,
+      optional: true,
+    },
+    'frequency.first': {
+      type: Object,
+      optional: true,
+    },
+    'frequency.first.preps': {
+      type: String,
+      optional: true,
+    },
+    'frequency.first.range': {
+      type: String,
+      optional: true,
+    },
+    'frequency.first.unit': {
+      type: String,
+      optional: true,
+    },
+    'frequency.second': {
+      type: Object,
+      optional: true,
+    },
+    'frequency.second.preps': {
+      type: String,
+      optional: true,
+    },
+    'frequency.second.range': {
+      type: String,
+      optional: true,
+    },
+    conditions: {
+      type: [Object]
+    },
+    "conditions.$.not": {
+      type: Boolean,
+      optional: true,
+    },
+    "conditions.$.openParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.filter": {
+      type: String,
+    },
+    "conditions.$.operator": {
+      type: String,
+    },
+    "conditions.$.values": {
+      type: [String]
+    },
+    "conditions.$.closeParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.bitwise": {
+      type: String,
+      optional: true,
+    },
+    status: {
+      type: Number,
+      defaultValue: 0,
+    },
+    country: {
+      type: String,
+      allowedValues: COUNTRIES
+    }
+  }).validator(),
   run({name, description, workplace, frequency, conditions, status, country}) {
     return SLAs.insert({name, description, workplace, frequency, conditions, status, country});
   }
@@ -231,7 +231,7 @@ Methods.edit = new ValidatedMethod({
     !_.isEmpty(workplace) && (modifier.workplace = workplace);
     !_.isEmpty(frequency) && (modifier.frequency = frequency);
     !_.isEmpty(conditions) && (modifier.conditions = conditions);
-    !_.isEmpty(status) && (modifier.status = status);
+    (!_.isEmpty(status) || status === 0) && (modifier.status = status);
     !_.isEmpty(country) && (modifier.country = country);
 
     return SLAs.update(selector, {$set: modifier});

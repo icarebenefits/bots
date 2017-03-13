@@ -13,7 +13,6 @@ class ScheduleBuilder extends Component {
   constructor(props) {
     super(props);
 
-    console.log('builder', props.frequency);
     this.state = {
       preps: !_.isEmpty(props.frequency) ? props.frequency.first.preps : 'on the',
       preps2: !_.isEmpty(props.frequency) ? props.frequency.second.preps : 'on',

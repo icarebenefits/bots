@@ -1,1 +1,1 @@
-export {default as ConditionsBuilder} from './ConditionGroup';
+export {default as ConditionsBuilder} from './ConditionsBuilder';

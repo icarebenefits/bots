@@ -9,6 +9,8 @@ import _ from 'lodash';
 import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 import SLAsCollection from '/imports/api/collections/slas/slas';
 
+import * as Notify from '/imports/api/notifications';
+
 // methods
 import Methods from '/imports/api/collections/slas/methods';
 
@@ -31,6 +33,8 @@ class SLAs extends Component {
       action: '',
       dialog: null,
       error: null,
+      info: null,
+      warning: null,
     };
 
     // handlers
@@ -45,48 +49,68 @@ class SLAs extends Component {
     // render
     this._renderListSLAs = this._renderListSLAs.bind(this);
     this._renderSingleSLA = this._renderSingleSLA.bind(this);
+    this._renderNotify = this._renderNotify.bind(this);
   }
 
-  _addSLA({status}) {
+  _validateData(name, wpName, frequency, filter, operator, values) {
+    if (_.isEmpty(name)) {
+      return this.setState({error: {title: 'Add SLA', message: `Name of SLA is required.`}})
+    }
+    if (_.isEmpty(wpName)) {
+      return this.setState({error: {title: 'Add SLA', message: `Workplace of SLA is required.`}})
+    }
+    if (this._validateSchedule(frequency) !== -1) {
+      return this.setState({error: {title: 'Add SLA', message: `Frequency is invalid.`}})
+    }
+    if (filter || operator || values) {
+      return this.setState({error: {title: 'Add SLA', message: `Condition of SLA is required.`}})
+    }
+
+    return false;
+  }
+
+  _addSLA(status, message) {
     const
       {Workplaces} = this.props,
       {name, description, workplace, frequency, conditions} = this.refs.SLA.getData(),
-      country = FlowRouter.getParam('country')
+      country = FlowRouter.getParam('country'),
+      {filter, operator, values} = conditions[0]
       ;
 
-    // console.log(frequency);
     const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
 
-    _.isEmpty(name) && alert(`Name of SLA is required.`);
-    _.isEmpty(wpName) && alert(`Workplace of SLA is required.`);
-    (_.isEmpty(conditions[0].filter) ||
-    _.isEmpty(conditions[0].operator) ||
-    _.isEmpty(conditions[0].values)) && alert(`Condition of SLA is required.`);
+    if(!this._validateData(name, wpName, frequency, filter, operator, values)) {
+      return;
+    }
 
-    Methods.create.call({name, description, workplace: wpName, frequency, status, conditions, country},
+    Methods.create.call({name, description, workplace: wpName, frequency, status: status, conditions, country},
       (error, result) => {
-        if (error) alert(error.reason);
-        else return this.setState({mode: 'list', action: null});
+        if (error) return this.setState({error: {title: 'Add SLA', message: 'Name of SLA had been exists'}});
+        else return this.setState({
+          mode: 'list', action: null,
+          info: {
+            title: 'Add SLA',
+            message: message
+          }
+        });
       });
   }
 
   _editSLA(SLA, status) {
     const
       {Workplaces} = this.props,
+      {_id} = SLA,
       {name, description, workplace, frequency, conditions} = this.refs.SLA.getData(),
       country = FlowRouter.getParam('country')
       ;
     const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
     const
-      newSLA = {...SLA, ...this.refs.SLA.getData(), workplace: wpName, status, country}
+      newSLA = {_id, name, description, frequency, conditions, workplace: wpName, status: status, country}
       ;
 
-    delete newSLA.createdAt;
-    delete newSLA.updatedAt;
-
     Methods.edit.call(newSLA, (error, result) => {
-      if (error) alert(error.reason);
-      else alert(`SLA saved`);
+      if (error) return this.setState({error: {title: 'Edit SLA', message: error.reason}});
+      else return this.setState({info: {title: 'Edit SLA', message: 'saved'}});
     });
   }
 
@@ -96,6 +120,30 @@ class SLAs extends Component {
       if (error) alert(error.reason);
       else return this.setState({mode: 'list', action: null});
     });
+  }
+
+  getScheduleText(freq) {
+    const
+      {
+        first: {preps, range, unit},
+        second: {preps: preps2, range: range2},
+      } = freq
+      ;
+    let text = '';
+
+    !_.isEmpty(preps) && (text = `${preps}`);
+    !_.isEmpty(range) && (text = `${text} ${range}`);
+    !_.isEmpty(unit) && (preps === 'at') ? (text = `${text}:${unit}`) : (text = `${text} ${unit}`);
+    !_.isEmpty(preps2) && (text = `${text} ${preps2}`);
+    !_.isEmpty(range2) && (text = `${text} ${range2}`);
+
+    return text;
+  }
+
+  _validateSchedule(freq) {
+    const text = this.getScheduleText(freq);
+    const {error} = later.parse.text(text);
+    return error; // -1: success; >0 failed
   }
 
   handleChangeMode(event, action, row) {
@@ -117,39 +165,49 @@ class SLAs extends Component {
       case 'enable':
       {
         this._enableSLA(row);
-        return this.setState({action});
+        return this.setState({
+          action,
+          info: {
+            title: 'Enable SLA',
+            message: 'success'
+          }
+        });
       }
       case 'validate':
       {
-        alert(`good to go`);
-        return this.setState({action});
+        return this.setState({
+          action,
+          info: {
+            title: 'Validate conditions',
+            message: 'success'
+          }
+        });
       }
       case 'saveDraft':
       {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], 0);
+          this._editSLA(this.props.SLAsList[this.state.row], 0, 'saved as draft');
         } else {
-          this._addSLA({status: 0});
+          this._addSLA(0, 'saved as draft');
         }
         return this.setState({action});
       }
       case 'save':
       {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], 1);
+          this._editSLA(this.props.SLAsList[this.state.row], 1, 'saved');
         } else {
-          this._addSLA({status: 1});
+          this._addSLA(1, 'saved');
         }
         return this.setState({action});
       }
       case 'saveRun':
       {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], 1);
+          this._editSLA(this.props.SLAsList[this.state.row], 1, 'saved and running');
         } else {
-          this._addSLA({status: 1});
+          this._addSLA(1, 'saved and running');
         }
-        console.log('run job immediately');
         return this.setState({action});
       }
       case 'edit':
@@ -158,7 +216,12 @@ class SLAs extends Component {
       }
       default:
       {
-        alert(`Unknown action: ${action}`);
+        this.setState({
+          error: {
+            title: '',
+            message: `Unknown action: ${action}`
+          }
+        })
       }
     }
   }
@@ -212,7 +275,6 @@ class SLAs extends Component {
         },
       }
       ;
-
 
 
     const dataList = SLAsList.map(s => ([
@@ -305,6 +367,27 @@ class SLAs extends Component {
     );
   }
 
+  _renderNotify() {
+    const
+      {error, warning, info} = this.state,
+      closeButton = true
+      ;
+
+    if (!_.isEmpty(error)) {
+      const {title, message} = error;
+      return Notify.error({closeButton, title, message});
+      // return this.setState({error: null});
+    }
+    if (!_.isEmpty(warning)) {
+      const {title, message} = warning;
+      Notify.warning({closeButton, title, message});
+    }
+    if (!_.isEmpty(info)) {
+      const {title, message} = info;
+      Notify.info({closeButton, title, message});
+    }
+  }
+
   render() {
     const
       {ready} = this.props,
@@ -345,6 +428,7 @@ class SLAs extends Component {
               </div>
             </div>
           </div>
+          {this._renderNotify()}
         </div>
       );
     }

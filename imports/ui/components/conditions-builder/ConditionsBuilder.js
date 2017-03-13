@@ -13,13 +13,13 @@ import {
 } from '../elements';
 import {Condition} from './Condition';
 
-class ConditionGroup extends Component {
+class ConditionsBuilder extends Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
-      conditions: !_.isEmpty(props.conditions) ? props.conditions : this.getDefaultConditions(),
+      conditions: !_.isEmpty(props.conditions) ? props.conditions : this._getDefaultConditions(),
       dialog: {}, // get field had been change, {row, fieldId}
       edit: 0,
       values: [], // the value fields showed in dialog {type}
@@ -57,7 +57,7 @@ class ConditionGroup extends Component {
     e.preventDefault();
     const
       {conditions} = this.state,
-      condition = this.getDefaultCondition()
+      condition = this._getDefaultCondition()
       ;
 
     if (!_.isEmpty(conditions)) {
@@ -167,27 +167,6 @@ class ConditionGroup extends Component {
     });
   }
 
-  _getDefaultValue(type) {
-    switch (type) {
-      case 'date':
-      {
-        return new Date();
-      }
-      case 'number':
-      {
-        return 0;
-      }
-      case 'string':
-      {
-        return '';
-      }
-      default:
-      {
-        return '';
-      }
-    }
-  }
-
   handleRemoveCondition(row) {
     const {conditions} = this.state;
 
@@ -202,7 +181,7 @@ class ConditionGroup extends Component {
   handleInsertCondition(row) {
     const {conditions} = this.state;
 
-    conditions.splice(row + 1, 0, this.getDefaultCondition());
+    conditions.splice(row + 1, 0, this._getDefaultCondition());
 
     return this.setState({
       conditions,
@@ -223,11 +202,32 @@ class ConditionGroup extends Component {
     return newConds;
   }
 
-  getDefaultConditions() {
+  _getDefaultValue(type) {
+    switch (type) {
+      case 'date':
+      {
+        return (new Date()).toString();
+      }
+      case 'number':
+      {
+        return 0;
+      }
+      case 'string':
+      {
+        return '';
+      }
+      default:
+      {
+        return '';
+      }
+    }
+  }
+
+  _getDefaultConditions() {
     return [{not: false, openParens: '', filter: '', operator: '', values: [], closeParens: '', bitwise: ''}];
   }
 
-  getDefaultCondition() {
+  _getDefaultCondition() {
     return {not: false, openParens: '', filter: '', operator: '', values: [], closeParens: '', bitwise: ''};
   }
 
@@ -249,7 +249,7 @@ class ConditionGroup extends Component {
     if (operator) {
       description = `${operator} `;
       if (values.length > 1) {
-        values.map((value, idx) => {
+        values.map(({type, value}, idx) => {
           if (idx === values.length - 1) {
             description = `${description} "${value}"`;
           } else {
@@ -257,7 +257,7 @@ class ConditionGroup extends Component {
           }
         })
       } else {
-        description = `${description} "${values[0]}"`;
+        description = `${description} "${values[0].value}"`;
       }
     }
 
@@ -299,6 +299,7 @@ class ConditionGroup extends Component {
       header = S(fieldId).capitalize().s,
       {operator, values: condValues} = conditions[row]
       ;
+    options.splice(0, 0, {name: '', label: ''}); // default option
 
     return (
       <Dialog
@@ -341,7 +342,6 @@ class ConditionGroup extends Component {
     if (action === 'dismiss') {
       newConds = this._clearDescription();
     }
-    console.log(newConds)
     this._closeDialog(newConds);
   }
 
@@ -426,4 +426,4 @@ class ConditionGroup extends Component {
   }
 }
 
-export default ConditionGroup
+export default ConditionsBuilder

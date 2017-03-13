@@ -16,14 +16,14 @@ export class Condition extends Component {
 
   _getFilters() {
     const
-      listFields = Object.keys(Fields),
-      filters = []
+      listFields = Object.keys(Fields)
       ;
 
-    listFields.map(field => {
+    const filters = listFields.map(field => {
       const {id: name, name: label} = Fields[field]().props;
-      filters.push({name, label});
+      return {name, label};
     });
+    filters.splice(0, 0, {name: '', label: ''});
 
     return filters;
   }
