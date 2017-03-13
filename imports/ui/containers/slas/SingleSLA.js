@@ -21,10 +21,6 @@ class SingleSLA extends Component {
     };
   }
 
-  parseFrequencyToText(freq) {
-
-  }
-
   render() {
     const
       {mode, actions, Workplaces, SLA} = this.props;
@@ -160,7 +156,13 @@ class SingleSLA extends Component {
             <ScheduleBuilder
               ref="frequency"
               label="Frequency"
-              frequency={mode === 'edit' ? SLA.frequency : {}}
+              frequency={mode === 'edit' ? SLA.frequency : {
+                preps: 'on the',
+                range: 'first',
+                unit: 'day of the week',
+                preps2: '',
+                range2: '',
+              }}
             />
           </div>
         </div>

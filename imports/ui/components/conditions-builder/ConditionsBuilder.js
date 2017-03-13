@@ -100,6 +100,7 @@ class ConditionsBuilder extends Component {
       const
         {values} = condition,
         newValues = [];
+      // console.log({row, key, value, index})
 
       values.map((v, idx)=> {
         idx === index
@@ -108,6 +109,7 @@ class ConditionsBuilder extends Component {
         ;
       });
       newCond = {...condition, values: newValues};
+      // console.log('newCond', newCond)
     } else {
       newCond = {...condition, [`${key}`]: value};
     }
@@ -156,8 +158,7 @@ class ConditionsBuilder extends Component {
 
       return this.setState({
         dialog,
-        conditions: newConditions,
-        hidden: true
+        conditions: newConditions
       });
     }
 
@@ -326,7 +327,7 @@ class ConditionsBuilder extends Component {
                 <FormInput
                   type={type}
                   value={value}
-                  handleOnChange={value => this.handleFieldChange(row, 'values', value, idx)}
+                  handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
                 />
               </div>
             );
@@ -337,7 +338,6 @@ class ConditionsBuilder extends Component {
   }
 
   _saveDataDialog(action) {
-    console.log('saveDialog', action);
     let newConds = [];
     if (action === 'dismiss') {
       newConds = this._clearDescription();

@@ -1,4 +1,5 @@
 import React, {PropTypes} from 'react';
+import classNames from 'classnames';
 import _ from 'lodash';
 
 import {
@@ -29,13 +30,13 @@ const ListItem = (props) => {
           ? <td>
               <div className="btn-group">
                 {actions.map(action => {
-                  const {id, label, handleAction} = action;
+                  const {id, icon, label, className, handleAction} = action;
                   return (
                     <Button
                       key={id}
-                      className="btn-default"
+                      className={classNames("btn-default", className)}
                       onClick={e => handleAction(e, id, row)}
-                    >{label}</Button>
+                    ><i className={icon}/>{label}</Button>
                   );
                 })}
               </div>

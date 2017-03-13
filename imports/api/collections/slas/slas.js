@@ -49,31 +49,23 @@ SLAs.schema = new SimpleSchema({
     type: Object,
     optional: true,
   },
-  'frequency.first': {
-    type: Object,
-    optional: true,
-  },
-  'frequency.first.preps': {
+  'frequency.preps': {
     type: String,
     optional: true,
   },
-  'frequency.first.range': {
+  'frequency.range': {
     type: String,
     optional: true,
   },
-  'frequency.first.unit': {
+  'frequency.unit': {
     type: String,
     optional: true,
   },
-  'frequency.second': {
-    type: Object,
-    optional: true,
-  },
-  'frequency.second.preps': {
+  'frequency.preps2': {
     type: String,
     optional: true,
   },
-  'frequency.second.range': {
+  'frequency.range2': {
     type: String,
     optional: true,
   },

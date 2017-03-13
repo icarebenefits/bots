@@ -66,7 +66,7 @@ FlowRouter.route('/setup/:country', {
       slogan,
       tabs: [
         {id: 'workplaces', name: 'Workplaces'},
-        {id: 'slas', name: 'SLAs'},
+        {id: 'sla', name: 'SLA'},
       ],
       content() {
         switch (tab) {
@@ -76,7 +76,7 @@ FlowRouter.route('/setup/:country', {
               <WorkplacesPage />
             );
           }
-          case 'slas':
+          case 'sla':
           {
             return (
               <SLAsPage />
@@ -143,7 +143,15 @@ examplesRoutes.route('/schedule-builder', {
     mount(MainLayout, {
       content() {
         return (
-          <ScheduleBuilder />
+          <ScheduleBuilder
+            frequency={{
+              preps: 'on the',
+              range: 'first',
+              unit: 'day of the week',
+              preps2: '',
+              range2: '',
+            }}
+          />
         );
       }
     });

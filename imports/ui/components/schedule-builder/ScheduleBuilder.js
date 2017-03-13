@@ -1,52 +1,53 @@
 import React, {Component, PropTypes} from 'react';
 import {later} from 'meteor/mrt:later';
 
-// import Schema from './schema';
 import {
   FormInput,
   Label,
   Button,
 } from '../elements';
+import * as Notify from '/imports/api/notifications';
 
 class ScheduleBuilder extends Component {
 
   constructor(props) {
     super(props);
 
+    const {preps = '', range = '', unit = '', preps2 = '', range2 = ''} = props.frequency;
+
     this.state = {
-      preps: !_.isEmpty(props.frequency) ? props.frequency.first.preps : 'on the',
-      preps2: !_.isEmpty(props.frequency) ? props.frequency.second.preps : 'on',
-      first: !_.isEmpty(props.frequency) ? props.frequency.first : {},
-      second: !_.isEmpty(props.frequency) ? props.frequency.second : {},
+      preps,
+      range,
+      unit,
+      preps2,
+      range2,
     };
 
-    this.getScheduleText = this.getScheduleText.bind(this);
-    this.getData = this.getData.bind(this);
+    // handlers
+    this._handleFieldChange = this._handleFieldChange.bind(this);
     this._validateSchedule = this._validateSchedule.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      preps: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.first.preps : 'on the',
-      preps2: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.second.preps : 'on',
-      first: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.first : {},
-      second: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.second : {},
-    });
+    const {frequency} = nextProps;
   }
 
-  laterParse(text) {
-    const {error} = later.parse.text(text);
-    if (error)
-      return result;
+  getData() {
+    return this.state;
   }
 
-  getScheduleText() {
-    const
-      {
-        first: {preps, range, unit},
-        second: {preps: preps2, range: range2},
-      } = this.state
-      ;
+  _defaultState() {
+    return {
+      preps: '',
+      range: '',
+      unit: '',
+      preps2: '',
+      range2: '',
+    };
+  }
+
+  _getScheduleText() {
+    const {preps, range, unit, preps2, range2} = this.state;
     let text = '';
 
     !_.isEmpty(preps) && (text = `${preps}`);
@@ -58,18 +59,56 @@ class ScheduleBuilder extends Component {
     return text;
   }
 
-  getData() {
-    const {first, second} = this.state;
-    return {first, second};
-  }
-
   _validateSchedule(e) {
     e.preventDefault();
-    const text = this.getScheduleText();
-    console.log(text);
-    const {error} = later.parse.text(text);
-    if(error === -1) alert('Good to go');
-    else alert('Schedule is invalid.');
+    const
+      text = this._getScheduleText(),
+      {error} = later.parse.text(text);
+    if(error === -1) {
+      Notify.success({title: 'Schedule builder', message: `Schedule good: ${text}`});
+    }
+    else {
+      Notify.warning({title: 'Schedule builder', message: 'Schedule invalid.'});
+    }
+  }
+
+  _handleFieldChange(field, value) {
+    switch (field) {
+      case 'preps':
+      {
+        return this.setState({
+          ...this._defaultState(),
+          preps: value
+        });
+      }
+      case 'range':
+      {
+        const {preps} = this.state;
+        return this.setState({
+          range: value,
+          unit: '',
+        });
+      }
+      case 'unit':
+      {
+        return this.setState({
+          unit: value,
+        });
+      }
+      case 'preps2':
+      {
+        return this.setState({
+          preps2: value,
+          range2: '',
+        });
+      }
+      case 'range2':
+      {
+        return this.setState({
+          range2: value,
+        });
+      }
+    }
   }
 
   render() {
@@ -151,14 +190,15 @@ class ScheduleBuilder extends Component {
       }
       ;
 
-    const {label} = this.props;
-    const {preps, preps2, first, second} = this.state;
+    const {preps, range, unit, preps2, range2} = this.state;
+
+    console.log('state', this.state);
 
     return (
       <div>
         <Label
           className="col-md-12 bold uppercase pull-left"
-          value={label || 'Schedule Builder'}
+          value={'Schedule Builder'}
         />
         {/* First part */}
         <div className="row">
@@ -167,55 +207,61 @@ class ScheduleBuilder extends Component {
               ref="preps"
               type="select"
               className="form-control"
-              value={first.preps}
+              value={preps}
               options={firstPart.prepsOpts}
-              handleOnChange={value => this.setState({first: {...first, preps: value}, preps: value})}
+              handleOnChange={value => this._handleFieldChange('preps', value)}
             />
           </div>
-          <div className="col-md-2">
-            <FormInput
-              ref="range"
-              type="select"
-              className="form-control"
-              value={first.range}
-              options={firstPart.rangeOpts[preps]}
-              handleOnChange={value => this.setState({first: {...first, range: value}})}
-            />
-          </div>
-          <Label
-            className="control-label pull-left"
-            value={preps === 'at' ? ' : ' : ''}
-          />
-          <div className="col-md-2">
-            <FormInput
-              ref="unit"
-              type="select"
-              className="form-control"
-              value={first.unit}
-              options={firstPart.unitOpts[preps]}
-              handleOnChange={value => this.setState({first: {...first, unit: value}})}
-            />
-          </div>
-          {/* Second part */}
-          {preps !== 'on the' && (
+          {!_.isEmpty(preps) && (
             <div className="col-md-2">
               <FormInput
+                ref="range"
                 type="select"
                 className="form-control"
-                value={second.preps || ''}
-                options={secondPart.prepsOpts}
-                handleOnChange={value => this.setState({second: {preps: value, second: ''}, preps2: value})}
+                value={range}
+                options={firstPart.rangeOpts[preps]}
+                handleOnChange={value => this._handleFieldChange('range', value)}
               />
             </div>
           )}
-          {(preps !== 'on the' && !_.isEmpty(preps2)) && (
+          {!_.isEmpty(preps) && (
+            <Label
+              className="control-label pull-left"
+              value={preps === 'at' ? ' : ' : ''}
+            />
+          )}
+          {!_.isEmpty(preps) && (
+            <div className="col-md-2">
+              <FormInput
+                ref="unit"
+                type="select"
+                className="form-control"
+                value={unit}
+                options={firstPart.unitOpts[preps]}
+                handleOnChange={value => this._handleFieldChange('unit', value)}
+              />
+            </div>
+          )}
+          {/* Second part */}
+          {(!_.isEmpty(preps) && preps !== 'on the') && (
             <div className="col-md-2">
               <FormInput
                 type="select"
                 className="form-control"
-                value={second.range || ''}
+                value={preps2}
+                options={secondPart.prepsOpts}
+                handleOnChange={value => this._handleFieldChange('preps2', value)}
+              />
+            </div>
+          )}
+          {(!_.isEmpty(preps) && !_.isEmpty(preps2)) && (
+            <div className="col-md-2">
+              <FormInput
+                type="select"
+                className="form-control"
+                value={range2}
                 options={secondPart.rangeOpts[preps2]}
-                handleOnChange={value => this.setState({second: {...second, range: value}})}
+                handleOnChange={value => this._handleFieldChange('range2', value)}
               />
             </div>
           )}
@@ -230,5 +276,15 @@ class ScheduleBuilder extends Component {
     );
   }
 }
+
+ScheduleBuilder.propTypes = {
+  frequency: PropTypes.shape({
+    preps: PropTypes.string,
+    range: PropTypes.string,
+    unit: PropTypes.string,
+    preps2: PropTypes.string,
+    range2: PropTypes.string,
+  }).isRequired,
+};
 
 export default ScheduleBuilder

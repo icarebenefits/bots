@@ -33,7 +33,8 @@ export class Condition extends Component {
       {
         id,
         condition: {
-          not = false, openParens = '', filter = '', operator = '', values = [], closeParens = '', bitwise = ''
+          not = false, openParens = '', filter = '',
+          operator = '', values = [], closeParens = '', bitwise = ''
         },
         handlers: {
           handleFieldChange,
@@ -47,6 +48,7 @@ export class Condition extends Component {
       filters = this._getFilters(),
       description = getDescription({operator, values})
       ;
+    console.log(operator, values)
 
     return (
       <tr>

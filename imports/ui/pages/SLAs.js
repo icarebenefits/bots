@@ -49,24 +49,27 @@ class SLAs extends Component {
     // render
     this._renderListSLAs = this._renderListSLAs.bind(this);
     this._renderSingleSLA = this._renderSingleSLA.bind(this);
-    this._renderNotify = this._renderNotify.bind(this);
   }
 
   _validateData(name, wpName, frequency, filter, operator, values) {
     if (_.isEmpty(name)) {
-      return this.setState({error: {title: 'Add SLA', message: `Name of SLA is required.`}})
+      Notify.error({title: 'Add SLA', message: `Name of SLA is required.`});
+      return false;
     }
     if (_.isEmpty(wpName)) {
-      return this.setState({error: {title: 'Add SLA', message: `Workplace of SLA is required.`}})
+      Notify.error({title: 'Add SLA', message: `Workplace of SLA is required.`});
+      return false;
     }
     if (this._validateSchedule(frequency) !== -1) {
-      return this.setState({error: {title: 'Add SLA', message: `Frequency is invalid.`}})
+      Notify.error({title: 'Add SLA', message: `Schedule is invalid`});
+      return false;
     }
-    if (filter || operator || values) {
-      return this.setState({error: {title: 'Add SLA', message: `Condition of SLA is required.`}})
+    if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
+      Notify.error({title: 'Add SLA', message: `Conditions of SLA is required.`});
+      return false;
     }
 
-    return false;
+    return true;
   }
 
   _addSLA(status, message) {
@@ -79,20 +82,19 @@ class SLAs extends Component {
 
     const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
 
-    if(!this._validateData(name, wpName, frequency, filter, operator, values)) {
+    console.log('addSLA', {name, wpName, frequency, filter, operator, values});
+    if (!this._validateData(name, wpName, frequency, filter, operator, values)) {
       return;
     }
 
     Methods.create.call({name, description, workplace: wpName, frequency, status: status, conditions, country},
       (error, result) => {
-        if (error) return this.setState({error: {title: 'Add SLA', message: 'Name of SLA had been exists'}});
-        else return this.setState({
-          mode: 'list', action: null,
-          info: {
-            title: 'Add SLA',
-            message: message
-          }
-        });
+        if (error) {
+          return Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
+        }
+        else {
+          return Notify.info({title: 'Add SLA', message: message});
+        }
       });
   }
 
@@ -109,18 +111,40 @@ class SLAs extends Component {
       ;
 
     Methods.edit.call(newSLA, (error, result) => {
-      if (error) return this.setState({error: {title: 'Edit SLA', message: error.reason}});
-      else return this.setState({info: {title: 'Edit SLA', message: 'saved'}});
+      if (error) {
+        return Notify.error({title: 'Edit SLA', message: error.reason});
+      }
+      else {
+        return Notify.info({title: 'Edit SLA', message: 'saved'});
+      }
     });
   }
 
   _enableSLA(id) {
     const {_id, status} = this.props.SLAsList[id];
+    let message = '';
     Methods.setStatus.call({_id, status: Number(!Boolean(status))}, (error, result) => {
-      if (error) alert(error.reason);
-      else return this.setState({mode: 'list', action: null});
+      if (error) {
+        return Notify.error({title: 'Enable SLA', message: error.reason});
+      }
+      else {
+        return Notify.info({title: 'Enable SLA', message: 'success'});
+      }
     });
   }
+
+  _removeSLA(id) {
+    const {_id} = this.props.SLAsList[id];
+    Methods.remove.call({_id}, (error, result) => {
+      if (error) {
+        return Notify.error({title: 'Remove SLA', message: error.reason});
+      }
+      else {
+        return Notify.info({title: 'Remove SLA', message: 'success'});
+      }
+    });
+  }
+
 
   getScheduleText(freq) {
     const
@@ -162,26 +186,18 @@ class SLAs extends Component {
       {
         return this.setState({mode: 'list', action: null});
       }
+      case 'remove':
+      {
+        return this._removeSLA(row);
+      }
       case 'enable':
       {
-        this._enableSLA(row);
-        return this.setState({
-          action,
-          info: {
-            title: 'Enable SLA',
-            message: 'success'
-          }
-        });
+        return this._enableSLA(row);
       }
       case 'validate':
       {
-        return this.setState({
-          action,
-          info: {
-            title: 'Validate conditions',
-            message: 'success'
-          }
-        });
+        Notify.info({title: 'Validate conditions', message: 'success'});
+        return this.setState({action});
       }
       case 'saveDraft':
       {
@@ -216,23 +232,14 @@ class SLAs extends Component {
       }
       default:
       {
-        this.setState({
-          error: {
-            title: '',
-            message: `Unknown action: ${action}`
-          }
-        })
+        Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
   }
 
   getScheduleText(freq) {
     const
-      {
-        first: {preps, range, unit},
-        second: {preps: preps2, range: range2},
-      } = freq
-      ;
+      {preps, range, unit, preps2, range2} = freq;
     let text = '';
 
     !_.isEmpty(preps) && (text = `${preps}`);
@@ -267,6 +274,10 @@ class SLAs extends Component {
           actions: [
             {id: 'enable', label: 'Enable', handleAction: this.handleActionSLA},
             {id: 'view', label: 'View details', handleAction: this.handleChangeMode},
+            {
+              id: 'remove', label: '', icon: 'fa fa-times',
+              className: 'btn-danger', handleAction: this.handleActionSLA
+            },
           ],
           handleDoubleClick: (dataset) => {
             const {row, cell} = dataset;
@@ -316,7 +327,7 @@ class SLAs extends Component {
           },
           {
             id: 'saveDraft', label: 'Save as Draft',
-            className: 'btn-default', type: 'button', handleOnClick: this.handleActionSLA
+            className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
             id: 'save', label: 'Save',
@@ -324,7 +335,7 @@ class SLAs extends Component {
           },
           {
             id: 'saveRun', label: 'Save and Execute',
-            className: 'yellow', type: 'button', handleOnClick: this.handleActionSLA
+            className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
             id: 'cancel', label: 'Cancel',
@@ -367,34 +378,13 @@ class SLAs extends Component {
     );
   }
 
-  _renderNotify() {
-    const
-      {error, warning, info} = this.state,
-      closeButton = true
-      ;
-
-    if (!_.isEmpty(error)) {
-      const {title, message} = error;
-      return Notify.error({closeButton, title, message});
-      // return this.setState({error: null});
-    }
-    if (!_.isEmpty(warning)) {
-      const {title, message} = warning;
-      Notify.warning({closeButton, title, message});
-    }
-    if (!_.isEmpty(info)) {
-      const {title, message} = info;
-      Notify.info({closeButton, title, message});
-    }
-  }
-
   render() {
     const
       {ready} = this.props,
       {mode} = this.state,
       sideBarProps = {
         options: [
-          {id: 'list', icon: 'fa fa-star', label: 'List SLAs', handleOnClick: this.handleChangeMode},
+          {id: 'list', icon: 'fa fa-star', label: 'List SLA', handleOnClick: this.handleChangeMode},
           {id: 'add', icon: 'fa fa-plus', label: 'Add SLA', handleOnClick: this.handleChangeMode},
         ],
         active: mode
@@ -420,7 +410,7 @@ class SLAs extends Component {
               <div className="portlet-title">
                 <div className="caption font-dark">
                   <i className="icon-settings font-dark"></i>
-                  <span className="caption-subject bold uppercase">{`${mode} SLA${mode === 'list' ? 's' : ''}`}</span>
+                  <span className="caption-subject bold uppercase">{`${mode} SLA`}</span>
                 </div>
               </div>
               <div className={classNames({"portlet-body": true, 'form': !(mode === 'list')})}>
@@ -428,7 +418,6 @@ class SLAs extends Component {
               </div>
             </div>
           </div>
-          {this._renderNotify()}
         </div>
       );
     }
