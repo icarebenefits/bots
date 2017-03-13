@@ -7,10 +7,15 @@ import {DatePicker} from './DatePicker';
 
 
 export class FormInput extends Component {
+
+  getValue() {
+    return this.refs.input.getValue();
+  }
+
   render() {
     const
-      {id, type, value, className, options, handleOnChange} = this.props,
-      common = {id, ref: 'input', className, value, handleOnChange}
+      {id, type, defaultValue, value, className, multiline, options, handleOnChange, hidden} = this.props,
+      common = {id, ref: 'input', className, defaultValue, multiline, value, handleOnChange, hidden}
       ;
 
     switch (type) {

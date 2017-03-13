@@ -4,14 +4,19 @@ import {Form} from '../components/elements'
 import ReactDOM from 'react-dom';
 import {createContainer} from 'meteor/react-meteor-data';
 import {Meteor} from 'meteor/meteor';
-import {WorkplaceGroups} from '../../api/collections/facebook'
+import {WorkplaceGroups} from '../../api/collections/workplaces'
 import Group from './Group'
+import {FlowRouter} from 'meteor/kadira:flow-router';
+
+import {
+  PageSideBar
+} from '../components';
 
 class Workplaces extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      country: 'vn',
+      country: FlowRouter.getParam("country"),
       showName: true
     };
   }
@@ -88,51 +93,57 @@ class Workplaces extends Component {
 
 
     return (
-      <div className="page-content-col">
-        <div className="row">
-          <div className="col-md-4">
-            <div className="form-group">
-              <label htmlFor="groupId">
-                GroupId
-              </label>
-              <div className="input-group">
-                <input name="groupId"
-                       type="text"
-                       ref="groupId"
-                       placeholder="enter workplace groupId"
-                />
-                <button className="btn-link"  onClick={this.handleCheck.bind(this)}>GetName
-                </button>
+      <div className="page-content-row">
+        <PageSideBar
+          options={[]}
+          active="work"
+        />
+        <div className="page-content-col">
+          <div className="row">
+            <div className="col-md-4">
+              <div className="form-group">
+                <label htmlFor="groupId">
+                  GroupId
+                </label>
+                <div className="input-group">
+                  <input name="groupId"
+                         type="text"
+                         ref="groupId"
+                         placeholder="enter workplace groupId"
+                  />
+                  <button className="btn-link" onClick={this.handleCheck.bind(this)}>GetName
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="form-group" style={show}>
-              <label htmlFor="groupName">
-                GroupName
-              </label>
-              <div className="input-group">
+              <div className="form-group" style={show}>
+                <label htmlFor="groupName">
+                  GroupName
+                </label>
+                <div className="input-group">
 
-                <input name="groupName" ref="groupName" type="text" readOnly="readOnly"/>
-                <button className="btn-success" onClick={this.handleSubmit.bind(this)}>Save
-                </button>
+                  <input name="groupName" ref="groupName" type="text" readOnly="readOnly"/>
+                  <button className="btn-success" onClick={this.handleSubmit.bind(this)}>Save
+                  </button>
+                </div>
               </div>
-            </div>
 
-          </div>
-          <div className="col-md-8">
-            <h2>Workplace groups </h2>
-            <table className="table-bordered table">
-              <thead className="bg-info">
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th className="text-center">Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              {this.renderFbGroups()}
-              </tbody>
-            </table>
+            </div>
+            <div className="col-md-8">
+              <h2>Workplace groups </h2>
+              <table className="table-bordered table">
+                <thead className="bg-info">
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {this.renderFbGroups()}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -148,6 +159,6 @@ Workplaces.propTypes = {
 export default createContainer(() => {
   Meteor.subscribe('groups');
   return {
-    groups: WorkplaceGroups.find({}, {sort: {createdAt: -1}}).fetch(),
+    groups: WorkplaceGroups.find({country: FlowRouter.getParam("country")}, {sort: {createdAt: -1}}).fetch(),
   };
 }, Workplaces);

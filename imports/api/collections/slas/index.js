@@ -1,2 +1,1 @@
-import './methods';
-import './slas';
+export {default as Methods} from './methods';

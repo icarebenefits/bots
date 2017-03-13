@@ -20,7 +20,8 @@ import {
   ConditionBuilderTree,
   Redux,
 } from '../../ui/pages';
-import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
+import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
+import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
 
 FlowRouter.route('/', {
   name: 'countries',
@@ -42,10 +43,30 @@ FlowRouter.route('/setup/:country', {
       {country} = params,
       {tab} = queryParams
       ;
+    let slogan = '';
+    switch(country) {
+      case 'vn': {
+        slogan = 'Vietnam';
+        break;
+      }
+      case 'kh': {
+        slogan = 'Cambodia';
+        break;
+      }
+      case 'la': {
+        slogan = 'Laos';
+        break;
+      }
+      default: {
+        slogan = '';
+      }
+    }
+
     mount(MainLayout, {
+      slogan,
       tabs: [
         {id: 'workplaces', name: 'Workplaces'},
-        {id: 'slas', name: 'SLAs'},
+        {id: 'sla', name: 'SLA'},
       ],
       content() {
         switch (tab) {
@@ -55,7 +76,7 @@ FlowRouter.route('/setup/:country', {
               <WorkplacesPage />
             );
           }
-          case 'slas':
+          case 'sla':
           {
             return (
               <SLAsPage />
@@ -110,6 +131,27 @@ examplesRoutes.route('/discovery', {
       content() {
         return (
           <Discover />
+        );
+      }
+    });
+  }
+});
+
+examplesRoutes.route('/schedule-builder', {
+  name: 'schedule-builder',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <ScheduleBuilder
+            frequency={{
+              preps: 'on the',
+              range: 'first',
+              unit: 'day of the week',
+              preps2: '',
+              range2: '',
+            }}
+          />
         );
       }
     });

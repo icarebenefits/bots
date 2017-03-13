@@ -1,6 +1,5 @@
 export const COUNTRIES = [
-  'Vietnam',
-  'Cambodia',
-  'Philippines',
-  'Malaysia'
+  'vn',
+  'kh',
+  'la',
 ];

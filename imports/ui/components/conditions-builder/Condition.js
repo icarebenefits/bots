@@ -5,8 +5,8 @@ import {
   Selectbox,
   Label,
   Button,
-} from '../../elements';
-import {Schema} from './schema';
+} from '../elements';
+import {Fields} from '/imports/api/fields';
 
 export class Condition extends Component {
 
@@ -14,12 +14,27 @@ export class Condition extends Component {
     super(props);
   }
 
+  _getFilters() {
+    const
+      listFields = Object.keys(Fields)
+      ;
+
+    const filters = listFields.map(field => {
+      const {id: name, name: label} = Fields[field]().props;
+      return {name, label};
+    });
+    filters.splice(0, 0, {name: '', label: ''});
+
+    return filters;
+  }
+
   render() {
     const
       {
         id,
         condition: {
-          not = false, openParens = '', filter = '', operator = '', values = [], closeParens = '', bitwise = ''
+          not = false, openParens = '', filter = '',
+          operator = '', values = [], closeParens = '', bitwise = ''
         },
         handlers: {
           handleFieldChange,
@@ -30,15 +45,10 @@ export class Condition extends Component {
         },
         readonly = true,
       } = this.props,
-      {listFields} = Schema,
-      filters = [{name: '', label: ''}],
+      filters = this._getFilters(),
       description = getDescription({operator, values})
       ;
-
-    listFields.map(fieldId => {
-      const {id: name, description: label} = getFieldProps(fieldId);
-      filters.push({name, label});
-    });
+    console.log(operator, values)
 
     return (
       <tr>

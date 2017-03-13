@@ -1,5 +1,6 @@
 import React, {Component, PropTypes} from 'react';
 
+// components
 import {
   List,
   Toolbar,
@@ -18,11 +19,11 @@ const ListSLAs = (props) => {
           
         />
 
-        <ListHeader />
+        {/*<ListHeader />*/}
         <List
           {...list}
         />
-        <ListFooter />
+        {/*<ListFooter />*/}
       </div>
     </div>
   );

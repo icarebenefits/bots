@@ -18,7 +18,8 @@ class MainLayout extends Component {
     const {
       tabs = [],
       content = () => {
-      }
+      },
+      slogan
     } = this.props;
 
     return (
@@ -26,6 +27,7 @@ class MainLayout extends Component {
         <div className="wrapper">
           {/* Header */}
           <Header
+            slogan={slogan}
             tabs={tabs}
           />
 

@@ -20,18 +20,110 @@ Methods.create = new ValidatedMethod({
   validate: null,
   // validate: new SimpleSchema({
   //   name: {
-  //     type: String
+  //     type: String,
+  //     unique: true,
   //   },
-  //   expression: {
-  //     type: Object
+  //   description: {
+  //     type: String,
+  //     optional: true,
   //   },
-  //   countries: {
-  //     type: [String],
+  //   workplace: {
+  //     type: String,
+  //   },
+  //   frequency: {
+  //     type: Object,
+  //     optional: true,
+  //   },
+  //   'frequency.first': {
+  //     type: Object,
+  //     optional: true,
+  //   },
+  //   'frequency.first.preps': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.first.range': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.first.unit': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.second': {
+  //     type: Object,
+  //     optional: true,
+  //   },
+  //   'frequency.second.preps': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.second.range': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   conditions: {
+  //     type: [Object]
+  //   },
+  //   "conditions.$.not": {
+  //     type: Boolean,
+  //     optional: true,
+  //   },
+  //   "conditions.$.openParens": {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   "conditions.$.filter": {
+  //     type: String,
+  //   },
+  //   "conditions.$.operator": {
+  //     type: String,
+  //   },
+  //   "conditions.$.values": {
+  //     type: [String]
+  //   },
+  //   "conditions.$.closeParens": {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   "conditions.$.bitwise": {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   status: {
+  //     type: Number,
+  //     defaultValue: 0,
+  //   },
+  //   country: {
+  //     type: String,
   //     allowedValues: COUNTRIES
   //   }
   // }).validator(),
-  run({name, expression, countries}) {
-    return SLAs.insert({name, expression, countries});
+  run({name, description, workplace, frequency, conditions, status, country}) {
+    return SLAs.insert({name, description, workplace, frequency, conditions, status, country});
+  }
+});
+
+/**
+ * Method set status an SLA
+ * @param {} name - description
+ * @return {}
+ */
+Methods.setStatus = new ValidatedMethod({
+  name: 'slas.setStatus',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    status: {
+      type: Number,
+    }
+  }).validator(),
+  run({_id, status}) {
+    const
+      selector = {_id},
+      modifier = {status}
+      ;
+
+    return SLAs.update(selector, {$set: modifier});
   }
 });
 
@@ -45,66 +137,104 @@ Methods.create = new ValidatedMethod({
  */
 Methods.edit = new ValidatedMethod({
   name: 'slas.edit',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    name: {
-      type: String,
-      optional: true
-    },
-    expression: {
-      type: String,
-      optional: true
-    },
-    schedule: {
-      type: String,
-      optional: true
-    }
-  }).validator(),
-  run({_id, name, expression, schedule}) {
+  validate: null,
+  // validate: new SimpleSchema({
+  //   ...IDValidator,
+  //   name: {
+  //     type: String,
+  //     unique: true,
+  //   },
+  //   description: {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   workplace: {
+  //     type: String,
+  //   },
+  //   frequency: {
+  //     type: Object,
+  //     optional: true,
+  //   },
+  //   'frequency.first': {
+  //     type: Object,
+  //     optional: true,
+  //   },
+  //   'frequency.first.preps': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.first.range': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.first.unit': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.second': {
+  //     type: Object,
+  //     optional: true,
+  //   },
+  //   'frequency.second.preps': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   'frequency.second.range': {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   conditions: {
+  //     type: [Object]
+  //   },
+  //   "conditions.$.not": {
+  //     type: Boolean,
+  //     optional: true,
+  //   },
+  //   "conditions.$.openParens": {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   "conditions.$.filter": {
+  //     type: String,
+  //   },
+  //   "conditions.$.operator": {
+  //     type: String,
+  //   },
+  //   "conditions.$.values": {
+  //     type: [String]
+  //   },
+  //   "conditions.$.closeParens": {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   "conditions.$.bitwise": {
+  //     type: String,
+  //     optional: true,
+  //   },
+  //   status: {
+  //     type: Number,
+  //     defaultValue: 0,
+  //   },
+  //   country: {
+  //     type: String,
+  //     allowedValues: COUNTRIES
+  //   },
+  // }).validator(),
+  run({_id, name, description, workplace, frequency, conditions, status, country}) {
     const
       selector = {_id},
       modifier = {}
       ;
 
-    if (!name && !expression && !schedule) {
-      console.log(`throw error`);
-      throw new ValidationError([{
-        name: 'modifier',
-        type: 'MISSING_MODIFIERS',
-        reason: 'Should have 1 field to update.'
-      }]);
-    }
-
     !_.isEmpty(name) && (modifier.name = name);
-    !_.isEmpty(expression) && (modifier.expression = expression);
-    !_.isEmpty(schedule) && (modifier.schedule = schedule);
-    console.log(selector, modifier);
+    !_.isEmpty(description) && (modifier.description = description);
+    !_.isEmpty(workplace) && (modifier.workplace = workplace);
+    !_.isEmpty(frequency) && (modifier.frequency = frequency);
+    !_.isEmpty(conditions) && (modifier.conditions = conditions);
+    (!_.isEmpty(status) || status === 0) && (modifier.status = status);
+    !_.isEmpty(country) && (modifier.country = country);
 
     return SLAs.update(selector, {$set: modifier});
-  }
-});
-
-/**
- * Method remove an SLA
- * @param {} name - description
- * @return {}
- */
-Methods.addCountry = new ValidatedMethod({
-  name: 'slas.addCountry',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    country: {
-      type: String,
-      regEx: SimpleSchema.RegEx.Id,
-    }
-  }).validator(),
-  run({_id, country}) {
-    const
-      selector = {_id},
-      modifier = {country}
-      ;
-
-    return SLAs.update(selector, {$addToSet: modifier});
   }
 });
 
@@ -123,28 +253,5 @@ Methods.remove = new ValidatedMethod({
   }
 });
 
-/**
- * Method set status an SLA
- * @param {} name - description
- * @return {}
- */
-Methods.setStatus = new ValidatedMethod({
-  name: 'slas.setStatus',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    status: {
-      type: String,
-      // allowedValues: [SLAs.status.active, SLAs.status.inactive]
-    }
-  }).validator(),
-  run({_id, status}) {
-    const
-      selector = {_id},
-      modifier = {status}
-      ;
-
-    return SLAs.update(selector, {$set: modifier});
-  }
-});
 
 export default Methods

@@ -1,26 +1,28 @@
 import React, {Component} from 'react';
 import _ from 'lodash';
+import S from 'string';
+
+// Fields
+import {Fields} from '/imports/api/fields';
 
 import {
   Button,
   Dialog,
-  Form,
+  FormInput,
   Label,
-} from '../../elements';
+} from '../elements';
 import {Condition} from './Condition';
-import {Fields} from '/imports/api/fields';
-import {Schema} from './schema';
 
-export class ConditionGroup extends Component {
+class ConditionsBuilder extends Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
-      conditions: !_.isEmpty(props.conditions) ? props.conditions : this.getDefaultConditions(),
+      conditions: !_.isEmpty(props.conditions) ? props.conditions : this._getDefaultConditions(),
       dialog: {}, // get field had been change, {row, fieldId}
-      hidden: true, // flag for second value of dialog form,
       edit: 0,
+      values: [], // the value fields showed in dialog {type}
     };
 
     // handlers
@@ -35,7 +37,6 @@ export class ConditionGroup extends Component {
 
     // dialog
     this._renderDialog = this._renderDialog.bind(this);
-    this._createFormFields = this._createFormFields.bind(this);
     this._saveDataDialog = this._saveDataDialog.bind(this);
     this._closeDialog = this._closeDialog.bind(this);
 
@@ -45,8 +46,7 @@ export class ConditionGroup extends Component {
 
   componentWillReceiveProps(nextProps) {
     const {conditions} = nextProps;
-    if (!_.isEmpty(conditions))
-      this.setState({conditions});
+    !_.isEmpty(conditions) && this.setState({conditions});
   }
 
   getConditions() {
@@ -57,7 +57,7 @@ export class ConditionGroup extends Component {
     e.preventDefault();
     const
       {conditions} = this.state,
-      condition = this.getDefaultCondition()
+      condition = this._getDefaultCondition()
       ;
 
     if (!_.isEmpty(conditions)) {
@@ -78,7 +78,6 @@ export class ConditionGroup extends Component {
   _handleClickCondition(e) {
     const {row} = e.target.dataset;
 
-    console.log(row);
     this.setState({
       edit: row
     });
@@ -92,6 +91,7 @@ export class ConditionGroup extends Component {
     let
       newCond = {},
       newConditions = [],
+      values = [],
       dialog = null
       ;
 
@@ -99,24 +99,46 @@ export class ConditionGroup extends Component {
     if (key === 'values') {
       const
         {values} = condition,
-        newValues = []
+        newValues = [];
+      // console.log({row, key, value, index})
+
+      values.map((v, idx)=> {
+        idx === index
+          ? newValues.push(value)
+          : newValues.push(v)
         ;
-
-      if (_.isEmpty(values)) {
-        newValues.push(value);
-      } else {
-        values.map((val, idx) => {
-          if (idx === index) {
-            newValues.push(value);
-          } else {
-            newValues.push(val);
-          }
-        });
-      }
-
-      newCond = {...condition, [`${key}`]: newValues};
+      });
+      newCond = {...condition, values: newValues};
+      // console.log('newCond', newCond)
     } else {
       newCond = {...condition, [`${key}`]: value};
+    }
+
+    // handle for operator change - edit fields of form dialog
+    if (key === 'operator') {
+      const
+        fieldId = conditions[row].filter,
+        {type, params} = Fields[fieldId]().operators[value].props
+        ;
+
+      for (let i = 0; i < params - 1; i++) {
+        values.push({type, value: this._getDefaultValue(type)});
+      }
+      // get noOfParams of operator
+      // console.log({row, key, value, index})
+      newCond = {...condition, values, operator: value};
+      conditions.map((cond, idx) => {
+        if (idx === row) {
+          newConditions.push(newCond);
+        } else {
+          newConditions.push(cond);
+        }
+      });
+
+      return this.setState({
+        conditions: newConditions,
+        values,
+      });
     }
 
     conditions.map((cond, idx) => {
@@ -136,25 +158,13 @@ export class ConditionGroup extends Component {
 
       return this.setState({
         dialog,
-        conditions: newConditions,
-        hidden: true
+        conditions: newConditions
       });
-    }
-
-    // handle for operator change - edit fields of form dialog
-    if (key === 'operator') {
-      // get noOfParams of operator
-      const {noOfParams} = this.getOperatorProps(value);
-      if (noOfParams > 1) {
-        this.setState({hidden: false});
-      } else {
-        this.setState({hidden: true});
-      }
     }
 
 
     return this.setState({
-      conditions: newConditions
+      conditions: newConditions,
     });
   }
 
@@ -172,7 +182,7 @@ export class ConditionGroup extends Component {
   handleInsertCondition(row) {
     const {conditions} = this.state;
 
-    conditions.splice(row + 1, 0, this.getDefaultCondition());
+    conditions.splice(row + 1, 0, this._getDefaultCondition());
 
     return this.setState({
       conditions,
@@ -193,11 +203,32 @@ export class ConditionGroup extends Component {
     return newConds;
   }
 
-  getDefaultConditions() {
+  _getDefaultValue(type) {
+    switch (type) {
+      case 'date':
+      {
+        return (new Date()).toString();
+      }
+      case 'number':
+      {
+        return 0;
+      }
+      case 'string':
+      {
+        return '';
+      }
+      default:
+      {
+        return '';
+      }
+    }
+  }
+
+  _getDefaultConditions() {
     return [{not: false, openParens: '', filter: '', operator: '', values: [], closeParens: '', bitwise: ''}];
   }
 
-  getDefaultCondition() {
+  _getDefaultCondition() {
     return {not: false, openParens: '', filter: '', operator: '', values: [], closeParens: '', bitwise: ''};
   }
 
@@ -219,7 +250,7 @@ export class ConditionGroup extends Component {
     if (operator) {
       description = `${operator} `;
       if (values.length > 1) {
-        values.map((value, idx) => {
+        values.map(({type, value}, idx) => {
           if (idx === values.length - 1) {
             description = `${description} "${value}"`;
           } else {
@@ -227,7 +258,7 @@ export class ConditionGroup extends Component {
           }
         })
       } else {
-        description = `${description} "${values[0]}"`;
+        description = `${description} "${values[0].value}"`;
       }
     }
 
@@ -248,38 +279,6 @@ export class ConditionGroup extends Component {
     return expression;
   }
 
-  getFieldProps(fieldId) {
-    const {
-      id,
-      description,
-      fieldType,
-      operators
-    } = Schema.fields[fieldId];
-
-    return {
-      id,
-      description,
-      fieldType,
-      operators
-    };
-  }
-
-  getOperatorProps(op) {
-    const {
-      id,
-      description,
-      noOfParams,
-      code,
-    } = Schema.operators[op];
-
-    return {
-      id,
-      description,
-      noOfParams,
-      code,
-    };
-  }
-
   _renderDialog() {
     const {dialog} = this.state;
 
@@ -288,82 +287,61 @@ export class ConditionGroup extends Component {
     }
 
     const
-      {dialog: {row, fieldId}} = this.state,
-      {id, description, fieldType, operators} = this.getFieldProps(fieldId)
+      {dialog: {row, fieldId}, conditions, values} = this.state,
+      operators = Fields[fieldId]().operators
       ;
-    let {fields} = this.state;
-
-    if (_.isEmpty(fields)) {
-      fields = this._createFormFields({row, id, description, fieldType, operators})
-    }
+    // Dialog props
+    const
+      options = Object.keys(operators)
+        .map(op => {
+          const {id: name, name: label} = operators[op].props;
+          return {name, label};
+        }),
+      header = S(fieldId).capitalize().s,
+      {operator, values: condValues} = conditions[row]
+      ;
+    options.splice(0, 0, {name: '', label: ''}); // default option
 
     return (
       <Dialog
         modal={true}
-        header={description}
+        header={header}
         confirmLabel="Set"
         hasCancel={true}
         onAction={this._saveDataDialog}
       >
-        <Form
-          ref="form"
-          fields={fields}
-        />
+        <div className="form-body">
+          <div className="form-group">
+            <FormInput
+              ref="operator"
+              type="select"
+              value={operator}
+              options={options}
+              handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
+            />
+          </div>
+          {values.map((input, idx) => {
+            const {type, value} = input;
+            return (
+              <div className="form-group" key={idx}>
+                <FormInput
+                  type={type}
+                  value={value}
+                  handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
+                />
+              </div>
+            );
+          })}
+        </div>
       </Dialog>
     );
   }
 
-  _createFormFields(state) {
-    const
-      {conditions, hidden = true} = this.state,
-      {row, id, description: label, fieldType, operators} = state,
-      {operator} = conditions[row],
-      fields = [],
-      fieldOptions = [{name: '', label: ''}],
-      noOfValueSupported = 2
-      ;
-
-    operators.map(op => {
-      const {id: name, description: label, noOfParams, code} = this.getOperatorProps(op);
-      fieldOptions.push({name, label, noOfParams});
-    });
-
-    // operator field
-    fields.push({
-      id, row, label: '', type: 'select', value: operator,
-      options: fieldOptions,
-      handleOnChange: (value) => this.handleFieldChange(row, 'operator', value)
-    });
-
-    // values fields
-    for (i = 0; i < noOfValueSupported; i++) {
-      if (i !== 0) {
-        // console.log(i);
-        fields.push({
-          id: i, label: '', type: fieldType, value: conditions[row].values[i],
-          handleOnChange: (value) => this.handleFieldChange(row, 'values', value.toString(), this.id),
-          hidden: hidden
-        });
-      } else {
-        // console.log(i);
-        fields.push({
-          id: i, row, label: '', type: fieldType, value: conditions[row].values[i],
-          handleOnChange: (value) => this.handleFieldChange(row, 'values', value.toString(), this.id)
-        });
-      }
-    }
-
-
-    return fields;
-  }
-
   _saveDataDialog(action) {
-    console.log('saveDialog', action);
     let newConds = [];
     if (action === 'dismiss') {
       newConds = this._clearDescription();
     }
-    console.log(newConds)
     this._closeDialog(newConds);
   }
 
@@ -391,8 +369,6 @@ export class ConditionGroup extends Component {
       handlers = this.getDefaultHandlers();
     }
 
-    console.log('conditions', conditions);
-
     return (
       <div className="col-md-12">
         <div className="row">
@@ -403,14 +379,14 @@ export class ConditionGroup extends Component {
           {/* <h5>{expression}</h5>*/}
         </div>
         {/*readonly
-          ? null
-          : <div className="row">
-              <Button
-                className="btn-default pull-right"
-                onClick={e => this._addCondition(e)}
-              ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
-            </div>
-        */}
+         ? null
+         : <div className="row">
+         <Button
+         className="btn-default pull-right"
+         onClick={e => this._addCondition(e)}
+         ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
+         </div>
+         */}
         <div className="row">
           <table className="table table-striped">
             <thead>
@@ -449,3 +425,5 @@ export class ConditionGroup extends Component {
     );
   }
 }
+
+export default ConditionsBuilder
