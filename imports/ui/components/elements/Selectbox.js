@@ -9,6 +9,8 @@ export class Selectbox extends Component {
 
   render() {
     const {value, defaultValue, className, handleOnChange, options} = this.props;
+
+    // console.log('select', {value, options});
     
     return (
       <select

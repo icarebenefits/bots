@@ -26,11 +26,6 @@ class ScheduleBuilder extends Component {
     this._validateSchedule = this._validateSchedule.bind(this);
   }
 
-  parseOptionsFromSchema() {
-    // name: trim & convert schema value to camel case
-    // label: schema value
-  }
-
   componentWillReceiveProps(nextProps) {
     this.setState({
       preps: !_.isEmpty(nextProps.frequency) ? nextProps.frequency.first.preps : 'on the',
@@ -72,6 +67,7 @@ class ScheduleBuilder extends Component {
   _validateSchedule(e) {
     e.preventDefault();
     const text = this.getScheduleText();
+    console.log(text);
     const {error} = later.parse.text(text);
     if(error === -1) alert('Good to go');
     else alert('Schedule is invalid.');
@@ -96,11 +92,18 @@ class ScheduleBuilder extends Component {
             {name: '', label: ''},
             {name: '1', label: '1'}, {name: '2', label: '2'}, {name: '3', label: '3'},
             {name: '4', label: '4'}, {name: '5', label: '5'}, {name: '6', label: '6'},
+            {name: '7', label: '7'}, {name: '8', label: '8'}, {name: '9', label: '9'},
+            {name: '10', label: '10'}, {name: '11', label: '11'}, {name: '12', label: '12'},
+            {name: '13', label: '13'}, {name: '14', label: '14'}, {name: '15', label: '15'},
+            {name: '16', label: '16'}, {name: '17', label: '17'}, {name: '18', label: '18'},
+            {name: '19', label: '19'}, {name: '20', label: '20'}, {name: '21', label: '21'},
+            {name: '22', label: '22'}, {name: '23', label: '23'}, {name: '24', label: '24'},
           ],
           every: [
             {name: '', label: ''},
             {name: '1', label: '1'}, {name: '2', label: '2'}, {name: '3', label: '3'},
-            {name: '4', label: '4'}, {name: '5', label: '5'}, {name: '6', label: '6'},
+            {name: '4', label: '4'}, {name: '6', label: '6'}, {name: '8', label: '8'},
+            {name: '12', label: '12'},
           ],
         },
         unitOpts: {
@@ -127,7 +130,7 @@ class ScheduleBuilder extends Component {
         prepsOpts: [
           {name: '', label: ''},
           {name: 'on', label: 'on'},
-          {name: 'every', label: 'every'},
+          {name: 'every', label: 'on every'},
         ],
         rangeOpts: {
           on: [
@@ -200,18 +203,18 @@ class ScheduleBuilder extends Component {
               <FormInput
                 type="select"
                 className="form-control"
-                value={second.preps}
+                value={second.preps || ''}
                 options={secondPart.prepsOpts}
-                handleOnChange={value => this.setState({second: {...second, preps: value}, preps2: value})}
+                handleOnChange={value => this.setState({second: {preps: value, second: ''}, preps2: value})}
               />
             </div>
           )}
-          {preps !== 'on the' && (
+          {(preps !== 'on the' && !_.isEmpty(preps2)) && (
             <div className="col-md-2">
               <FormInput
                 type="select"
                 className="form-control"
-                value={second.range}
+                value={second.range || ''}
                 options={secondPart.rangeOpts[preps2]}
                 handleOnChange={value => this.setState({second: {...second, range: value}})}
               />

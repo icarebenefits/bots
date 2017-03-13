@@ -80,7 +80,7 @@ const CountriesContainer = createContainer(() => {
     subSLA = Meteor.subscribe('slasList'),
     ready = sub.ready() && subSLA.ready(),
     countries = Countries.find().fetch(),
-    SLAs = SLAsCollection.find().fetch()
+    SLAs = SLAsCollection.find({status: 1}).fetch()
     ;
 
   return {
