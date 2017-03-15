@@ -6,6 +6,16 @@ import StandardFields from '../standard/fields';
  */
 
 // string
+const name = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'name',
+      name: 'Name',
+    }
+  }
+);
 const email = () => Object.assign(
   {},
   StandardFields.StringField(),
@@ -88,6 +98,26 @@ const contractEndDate = () => Object.assign(
     }
   }
 );
+const hireDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'hireDate',
+      name: 'Hire Date',
+    }
+  }
+);
+const terminationDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'terminationDate',
+      name: 'Termination Date',
+    }
+  }
+);
 
 // number
 const numberOfEmployees = () => Object.assign(
@@ -110,8 +140,39 @@ const numberOfiCMs = () => Object.assign(
     },
   },
 );
+const paymentDay = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'paymentDay',
+      name: 'Payment Day',
+    },
+  },
+);
+const numberOfCutOffTimes = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'numberOfCutOffTimes',
+      name: '# of cut-off times',
+    },
+  },
+);
 
-// combinator
+// Combo fields
+const businessUnits = () => ({
+  props: {
+    id: 'businessUnits',
+    name: 'Business Units',
+  },
+  fields: {
+    name: Object.assign({}, name()),
+    paymentDay: Object.assign({}, paymentDay()),
+    numberOfCutOffTimes: Object.assign({}, numberOfCutOffTimes()),
+  }
+});
 
 const Fields = {
   email,
@@ -124,6 +185,7 @@ const Fields = {
   contractEndDate,
   numberOfEmployees,
   numberOfiCMs,
+  businessUnits,
 };
 
 export default Fields

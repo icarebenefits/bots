@@ -83,90 +83,81 @@ class ConditionsBuilder extends Component {
     });
   }
 
+
   handleFieldChange(row, key, value, index) {
 
     const
       {conditions} = this.state,
       condition = conditions[row];
-    let
-      newCond = {},
-      newConditions = [],
-      values = [],
-      dialog = null
-      ;
+    let cond = {};
 
-    // handle for values change
-    if (key === 'values') {
-      const
-        {values} = condition,
-        newValues = [];
-      // console.log({row, key, value, index})
-
-      values.map((v, idx)=> {
-        idx === index
-          ? newValues.push(value)
-          : newValues.push(v)
-        ;
-      });
-      newCond = {...condition, values: newValues};
-      // console.log('newCond', newCond)
-    } else {
-      newCond = {...condition, [`${key}`]: value};
-    }
-
-    // handle for operator change - edit fields of form dialog
-    if (key === 'operator') {
-      const
-        fieldId = conditions[row].filter,
-        {type, params} = Fields[fieldId]().operators[value].props
-        ;
-
-      for (let i = 0; i < params - 1; i++) {
-        values.push({type, value: this._getDefaultValue(type)});
+    switch (key) {
+      case 'filter':
+      {
+        cond = {
+          ...condition,
+          filter: _.isEmpty(value) ? '' : value,
+          field: '', operator: '', values: []
+        };
+        this.setState({
+          dialog: {
+            row,
+            fieldId: value
+          },
+          values: []
+        });
+        break;
       }
-      // get noOfParams of operator
-      // console.log({row, key, value, index})
-      newCond = {...condition, values, operator: value};
-      conditions.map((cond, idx) => {
-        if (idx === row) {
-          newConditions.push(newCond);
+      case 'field':
+      {
+        cond = {...condition, field: value};
+        break;
+      }
+      case 'operator':
+      {
+        if (_.isEmpty(value)) {
+          cond = {...condition, operator: '', values: []};
         } else {
-          newConditions.push(cond);
+          const
+            fieldId = conditions[row].filter,
+            {type, params} = Fields[fieldId]().operators[value].props,
+            newValues = []
+            ;
+          console.log(type, params)
+          for (let i = 0; i < params - 1; i++) {
+            newValues.push({type, value: this._getDefaultValue(type)});
+          }
+          cond = {...condition, operator: value, values: newValues};
+          this.setState({values: newValues});
         }
-      });
-
-      return this.setState({
-        conditions: newConditions,
-        values,
-      });
+        break;
+      }
+      case 'values':
+      {
+        const {values} = condition;
+        const newValues = values
+          .map((v, i) => {
+            return (i === index) ? (value) : v;
+          });
+        cond = {...condition, values: newValues};
+        break;
+      }
+      default:
+      {
+        cond = {...condition, [`${key}`]: value};
+      }
     }
 
-    conditions.map((cond, idx) => {
-      if (idx === row) {
-        newConditions.push(newCond);
+    const newConds = conditions.map((c, i) => {
+      if (i === row) {
+        return cond;
       } else {
-        newConditions.push(cond);
+        return c;
       }
     });
-
-    // handle for filter change - open form dialog
-    if (key === 'filter') {
-      if(!_.isEmpty(value)) {
-        const dialog = {
-          row,
-          fieldId: value
-        };
-
-        return this.setState({
-          dialog,
-          conditions: newConditions
-        });
-      }
-    }
-
-
+    // console.log(newConds);
     return this.setState({
-      conditions: newConditions,
+      conditions: newConds
     });
   }
 
@@ -227,11 +218,20 @@ class ConditionsBuilder extends Component {
   }
 
   _getDefaultConditions() {
-    return [{not: false, openParens: '', filter: '', operator: '', values: [], closeParens: '', bitwise: ''}];
+    return [{
+      not: false,
+      openParens: '',
+      filter: '',
+      field: '',
+      operator: '',
+      values: [],
+      closeParens: '',
+      bitwise: ''
+    }];
   }
 
   _getDefaultCondition() {
-    return {not: false, openParens: '', filter: '', operator: '', values: [], closeParens: '', bitwise: ''};
+    return {not: false, openParens: '', filter: '', field: '', operator: '', values: [], closeParens: '', bitwise: ''};
   }
 
   getDefaultHandlers() {
@@ -290,53 +290,88 @@ class ConditionsBuilder extends Component {
 
     const
       {dialog: {row, fieldId}, conditions, values} = this.state,
-      operators = Fields[fieldId]().operators
+      FieldData = Fields[fieldId](),
+      {fields, operators, props: {name: header}} = FieldData,
+      {operator, values: condValues, field} = conditions[row]
       ;
-    // Dialog props
-    const
-      options = Object.keys(operators)
-        .map(op => {
-          const {id: name, name: label} = operators[op].props;
-          return {name, label};
-        }),
-      header = S(fieldId).capitalize().s,
-      {operator, values: condValues} = conditions[row]
-      ;
-    options.splice(0, 0, {name: '', label: ''}); // default option
 
-    return (
-      <Dialog
-        modal={true}
-        header={header}
-        confirmLabel="Set"
-        hasCancel={true}
-        onAction={this._saveDataDialog}
-      >
-        <div className="form-body">
-          <div className="form-group">
-            <FormInput
-              ref="operator"
-              type="select"
-              value={operator}
-              options={options}
-              handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
-            />
+    if (fields) {
+      // Dialog props
+      const options = Object.keys(fields)
+          .map(f => {
+            const {id: name, name: label} = fields[f].props;
+            return {name, label};
+          })
+        ;
+      options.splice(0, 0, {name: '', label: ''}); // default option
+
+      return (
+        <Dialog
+          modal={true}
+          header={header}
+          confirmLabel="Set"
+          hasCancel={true}
+          onAction={this._saveDataDialog}
+        >
+          <div className="form-body">
+            <div className="form-group">
+              <FormInput
+                ref="field"
+                type="select"
+                value={field}
+                options={options}
+                handleOnChange={value => this.handleFieldChange(row, 'field', value)}
+              />
+            </div>
+
           </div>
-          {values.map((input, idx) => {
-            const {type, value} = input;
-            return (
-              <div className="form-group" key={idx}>
-                <FormInput
-                  type={type}
-                  value={value}
-                  handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </Dialog>
-    );
+        </Dialog>
+      );
+    } else {
+      // Dialog props
+      const
+        options = Object.keys(operators)
+          .map(op => {
+            const {id: name, name: label} = operators[op].props;
+            return {name, label};
+          })
+        ;
+      options.splice(0, 0, {name: '', label: ''}); // default option
+
+      return (
+        <Dialog
+          modal={true}
+          header={header}
+          confirmLabel="Set"
+          hasCancel={true}
+          onAction={this._saveDataDialog}
+        >
+          <div className="form-body">
+            <div className="form-group">
+              <FormInput
+                ref="operator"
+                type="select"
+                value={operator}
+                options={options}
+                handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
+              />
+            </div>
+            {values.map((input, idx) => {
+              const {type, value} = input;
+              return (
+                <div className="form-group" key={idx}>
+                  <FormInput
+                    type={type}
+                    value={value}
+                    handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </Dialog>
+      );
+    }
   }
 
   _saveDataDialog(action) {
