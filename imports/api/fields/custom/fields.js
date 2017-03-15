@@ -90,13 +90,23 @@ const contractEndDate = () => Object.assign(
 );
 
 // number
-const iCareMember = () => Object.assign(
+const numberOfEmployees = () => Object.assign(
   {},
   StandardFields.NumberField(),
   {
     props: {
-      id: 'iCareMember',
-      name: 'iCare member',
+      id: 'numberOfEmployees',
+      name: 'Number of Employees',
+    },
+  },
+);
+const numberOfiCMs = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'numberOfiCMs',
+      name: 'Number of iCMs',
     },
   },
 );
@@ -112,6 +122,8 @@ const Fields = {
   typeOfContract,
   contractStartDate,
   contractEndDate,
+  numberOfEmployees,
+  numberOfiCMs,
 };
 
 export default Fields
