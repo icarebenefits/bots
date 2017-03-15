@@ -12,6 +12,7 @@ import {
   Label,
 } from '../elements';
 import {Condition} from './Condition';
+import * as Notify from '/imports/api/notifications';
 
 class ConditionsBuilder extends Component {
 
@@ -63,7 +64,7 @@ class ConditionsBuilder extends Component {
     if (!_.isEmpty(conditions)) {
       const {filter, operator, values} = conditions[0];
       if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
-        return alert(`Please enter value(s) for Filter, Description`);
+        return Notify.error({title: '', message: `Please enter value(s) for Filter, Description`});
       }
     }
 
@@ -410,20 +411,18 @@ class ConditionsBuilder extends Component {
       <div className="col-md-12">
         <div className="row">
           <Label
-            className="col-md-12 bold uppercase pull-left"
+            className="col-md-4 bold uppercase pull-left"
             value="Conditions: "
           />
           {/* <h5>{expression}</h5>*/}
+          {readonly
+            ? null
+            : <Button
+            className="btn-default pull-right"
+            onClick={e => this._addCondition(e)}
+          ><span className="fa fa-plus"></span>{' Add'}</Button>
+          }
         </div>
-        {/*readonly
-         ? null
-         : <div className="row">
-         <Button
-         className="btn-default pull-right"
-         onClick={e => this._addCondition(e)}
-         ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
-         </div>
-         */}
         <div className="row">
           <table className="table table-striped">
             <thead>
