@@ -8,6 +8,7 @@ import {
 
 import {ConditionsBuilder} from '../../components/conditions-builder';
 import ScheduleBuilder from '../../components/schedule-builder/ScheduleBuilder';
+import MessageBuilder from '../../components/message-builder/MessageBuilder';
 
 class SingleSLA extends Component {
 
@@ -18,6 +19,7 @@ class SingleSLA extends Component {
       workplace: this.refs.workplace.getValue(),
       frequency: this.refs.frequency.getData(),
       conditions: this.refs.conditions.getConditions(),
+      message: this.refs.message.getData(),
     };
   }
 
@@ -172,6 +174,15 @@ class SingleSLA extends Component {
             <ConditionsBuilder
               ref="conditions"
               conditions={mode === 'edit' ? SLA.conditions : []}
+            />
+          </div>
+        </div>
+
+        <div className="row" style={{marginBottom: 20}}>
+          <div className="col-md-12">
+            <MessageBuilder
+              ref="message"
+              message={mode === 'edit' ? SLA.message: {}}
             />
           </div>
         </div>

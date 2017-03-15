@@ -99,8 +99,8 @@ Methods.create = new ValidatedMethod({
   //     allowedValues: COUNTRIES
   //   }
   // }).validator(),
-  run({name, description, workplace, frequency, conditions, status, country}) {
-    return SLAs.insert({name, description, workplace, frequency, conditions, status, country});
+  run({name, description, workplace, frequency, conditions, message, status, country}) {
+    return SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
   }
 });
 
@@ -220,7 +220,7 @@ Methods.edit = new ValidatedMethod({
   //     allowedValues: COUNTRIES
   //   },
   // }).validator(),
-  run({_id, name, description, workplace, frequency, conditions, status, country}) {
+  run({_id, name, description, workplace, frequency, conditions, message, status, country}) {
     const
       selector = {_id},
       modifier = {}
@@ -233,7 +233,7 @@ Methods.edit = new ValidatedMethod({
     !_.isEmpty(conditions) && (modifier.conditions = conditions);
     (!_.isEmpty(status) || status === 0) && (modifier.status = status);
     !_.isEmpty(country) && (modifier.country = country);
-
+    !_.isEmpty(message) && (modifier.message = message);
     return SLAs.update(selector, {$set: modifier});
   }
 });
