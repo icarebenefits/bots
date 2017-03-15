@@ -48,7 +48,7 @@ export class Condition extends Component {
       filters = this._getFilters(),
       description = getDescription({operator, values})
       ;
-    console.log(operator, values)
+    // console.log(operator, values)
 
     return (
       <tr>

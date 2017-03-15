@@ -151,15 +151,17 @@ class ConditionsBuilder extends Component {
 
     // handle for filter change - open form dialog
     if (key === 'filter') {
-      const dialog = {
-        row,
-        fieldId: value
-      };
+      if(!_.isEmpty(value)) {
+        const dialog = {
+          row,
+          fieldId: value
+        };
 
-      return this.setState({
-        dialog,
-        conditions: newConditions
-      });
+        return this.setState({
+          dialog,
+          conditions: newConditions
+        });
+      }
     }
 
 
