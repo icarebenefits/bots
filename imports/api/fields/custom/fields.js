@@ -16,27 +16,77 @@ const email = () => Object.assign(
     }
   }
 );
-
-// date
-const hireDate = () => Object.assign(
+const phone = () => Object.assign(
   {},
-  StandardFields.DateField(),
+  StandardFields.StringField(),
   {
     props: {
-      id: 'hireDate',
-      name: 'Hire date',
+      id: 'phone',
+      name: 'Phone',
     }
   }
 );
-const birthday = () => Object.assign(
+const alternatePhone = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'alternatePhone',
+      name: 'Alternate Phone',
+    }
+  }
+);
+const address = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'address',
+      name: 'Address',
+    }
+  }
+);
+const repaymentMechanism = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'repaymentMechanism',
+      name: 'Repayment Mechanism',
+    }
+  }
+);
+const typeOfContract = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'typeOfContract',
+      name: 'Type of Contract',
+    }
+  }
+);
+
+// date
+const contractStartDate = () => Object.assign(
   {},
   StandardFields.DateField(),
   {
     props: {
-      id: 'birthday',
-      name: 'Birthday',
-    },
-  },
+      id: 'contractStartDate',
+      name: 'Contract Start Date',
+    }
+  }
+);
+const contractEndDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'contractEndDate',
+      name: 'Contract End Date',
+    }
+  }
 );
 
 // number
@@ -55,9 +105,13 @@ const iCareMember = () => Object.assign(
 
 const Fields = {
   email,
-  hireDate,
-  birthday,
-  iCareMember,
+  phone,
+  alternatePhone,
+  address,
+  repaymentMechanism,
+  typeOfContract,
+  contractStartDate,
+  contractEndDate,
 };
 
 export default Fields
