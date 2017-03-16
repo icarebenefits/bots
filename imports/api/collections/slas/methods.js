@@ -18,87 +18,6 @@ const Methods = {};
 Methods.create = new ValidatedMethod({
   name: 'slas.create',
   validate: null,
-  // validate: new SimpleSchema({
-  //   name: {
-  //     type: String,
-  //     unique: true,
-  //   },
-  //   description: {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   workplace: {
-  //     type: String,
-  //   },
-  //   frequency: {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.first': {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.first.preps': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.first.range': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.first.unit': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.second': {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.second.preps': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.second.range': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   conditions: {
-  //     type: [Object]
-  //   },
-  //   "conditions.$.not": {
-  //     type: Boolean,
-  //     optional: true,
-  //   },
-  //   "conditions.$.openParens": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   "conditions.$.filter": {
-  //     type: String,
-  //   },
-  //   "conditions.$.operator": {
-  //     type: String,
-  //   },
-  //   "conditions.$.values": {
-  //     type: [String]
-  //   },
-  //   "conditions.$.closeParens": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   "conditions.$.bitwise": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   status: {
-  //     type: Number,
-  //     defaultValue: 0,
-  //   },
-  //   country: {
-  //     type: String,
-  //     allowedValues: COUNTRIES
-  //   }
-  // }).validator(),
   run({name, description, workplace, frequency, conditions, message, status, country}) {
     return SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
   }
@@ -114,7 +33,7 @@ Methods.setStatus = new ValidatedMethod({
   validate: new SimpleSchema({
     ...IDValidator,
     status: {
-      type: Number,
+      type: String,
     }
   }).validator(),
   run({_id, status}) {
@@ -128,7 +47,7 @@ Methods.setStatus = new ValidatedMethod({
 });
 
 /**
- * Method edit an SLA
+ * Method edit a SLA
  * @param {String} _id - description
  * @param {String} name - sla name
  * @param {String} expression - sla expression (email contains 'bot')
@@ -138,88 +57,6 @@ Methods.setStatus = new ValidatedMethod({
 Methods.edit = new ValidatedMethod({
   name: 'slas.edit',
   validate: null,
-  // validate: new SimpleSchema({
-  //   ...IDValidator,
-  //   name: {
-  //     type: String,
-  //     unique: true,
-  //   },
-  //   description: {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   workplace: {
-  //     type: String,
-  //   },
-  //   frequency: {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.first': {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.first.preps': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.first.range': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.first.unit': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.second': {
-  //     type: Object,
-  //     optional: true,
-  //   },
-  //   'frequency.second.preps': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   'frequency.second.range': {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   conditions: {
-  //     type: [Object]
-  //   },
-  //   "conditions.$.not": {
-  //     type: Boolean,
-  //     optional: true,
-  //   },
-  //   "conditions.$.openParens": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   "conditions.$.filter": {
-  //     type: String,
-  //   },
-  //   "conditions.$.operator": {
-  //     type: String,
-  //   },
-  //   "conditions.$.values": {
-  //     type: [String]
-  //   },
-  //   "conditions.$.closeParens": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   "conditions.$.bitwise": {
-  //     type: String,
-  //     optional: true,
-  //   },
-  //   status: {
-  //     type: Number,
-  //     defaultValue: 0,
-  //   },
-  //   country: {
-  //     type: String,
-  //     allowedValues: COUNTRIES
-  //   },
-  // }).validator(),
   run({_id, name, description, workplace, frequency, conditions, message, status, country}) {
     const
       selector = {_id},
@@ -235,6 +72,35 @@ Methods.edit = new ValidatedMethod({
     !_.isEmpty(country) && (modifier.country = country);
     !_.isEmpty(message) && (modifier.message = message);
     return SLAs.update(selector, {$set: modifier});
+  }
+});
+
+/**
+ * Method validate name of a SLA
+ * @param {String} _id - description
+ * @param {String} name - sla name
+ * @param {String} country - sla country
+ * @return {error} - validate result
+ */
+Methods.validateName = new ValidatedMethod({
+  name: 'slas.validateName',
+  validate: new SimpleSchema({
+    name: {
+      type: String,
+    },
+    country: {
+      type: String,
+    }
+  }).validator(),
+  run({name, country}) {
+    if(!this.isSimulation) {
+      const sla = SLAs.findOne({name, country});
+      if(!_.isEmpty(sla)) {
+        return {error: 'SLA name is exists.'}
+      } else {
+        return {error: null};
+      }
+    }
   }
 });
 

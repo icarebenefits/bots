@@ -189,8 +189,7 @@ class ScheduleBuilder extends Component {
       ;
 
     const {preps, range, unit, preps2, range2} = this.state;
-
-    // console.log('state', this.state);
+    const {hasValidate} = this.props;
 
     return (
       <div>
@@ -263,12 +262,14 @@ class ScheduleBuilder extends Component {
               />
             </div>
           )}
-          <div className="col-md-1">
-            <Button
-              className="green"
-              onClick={e => this._validateSchedule(e)}
-            >Validate</Button>
-          </div>
+          {hasValidate && (
+            <div className="col-md-1">
+              <Button
+                className="green"
+                onClick={e => this._validateSchedule(e)}
+              >Validate</Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -283,6 +284,7 @@ ScheduleBuilder.propTypes = {
     preps2: PropTypes.string,
     range2: PropTypes.string,
   }).isRequired,
+  hasValidate: PropTypes.bool, // has validate button or not
 };
 
 export default ScheduleBuilder

@@ -83,6 +83,10 @@ SLAs.schema = new SimpleSchema({
   "conditions.$.filter": {
     type: String,
   },
+  "conditions.$.field": {
+    type: String,
+    optional: true,
+  },
   "conditions.$.operator": {
     type: String,
   },
@@ -114,7 +118,8 @@ SLAs.schema = new SimpleSchema({
   },
   status: {
     type: Number,
-    defaultValue: 0,
+    allowedValues: ['draft', 'active', 'paused', 'resumed', 'restarted'],
+    defaultValue: 'draft',
   },
   country: {
     type: String,
