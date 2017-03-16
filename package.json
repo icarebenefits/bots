@@ -45,7 +45,10 @@
     "babel-runtime": "^6.23.0",
     "classnames": "^2.2.5",
     "colors": "^1.1.2",
+    "ddp": "^0.12.1",
+    "ddp-login": "^1.0.10",
     "lodash": "^4.17.4",
+    "meteor-job": "^1.4.0",
     "meteor-node-stubs": "~0.2.0",
     "moment": "^2.17.1",
     "node-comparison": "^0.1.1",
@@ -61,6 +64,7 @@
     "redux-thunk": "^2.2.0",
     "request": "^2.79.0",
     "string": "^3.3.3",
+    "string-template": "^1.0.0",
     "tether": "^1.4.0",
     "uuid": "^3.0.1",
     "winston": "^2.3.1"

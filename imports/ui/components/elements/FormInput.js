@@ -15,7 +15,7 @@ export class FormInput extends Component {
   render() {
     const
       {id, type, defaultValue, value, className, multiline, options, handleOnChange, hidden} = this.props,
-      common = {id, ref: 'input', className, defaultValue, multiline, value, handleOnChange, hidden}
+      common = {id, ref: 'input', className, defaultValue, multiline, value, handleOnChange, hidden, type}
       ;
 
     switch (type) {

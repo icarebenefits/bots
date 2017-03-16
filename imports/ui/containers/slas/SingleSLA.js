@@ -109,93 +109,115 @@ class SingleSLA extends Component {
     }
     return (
       <div>
-        <form className="form-horizontal" role="form" style={{width: 900}}>
-          <div className="form-body">
-            <div className="form-group">
-              <Label
-                className="col-md-2 control-label pull-left"
-                value="Name: "
-              />
-              <div className="col-md-9">
-                <FormInput
-                  ref="name"
-                  type="text"
-                  value={mode === 'edit' ? SLA.name : ''}
-                  className="form-control input-medium"
-                  placeholder="SLA name"
-                  handleOnChange={() => {}}
-                />
+        {/* information */}
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <form className="form-horizontal" role="form" style={{width: 900}}>
+              <div className="form-body">
+                <div className="form-group">
+                  <Label
+                    className="col-md-2 control-label pull-left"
+                    value="Name: "
+                  />
+                  <div className="col-md-9">
+                    <FormInput
+                      ref="name"
+                      type="text"
+                      value={mode === 'edit' ? SLA.name : ''}
+                      className="form-control input-medium"
+                      placeholder="SLA name"
+                      handleOnChange={() => {}}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <Label
+                    className="col-md-2 control-label pull-left"
+                    value="Description: "
+                  />
+                  <div className="col-md-9">
+                    <FormInput
+                      ref="desc"
+                      value={mode === 'edit' ? SLA.description : ''}
+                      type="text" multiline={true}
+                      className="form-control input-inline input-medium"
+                      placeholder="SLA description"
+                      handleOnChange={() => {}}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <Label
+                    className="col-md-2 control-label pull-left"
+                    value="Workplace: "
+                  />
+                  <div className="col-md-9">
+                    <FormInput
+                      type="select"
+                      ref="workplace"
+                      defaultValue={mode === 'edit' ? SLA.workplace : ''}
+                      className="form-control input-medium"
+                      options={wpOptions}
+                      handleOnChange={() => {}}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="form-group">
-              <Label
-                className="col-md-2 control-label pull-left"
-                value="Description: "
-              />
-              <div className="col-md-9">
-                <FormInput
-                  ref="desc"
-                  value={mode === 'edit' ? SLA.description : ''}
-                  type="text" multiline={true}
-                  className="form-control input-inline input-medium"
-                  placeholder="SLA description"
-                  handleOnChange={() => {}}
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <Label
-                className="col-md-2 control-label pull-left"
-                value="Workplace: "
-              />
-              <div className="col-md-9">
-                <FormInput
-                  type="select"
-                  ref="workplace"
-                  defaultValue={mode === 'edit' ? SLA.workplace : ''}
-                  className="form-control input-medium"
-                  options={wpOptions}
-                  handleOnChange={() => {}}
-                />
-              </div>
-            </div>
+            </form>
           </div>
-        </form>
+        </div>
 
-        <div className="row" style={{marginBottom: 20}}>
-          <div className="col-md-12">
-            <ScheduleBuilder
-              ref="frequency"
-              label="Frequency"
-              frequency={mode === 'edit' ? SLA.frequency : {
+        {/* Frequency */}
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <div className="row" style={{marginBottom: 20}}>
+              <div className="col-md-12">
+                <ScheduleBuilder
+                  ref="frequency"
+                  label="Frequency"
+                  hasValidate={false}
+                  frequency={mode === 'edit' ? SLA.frequency : {
                 preps: 'on the',
                 range: 'first',
                 unit: 'day of the week',
                 preps2: '',
                 range2: '',
               }}
-            />
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-md-12">
-            <ConditionsBuilder
-              ref="conditions"
-              conditions={mode === 'edit' ? SLA.conditions : []}
-            />
+        {/* Conditions */}
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <div className="row">
+              <div className="col-md-12">
+                <ConditionsBuilder
+                  ref="conditions"
+                  conditions={mode === 'edit' ? SLA.conditions : []}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="row" style={{marginBottom: 20}}>
-          <div className="col-md-12">
-            <MessageBuilder
-              ref="message"
-              message={mode === 'edit' ? SLA.message: {}}
-            />
+        {/* Message */}
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <div className="row" style={{marginBottom: 20}}>
+              <div className="col-md-12">
+                <MessageBuilder
+                  ref="message"
+                  message={mode === 'edit' ? SLA.message : {}}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Actions */}
         <FormActions
           {...actions}
         />

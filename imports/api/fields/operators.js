@@ -147,7 +147,7 @@ const between = (n, n1, n2) => ({
     id: 'between',
     name: 'between',
     type: 'number',
-    params: 2,
+    params: 3,
   },
   check: (n, n1, n2) => (n >= n1 && n <= n2)
 });

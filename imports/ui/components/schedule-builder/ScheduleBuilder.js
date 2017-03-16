@@ -85,8 +85,7 @@ class ScheduleBuilder extends Component {
       {
         const {preps} = this.state;
         return this.setState({
-          range: value,
-          unit: '',
+          range: value
         });
       }
       case 'unit':
@@ -158,8 +157,7 @@ class ScheduleBuilder extends Component {
             {name: '30', label: '30'}, {name: '40', label: '40'}, {name: '50', label: '50'},
           ],
           every: [
-            {name: '', label: ''},
-            {name: 'seconds', label: 'seconds'}, {name: 'minutes', label: 'minutes'}, {name: 'hours', label: 'hours'},
+            {name: '', label: ''}, {name: 'minutes', label: 'minutes'}, {name: 'hours', label: 'hours'},
             {name: 'days', label: 'days'}, {name: 'weeks', label: 'weeks'}, {name: 'months', label: 'months'},
           ],
         }
@@ -191,8 +189,7 @@ class ScheduleBuilder extends Component {
       ;
 
     const {preps, range, unit, preps2, range2} = this.state;
-
-    console.log('state', this.state);
+    const {hasValidate} = this.props;
 
     return (
       <div>
@@ -265,12 +262,14 @@ class ScheduleBuilder extends Component {
               />
             </div>
           )}
-          <div className="col-md-1">
-            <Button
-              className="green"
-              onClick={e => this._validateSchedule(e)}
-            >Validate</Button>
-          </div>
+          {hasValidate && (
+            <div className="col-md-1">
+              <Button
+                className="green"
+                onClick={e => this._validateSchedule(e)}
+              >Validate</Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -285,6 +284,7 @@ ScheduleBuilder.propTypes = {
     preps2: PropTypes.string,
     range2: PropTypes.string,
   }).isRequired,
+  hasValidate: PropTypes.bool, // has validate button or not
 };
 
 export default ScheduleBuilder

@@ -11,6 +11,9 @@ import SLAsCollection from '/imports/api/collections/slas/slas';
 
 import * as Notify from '/imports/api/notifications';
 
+// Job Server
+import JobServer from '/imports/api/jobs/index';
+
 // methods
 import Methods from '/imports/api/collections/slas/methods';
 
@@ -44,104 +47,278 @@ class SLAs extends Component {
     // helpers
     this._addSLA = this._addSLA.bind(this);
     this._editSLA = this._editSLA.bind(this);
-    this._enableSLA = this._enableSLA.bind(this);
+    this._pauseSLA = this._pauseSLA.bind(this);
+    this._resumeSLA = this._resumeSLA.bind(this);
+    this._removeSLA = this._removeSLA.bind(this);
 
     // render
     this._renderListSLAs = this._renderListSLAs.bind(this);
     this._renderSingleSLA = this._renderSingleSLA.bind(this);
   }
 
-  _validateData(name, wpName, frequency, filter, operator, values) {
-    if (_.isEmpty(name)) {
-      Notify.error({title: 'Add SLA', message: `Name of SLA is required.`});
-      return false;
+  componentWillReceiveProps(nextProps) {
+    const {ready, Workplaces} = nextProps;
+    if (ready && _.isEmpty(Workplaces)) {
+      Notify.warning({title: 'Workplaces', message: 'Please add at least 1 workplace.'});
     }
-    if (_.isEmpty(wpName)) {
-      Notify.error({title: 'Add SLA', message: `Workplace of SLA is required.`});
-      return false;
-    }
-    if (this._validateSchedule(frequency) !== -1) {
-      Notify.error({title: 'Add SLA', message: `Schedule is invalid`});
-      return false;
-    }
-    if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
-      Notify.error({title: 'Add SLA', message: `Conditions of SLA is required.`});
-      return false;
-    }
-
-    return true;
   }
 
-  _addSLA(status, notifyMessage) {
+  shouldComponentUpdate(nextProps) {
+    const {ready, Workplaces} = nextProps;
+    return ready && !_.isEmpty(Workplaces);
+  }
+
+  _validateData({SLA, mode}, callback) {
     const
-      {Workplaces} = this.props,
-      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
-      country = FlowRouter.getParam('country'),
-      {filter, operator, values} = conditions[0]
+      {name, workplace, frequency, conditions, country} = SLA
       ;
 
-    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
+    if (_.isEmpty(name)) {
+      callback({error: `Name of SLA is required.`});
+    } else {
+      if (_.isEmpty(workplace)) {
+        callback({error: `Workplace of SLA is required.`});
+      } else {
+        if (this._validateSchedule(frequency) !== -1) {
+          callback({error: `Schedule is invalid.`});
+        } else {
+          if (_.isEmpty(conditions)) {
+            callback({error: `Conditions of SLA is required.`});
+          } else {
+            const {filter, operator, values} = conditions[0];
+            if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
+              callback({error: `Conditions of SLA is required.`});
+            } else {
+              if(mode === 'add') {
+                Methods.validateName.call({name, country}, (error, result) => {
+                  if(error) {
+                    callback({error: error.reason});
+                  } else {
+                    const {error} = result;
+                    if(error) {
+                      callback({error});
+                    } else {
+                      callback({});
+                    }
+                  }
+                });
+              } else {
+                callback({});
+              }
+            }
+          }
+        }
+      }
 
-    console.log('addSLA', {name, wpName, frequency, filter, operator, values});
-    if (!this._validateData(name, wpName, frequency, filter, operator, values)) {
-      return;
     }
 
-    Methods.create.call({name, description, workplace: wpName, frequency, status: status, conditions, message, country},
-      (error, result) => {
-        if (error) {
-          return Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
-        }
-        else {
-          return Notify.info({title: 'Add SLA', message: notifyMessage});
-        }
-      });
+    return {};
   }
 
-  _editSLA(SLA, status) {
+  // function check the frequency is the same
+  _isSameFreq(freq, nextFreq) {
+    const keys = Object.keys(freq);
+    let isSame = true;
+    keys.map(key => isSame = isSame && (freq[key] === nextFreq[key]));
+    return isSame;
+  }
+
+  _addSLA(action) {
     const
       {Workplaces} = this.props,
-      {_id} = SLA,
       {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
       country = FlowRouter.getParam('country')
       ;
-    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
-    const
-      newSLA = {_id, name, description, frequency, conditions, message, workplace: wpName, status: status, country}
-      ;
 
-    Methods.edit.call(newSLA, (error, result) => {
+    const
+      wpName = Workplaces.filter(wp => wp.id === workplace)[0].name,
+      status = (action === 'draft') ? action : 'active'
+      ;
+    const SLA = {name, description, workplace: wpName, frequency, conditions, message, country, status};
+
+    // validate SLA data
+    this._validateData({SLA, mode: 'add'}, ({error}) => {
       if (error) {
-        return Notify.error({title: 'Edit SLA', message: error.reason});
-      }
-      else {
-        return Notify.info({title: 'Edit SLA', message: 'saved'});
+        Notify.error({title: 'Add SLA', message: error});
+        return this.setState({action: null});
+      } else {
+        Methods.create.call(SLA, (error, slaId) => {
+          if (error) {
+            Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
+            return this.setState({action: null});
+          }
+          else {
+            console.log('add sla')
+            if (action !== 'draft') {
+              try {
+                JobServer(country).createJob({
+                  name,
+                  freqText: this.getScheduleText(frequency),
+                  info: {slaId}
+                }, (err, res) => {
+                  if (err) {
+                    Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
+                    Methods.setStatus.call({_id: slaId, status: 'draft'});
+                  }
+
+                  if (action === 'execute') {
+                    // execute the SLA immediately
+                    Notify.warning({title: 'Add SLA', message: `executing SLA: ${slaId}`});
+                  }
+                  Notify.info({title: 'Add SLA', message: 'success'});
+                  return this.setState({mode: 'list', action: null});
+                });
+              } catch (e) {
+                Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
+                Methods.setStatus.call({_id: slaId, status: 'draft'});
+                return this.setState({mode: 'list', action: null});
+              }
+            } else {
+              Notify.info({title: 'Add SLA', message: 'success'});
+              return this.setState({mode: 'list', action: null});
+            }
+          }
+        });
       }
     });
   }
 
-  _enableSLA(id) {
-    const {_id, status} = this.props.SLAsList[id];
-    let message = '';
-    Methods.setStatus.call({_id, status: Number(!Boolean(status))}, (error, result) => {
+  _editSLA(SLA, action) {
+    const
+      {Workplaces} = this.props,
+      {_id, frequency: oldFreq} = SLA,
+      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
+      country = FlowRouter.getParam('country')
+      ;
+
+    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name,
+      status = (action === 'draft') ? action : null;
+    const
+      newSLA = {_id, name, description, frequency, conditions, message, workplace: wpName, status, country}
+      ;
+
+
+    // validate SLA data
+    this._validateData({SLA: newSLA, mode: 'edit'}, ({error}) => {
+
       if (error) {
-        return Notify.error({title: 'Enable SLA', message: error.reason});
-      }
-      else {
-        return Notify.info({title: 'Enable SLA', message: 'success'});
+        Notify.error({title: 'Edit SLA', message: error});
+        return this.setState({action: null});
+      } else {
+        Methods.edit.call(newSLA, (error, result) => {
+          if (error) {
+            Notify.error({title: 'Edit SLA', message: error.reason});
+            return this.setState({action: null});
+          }
+          else {
+            if(action === 'draft') {
+              // cancel all Jobs
+              JobServer(country).cancelJob({name},
+                (err, res) => {
+                  if (err) {
+                    Notify.error({title: 'Edit SLA', message: err.reason});
+                    return this.setState({action: null});
+                  }
+                });
+            } else {
+              if (!this._isSameFreq(oldFreq, frequency)) {
+                JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {slaId: _id}},
+                  (err, res) => {
+                    if (err) {
+                      Notify.error({title: 'Edit SLA', message: err.reason});
+                      return this.setState({action: null});
+                    }
+                  });
+              }
+            }
+            Notify.info({title: 'Edit SLA', message: 'saved'});
+            return this.setState({mode: 'list', action: null});
+          }
+        });
       }
     });
+  }
+
+  _pauseSLA(id) {
+    const {_id, name, status} = this.props.SLAsList[id],
+      country = FlowRouter.getParam('country');
+    let message = '';
+    console.log('pause', _id)
+    JobServer(country).pauseJob({name}, (err, res) => {
+      if (err) Notify.error({title: 'Pause SLA', message: err.reason});
+      else {
+        Methods.setStatus.call({_id, status: 'paused'}, (error, result) => {
+          if (error) {
+            Notify.error({title: 'Pause SLA', message: error.reason});
+          }
+          else {
+            Notify.info({title: 'Pause SLA', message: 'success'});
+          }
+        });
+      }
+    });
+    return this.setState({mode: 'list', action: null});
+
+  }
+
+  _restartSLA(id) {
+    const {_id, name, status} = this.props.SLAsList[id],
+      country = FlowRouter.getParam('country');
+    let message = '';
+    console.log('restart', _id)
+    JobServer(country).restartJob({name}, (err, res) => {
+      if (err) Notify.error({title: 'Restart SLA', message: err.reason});
+      else {
+        Methods.setStatus.call({_id, status: 'restarted'}, (error, result) => {
+          if (error) {
+            Notify.error({title: 'Restart SLA', message: error.reason});
+          }
+          else {
+            Notify.info({title: 'Restart SLA', message: 'success'});
+          }
+        });
+      }
+    });
+    return this.setState({mode: 'list', action: null});
+  }
+
+  _resumeSLA(id) {
+    const {_id, name, status} = this.props.SLAsList[id],
+      country = FlowRouter.getParam('country');
+    let message = '';
+    console.log('resume', _id)
+    JobServer(country).resumeJob({name}, (err, res) => {
+      if (err) Notify.error({title: 'Resume SLA', message: err.reason});
+      else {
+        Methods.setStatus.call({_id, status: 'resumed'}, (error, result) => {
+          if (error) {
+            Notify.error({title: 'Resume SLA', message: error.reason});
+          }
+          else {
+            Notify.info({title: 'Resume SLA', message: 'success'});
+          }
+        });
+      }
+    });
+    return this.setState({mode: 'list', action: null});
   }
 
   _removeSLA(id) {
-    const {_id} = this.props.SLAsList[id];
+    const {_id, name} = this.props.SLAsList[id],
+      country = FlowRouter.getParam('country');
     Methods.remove.call({_id}, (error, result) => {
       if (error) {
-        return Notify.error({title: 'Remove SLA', message: error.reason});
+        Notify.error({title: 'Remove SLA', message: error.reason});
       }
       else {
-        return Notify.info({title: 'Remove SLA', message: 'success'});
+        JobServer(country).removeJob({name}, (err, res) => {
+          if (err) {
+            Notify.error({title: 'Remove SLA', message: err.reason});
+          }
+        });
+        Notify.info({title: 'Remove SLA', message: 'success'});
       }
+      return this.setState({mode: 'list', action: null});
     });
   }
 
@@ -179,49 +356,67 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back': {
+      case 'back':
+      {
       }
-      case 'cancel': {
+      case 'cancel':
+      {
         return this.setState({mode: 'list', action: null});
       }
-      case 'remove': {
+      case 'remove':
+      {
         return this._removeSLA(row);
       }
-      case 'enable': {
-        return this._enableSLA(row);
+      case 'pause':
+      {
+        return this._pauseSLA(row);
       }
-      case 'validate': {
-        Notify.info({title: 'Validate conditions', message: 'success'});
+      case 'resume':
+      {
+        return this._resumeSLA(row);
+      }
+      case 'restart':
+      {
+        return this._restartSLA(row);
+      }
+      case 'validate':
+      {
+        Notify.info({title: 'Validate conditions', message: 'looks great.'});
         return this.setState({action});
       }
-      case 'saveDraft': {
+      case 'draft':
+      {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], 0, 'saved as draft');
+          this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
-          this._addSLA(0, 'saved as draft');
+          this._addSLA(action);
         }
         return this.setState({action});
       }
-      case 'save': {
+      case 'save':
+      {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], 1, 'saved');
+          this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
-          this._addSLA(1, 'saved');
+          this._addSLA(action);
         }
         return this.setState({action});
       }
-      case 'saveRun': {
+      case 'execute':
+      {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], 1, 'saved and running');
+          this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
-          this._addSLA(1, 'saved and running');
+          this._addSLA(action);
         }
         return this.setState({action});
       }
-      case 'edit': {
+      case 'edit':
+      {
         return this.setState({mode: action, action});
       }
-      default: {
+      default:
+      {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -262,8 +457,10 @@ class SLAs extends Component {
           data: [[]],
           readonly: true,
           actions: [
-            {id: 'enable', label: 'Enable', handleAction: this.handleActionSLA},
             {id: 'view', label: 'View details', handleAction: this.handleChangeMode},
+            {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
+            {id: 'pause', label: 'Pause', className: 'yellow', handleAction: this.handleActionSLA},
+            {id: 'resume', label: 'Resume', className: 'green', handleAction: this.handleActionSLA},
             {
               id: 'remove', label: '', icon: 'fa fa-times',
               className: 'btn-danger', handleAction: this.handleActionSLA
@@ -277,12 +474,11 @@ class SLAs extends Component {
       }
       ;
 
-
     const dataList = SLAsList.map(s => ([
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: s.workplace},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
-      {id: 'status', type: 'input', value: s.status ? 'active' : 'inactive'},
+      {id: 'status', type: 'input', value: s.status},
     ]));
 
     listSLAsProps.list.data = dataList;
@@ -305,16 +501,18 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add': {
+      case 'add':
+      {
       }
-      case 'edit': {
+      case 'edit':
+      {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
             className: 'btn-info', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'saveDraft', label: 'Save as Draft',
+            id: 'draft', label: 'Save as Draft',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
@@ -322,7 +520,7 @@ class SLAs extends Component {
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'saveRun', label: 'Save and Execute',
+            id: 'execute', label: 'Save and Execute',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
@@ -332,7 +530,8 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view': {
+      case 'view':
+      {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -345,7 +544,8 @@ class SLAs extends Component {
         ]
         break;
       }
-      default: {
+      default:
+      {
         alert(`Unknown action: ${mode}`);
       }
     }
@@ -366,7 +566,8 @@ class SLAs extends Component {
 
   render() {
     const
-      {ready} = this.props,
+      {ready, Workplaces} = this.props,
+      country = FlowRouter.getParam('country'),
       {mode} = this.state,
       sideBarProps = {
         options: [
