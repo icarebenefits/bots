@@ -61,7 +61,7 @@ class MessageBuilder extends Component {
   render() {
     const {summaryType, field, varName, template} = this.state;
 
-    console.log('message', this.state);
+    // console.log('message', this.state);
     return (
       <div>
         <Label

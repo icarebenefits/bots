@@ -70,6 +70,16 @@ const JobServer = (country) => {
         callback(null, res);
       });
     },
+    cancelJob: ({name}, callback = () => {}) => {
+      const params = {
+        type: `${country}-${name}`,
+      };
+      server.call('controllers.cancel', params, (err, res) => {
+        if(err) callback(err, null);
+
+        callback(null, res);
+      });
+    },
     removeJob: ({name}, callback = () => {}) => {
       const params = {
         type: `${country}-${name}`,

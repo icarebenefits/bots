@@ -309,8 +309,13 @@ class ConditionsBuilder extends Component {
     }
 
     const
-      {dialog: {row, fieldId}, conditions, values} = this.state,
-      FieldData = Fields[fieldId](),
+      {dialog: {row, fieldId}, conditions, values} = this.state;
+
+    if(_.isEmpty(fieldId)) {
+      return null;
+    }
+
+    const FieldData = Fields[fieldId](),
       {fields, operators, props: {name: header}} = FieldData,
       {operator, values: condValues, field} = conditions[row]
       ;
