@@ -211,25 +211,25 @@ class SLAs extends Component {
             return this.setState({action: null});
           }
           else {
-            if(action === 'draft') {
-              // cancel all Jobs
-              JobServer(country).cancelJob({name},
+            if (!this._isSameFreq(oldFreq, frequency)) {
+              JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {slaId: _id}},
                 (err, res) => {
                   if (err) {
                     Notify.error({title: 'Edit SLA', message: err.reason});
                     return this.setState({action: null});
+                  } else {
+                    if(action === 'draft') {
+                      // cancel all Jobs
+                      JobServer(country).cancelJob({name},
+                        (err, res) => {
+                          if (err) {
+                            Notify.error({title: 'Edit SLA', message: err.reason});
+                            return this.setState({action: null});
+                          }
+                        });
+                    }
                   }
                 });
-            } else {
-              if (!this._isSameFreq(oldFreq, frequency)) {
-                JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {slaId: _id}},
-                  (err, res) => {
-                    if (err) {
-                      Notify.error({title: 'Edit SLA', message: err.reason});
-                      return this.setState({action: null});
-                    }
-                  });
-              }
             }
             Notify.info({title: 'Edit SLA', message: 'saved'});
             return this.setState({mode: 'list', action: null});
