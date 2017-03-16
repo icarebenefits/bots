@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import _ from 'lodash';
-import S from 'string';
+import moment from 'moment';
+import accounting from 'accounting';
 
 // Fields
 import {Fields} from '/imports/api/fields';
@@ -84,7 +85,6 @@ class ConditionsBuilder extends Component {
     });
   }
 
-
   handleFieldChange(row, key, value, index) {
 
     const
@@ -120,11 +120,18 @@ class ConditionsBuilder extends Component {
           cond = {...condition, operator: '', values: []};
         } else {
           const
-            fieldId = conditions[row].filter,
-            {type, params} = Fields[fieldId]().operators[value].props,
+            {filter, field} = conditions[row],
             newValues = []
             ;
-          console.log(type, params)
+          let FieldData = {};
+          if(!_.isEmpty(field)) {
+            FieldData = Object.assign({}, Fields[filter]().fields[field]);
+            // {type, params} = FieldData.fields[field].operators[value].props
+          } else {
+            FieldData = Object.assign({}, Fields[filter]())
+          }
+
+          const {type, params} = FieldData.operators[value].props;
           for (let i = 0; i < params - 1; i++) {
             newValues.push({type, value: this._getDefaultValue(type)});
           }
@@ -205,7 +212,7 @@ class ConditionsBuilder extends Component {
       }
       case 'number':
       {
-        return 0;
+        return '';
       }
       case 'string':
       {
@@ -247,21 +254,33 @@ class ConditionsBuilder extends Component {
   }
 
   getDescription(condition) {
-    const {operator, values} = condition;
+    const {field, operator, values} = condition;
     let description = '';
 
+    if(!_.isEmpty(field)) {
+      description = `${field} `;
+    }
     if (operator) {
-      description = `${operator} `;
+      description = `${description} ${operator} `;
       if (values.length > 1) {
         values.map(({type, value}, idx) => {
+          let val = value;
+          if(type === 'date') {
+            val = moment(new Date(value)).format('LL');
+          }
           if (idx === values.length - 1) {
-            description = `${description} "${value}"`;
+            description = `${description} "${val}"`;
           } else {
-            description = `${description} "${value}" and `;
+            description = `${description} "${val}" and `;
           }
         })
       } else {
-        description = `${description} "${values[0].value}"`;
+        const {type, value} = values[0];
+        let val = value;
+        if(type === 'date') {
+          val = moment(new Date(value)).format('LL');
+        }
+        description = `${description} "${val}"`;
       }
     }
 
@@ -297,7 +316,7 @@ class ConditionsBuilder extends Component {
       ;
 
     if (fields) {
-      // Dialog props
+      // Dialog field props
       const options = Object.keys(fields)
           .map(f => {
             const {id: name, name: label} = fields[f].props;
@@ -305,6 +324,18 @@ class ConditionsBuilder extends Component {
           })
         ;
       options.splice(0, 0, {name: '', label: ''}); // default option
+      // Dialog operator props
+      let opOptions = [];
+      if(!_.isEmpty(field)) {
+        const {operators} = fields[field];
+        opOptions = Object.keys(operators)
+          .map(op => {
+            const {id: name, name: label} = operators[op].props;
+            return {name, label};
+          })
+        ;
+        opOptions.splice(0, 0, {name: '', label: ''}); // default option
+      }
 
       return (
         <Dialog
@@ -324,7 +355,31 @@ class ConditionsBuilder extends Component {
                 handleOnChange={value => this.handleFieldChange(row, 'field', value)}
               />
             </div>
-
+            {!_.isEmpty(opOptions) && (
+              <div className="form-group">
+                <FormInput
+                  ref="operator"
+                  type="select"
+                  value={operator}
+                  options={opOptions}
+                  handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
+                />
+              </div>
+            )}
+            {!_.isEmpty(opOptions) && (
+              values.map((input, idx) => {
+                const {type, value} = input;
+                return (
+                  <div className="form-group" key={idx}>
+                    <FormInput
+                      type={type}
+                      value={value}
+                      handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
+                    />
+                  </div>
+                );
+              })
+            )}
           </div>
         </Dialog>
       );

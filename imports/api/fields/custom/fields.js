@@ -165,12 +165,34 @@ const numberOfCutOffTimes = () => Object.assign(
 const businessUnits = () => ({
   props: {
     id: 'businessUnits',
-    name: 'Business Units',
+    name: 'Business Units Fields...',
   },
   fields: {
     name: Object.assign({}, name()),
     paymentDay: Object.assign({}, paymentDay()),
     numberOfCutOffTimes: Object.assign({}, numberOfCutOffTimes()),
+  }
+});
+const primaryContacts = () => ({
+  props: {
+    id: 'primaryContacts',
+    name: 'Primary Contact Fields...',
+  },
+  fields: {
+    name: Object.assign({}, name()),
+    email: Object.assign({}, email()),
+  }
+});
+const iCareStaffs = () => ({
+  props: {
+    id: 'iCareStaffs',
+    name: 'iCare Staff Fields...',
+  },
+  fields: {
+    name: Object.assign({}, name()),
+    email: Object.assign({}, email()),
+    hireDate: Object.assign({}, hireDate()),
+    terminationDate: Object.assign({}, terminationDate()),
   }
 });
 
@@ -186,6 +208,8 @@ const Fields = {
   numberOfEmployees,
   numberOfiCMs,
   businessUnits,
+  primaryContacts,
+  iCareStaffs,
 };
 
 export default Fields

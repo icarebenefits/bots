@@ -33,7 +33,7 @@ export class Condition extends Component {
       {
         id,
         condition: {
-          not = false, openParens = '', filter = '',
+          not = false, openParens = '', filter = '', field = '',
           operator = '', values = [], closeParens = '', bitwise = ''
         },
         handlers: {
@@ -46,7 +46,7 @@ export class Condition extends Component {
         readonly = true,
       } = this.props,
       filters = this._getFilters(),
-      description = getDescription({operator, values})
+      description = getDescription({field, operator, values})
       ;
     // console.log(operator, values)
 
@@ -83,7 +83,7 @@ export class Condition extends Component {
             ? filter
             : (<Selectbox
             className="form-control"
-            value={filter || ''}
+            value={filter}
             options={filters}
             handleOnChange={value => handleFieldChange(id, 'filter', value)}
           />)
