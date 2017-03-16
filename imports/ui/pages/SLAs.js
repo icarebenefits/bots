@@ -89,13 +89,13 @@ class SLAs extends Component {
             if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
               callback({error: `Conditions of SLA is required.`});
             } else {
-              if(mode === 'add') {
+              if (mode === 'add') {
                 Methods.validateName.call({name, country}, (error, result) => {
-                  if(error) {
+                  if (error) {
                     callback({error: error.reason});
                   } else {
                     const {error} = result;
-                    if(error) {
+                    if (error) {
                       callback({error});
                     } else {
                       callback({});
@@ -217,17 +217,17 @@ class SLAs extends Component {
                   if (err) {
                     Notify.error({title: 'Edit SLA', message: err.reason});
                     return this.setState({action: null});
-                  } else {
-                    if(action === 'draft') {
-                      // cancel all Jobs
-                      JobServer(country).cancelJob({name},
-                        (err, res) => {
-                          if (err) {
-                            Notify.error({title: 'Edit SLA', message: err.reason});
-                            return this.setState({action: null});
-                          }
-                        });
-                    }
+                  }
+                });
+            }
+            if (action === 'draft') {
+              // cancel all Jobs
+              // console.log('going to cancel job')
+              JobServer(country).cancelJob({name},
+                (err, res) => {
+                  if (err) {
+                    Notify.error({title: 'Edit SLA', message: err.reason});
+                    return this.setState({action: null});
                   }
                 });
             }
