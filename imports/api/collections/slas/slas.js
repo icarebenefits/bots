@@ -97,6 +97,21 @@ SLAs.schema = new SimpleSchema({
     type: String,
     optional: true,
   },
+  message: {
+    type: Object
+  },
+  "message.summaryType": {
+    type: String,
+  },
+  "message.field": {
+    type: String,
+  },
+  "message.varName": {
+    type: String,
+  },
+  "message.template": {
+    type: String,
+  },
   status: {
     type: Number,
     defaultValue: 0,

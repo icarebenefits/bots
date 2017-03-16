@@ -72,10 +72,10 @@ class SLAs extends Component {
     return true;
   }
 
-  _addSLA(status, message) {
+  _addSLA(status, notifyMessage) {
     const
       {Workplaces} = this.props,
-      {name, description, workplace, frequency, conditions} = this.refs.SLA.getData(),
+      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
       country = FlowRouter.getParam('country'),
       {filter, operator, values} = conditions[0]
       ;
@@ -87,13 +87,13 @@ class SLAs extends Component {
       return;
     }
 
-    Methods.create.call({name, description, workplace: wpName, frequency, status: status, conditions, country},
+    Methods.create.call({name, description, workplace: wpName, frequency, status: status, conditions, message, country},
       (error, result) => {
         if (error) {
           return Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
         }
         else {
-          return Notify.info({title: 'Add SLA', message: message});
+          return Notify.info({title: 'Add SLA', message: notifyMessage});
         }
       });
   }
@@ -102,12 +102,12 @@ class SLAs extends Component {
     const
       {Workplaces} = this.props,
       {_id} = SLA,
-      {name, description, workplace, frequency, conditions} = this.refs.SLA.getData(),
+      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
       country = FlowRouter.getParam('country')
       ;
     const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
     const
-      newSLA = {_id, name, description, frequency, conditions, workplace: wpName, status: status, country}
+      newSLA = {_id, name, description, frequency, conditions, message, workplace: wpName, status: status, country}
       ;
 
     Methods.edit.call(newSLA, (error, result) => {
@@ -179,28 +179,22 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back':
-      {
+      case 'back': {
       }
-      case 'cancel':
-      {
+      case 'cancel': {
         return this.setState({mode: 'list', action: null});
       }
-      case 'remove':
-      {
+      case 'remove': {
         return this._removeSLA(row);
       }
-      case 'enable':
-      {
+      case 'enable': {
         return this._enableSLA(row);
       }
-      case 'validate':
-      {
+      case 'validate': {
         Notify.info({title: 'Validate conditions', message: 'success'});
         return this.setState({action});
       }
-      case 'saveDraft':
-      {
+      case 'saveDraft': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], 0, 'saved as draft');
         } else {
@@ -208,8 +202,7 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'save':
-      {
+      case 'save': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], 1, 'saved');
         } else {
@@ -217,8 +210,7 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'saveRun':
-      {
+      case 'saveRun': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], 1, 'saved and running');
         } else {
@@ -226,12 +218,10 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'edit':
-      {
+      case 'edit': {
         return this.setState({mode: action, action});
       }
-      default:
-      {
+      default: {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -315,11 +305,9 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add':
-      {
+      case 'add': {
       }
-      case 'edit':
-      {
+      case 'edit': {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
@@ -344,8 +332,7 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view':
-      {
+      case 'view': {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -358,8 +345,7 @@ class SLAs extends Component {
         ]
         break;
       }
-      default:
-      {
+      default: {
         alert(`Unknown action: ${mode}`);
       }
     }
