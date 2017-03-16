@@ -60,8 +60,7 @@ class MessageBuilder extends Component {
 
   render() {
     const {summaryType, field, varName, template} = this.state;
-
-    // console.log('message', this.state);
+    const {readonly} =this.props;
     return (
       <div>
         <Label
@@ -74,31 +73,43 @@ class MessageBuilder extends Component {
               className="col-md-3 pull-left"
               value="SummaryType"
             />
-            <FormInput
-              ref="summaryType"
-              type="select"
-              className="form-control"
-              value={summaryType}
-              options={[
+            {readonly ?
+              <Label
+                className="col-md-3 form-control pull-left"
+                value={summaryType}
+              /> :
+              <FormInput
+                ref="summaryType"
+                type="select"
+                className="form-control"
+                value={summaryType}
+                options={[
                 {name: '', label: ''},
                 {name: 'count', label: 'count'},
                 {name: 'sum', label: 'sum'},
                 {name: 'average', label: 'average'},
               ]}
-              handleOnChange={value => this._handleFieldChange('summaryType', value)}
-            />
+                handleOnChange={value => this._handleFieldChange('summaryType', value)}
+              />
+            }
+
           </div>
           <div className="col-md-3">
             <Label
               className="col-md-3 pull-left"
               value="CustomField"
             />
-            <FormInput
-              ref="field"
-              type="select"
-              className="form-control "
-              value={field}
-              options={[
+            {readonly ?
+              <Label
+                className="col-md-3 form-control pull-left"
+                value={field}
+              /> :
+              <FormInput
+                ref="field"
+                type="select"
+                className="form-control "
+                value={field}
+                options={[
                 {name: '', label: ''},
                 {name: 'iCM', label: 'iCM'},
                 {name: 'customer', label: 'customer'},
@@ -106,22 +117,29 @@ class MessageBuilder extends Component {
                 {name: 'bill', label: 'bill'},
                 {name: 'amount', label: 'amount'},
               ]}
-              handleOnChange={value => this._handleFieldChange('field', value)}
-            />
+                handleOnChange={value => this._handleFieldChange('field', value)}
+              />
+            }
           </div>
           <div className="col-md-3">
             <Label
               className="col-md-3 pull-left"
               value="Variable"
             />
-            <FormInput
-              ref="varName"
-              type="text"
-              value={varName}
-              className="form-control"
-              placeholder="variable"
-              handleOnChange={value => this._handleFieldChange('varName', value)}
-            />
+            {readonly ?
+              <Label
+                className="col-md-3 form-control pull-left"
+                value={varName}
+              /> :
+              <FormInput
+                ref="varName"
+                type="text"
+                value={varName}
+                className="form-control"
+                placeholder="variable"
+                handleOnChange={value => this._handleFieldChange('varName', value)}
+              />
+            }
           </div>
         </div>
         <div className="row">
@@ -131,25 +149,32 @@ class MessageBuilder extends Component {
               value="Template"
             />
             <div className="col-md-6">
-              <FormInput
-                ref="template"
-                type="text"
-                value={template}
-                className="form-control"
-                placeholder="message template"
-                handleOnChange={value => this._handleFieldChange('template', value)}
-              />
+              {readonly ?
+                <Label
+                  className="col-md-6 form-control pull-left"
+                  value={template}
+                /> :
+                <FormInput
+                  ref="template"
+                  type="text"
+                  value={template}
+                  className="form-control"
+                  placeholder="message template"
+                  handleOnChange={value => this._handleFieldChange('template', value)}
+                />}
             </div>
-            <div className="col-md-2">
-              <Button
-                className="green"
-                onClick={e => this.handleCheck(e)}
-              >Preview</Button>
-            </div>
+            {readonly ? null :
+              < div className="col-md-2">
+                <Button
+                  className="green"
+                  onClick={e => this.handleCheck(e)}
+                >Preview</Button>
+              </div>
+            }
           </div>
 
         </div>
-      </div>
+      < / div >
     )
 
   }

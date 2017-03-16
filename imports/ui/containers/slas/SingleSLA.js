@@ -34,7 +34,7 @@ class SingleSLA extends Component {
 
 
     if (mode === 'view') {
-      const {name = '', description = '', workplace = '', frequency = {}, status, conditions} = SLA;
+      const {name = '', description = '', workplace = '', frequency = {}, status, conditions, message} = SLA;
       return (
         <div>
           <form className="form-horizontal" role="form" style={{width: 900}}>
@@ -88,6 +88,15 @@ class SingleSLA extends Component {
                 readonly={true}
                 ref="conditions"
                 conditions={conditions}
+              />
+            </div>
+          </div>
+          <div className="row" style={{marginBottom: 20}}>
+            <div className="col-md-12">
+              <MessageBuilder
+                ref="message"
+                readonly={true}
+                message={message}
               />
             </div>
           </div>
