@@ -8,7 +8,7 @@ import {
   Label,
   Button,
 } from '../elements';
-
+import {Variable} from './Variable';
 import * as Notify from '/imports/api/notifications';
 import template from "string-template";
 
@@ -18,40 +18,116 @@ class MessageBuilder extends Component {
   constructor(props) {
     super(props);
 
-    const {summaryType = '', field = '', varName = '', template = ''} = props.message;
+    const {
+      variables = [{
+        summaryType: '',
+        field: '',
+        name: '',
+      }],
+      template = '',
+    } = props.message;
 
     this.state = {
-      summaryType,
-      field,
-      varName,
+      variables,
       template,
     };
+
+    // handlers
+    this.handleFieldChange = this.handleFieldChange.bind(this);
+    this.handleRemoveRow = this.handleRemoveRow.bind(this);
   }
 
   handleCheck(e) {
     e.preventDefault();
+
+    console.log(this.state);
+    const {variables} = this.state;
     const message = this.refs.template.getValue();
-    console.log(message);
-    const varName = this.refs.varName.getValue();
     const countLeft = (message.match(/{/g) || []).length;
     const countRight = (message.match(/}/g) || []).length;
-    if (countLeft === countRight && countLeft > 0 && message.indexOf('{' + varName + '}') > 0) {
+    if (countLeft === countRight && countLeft > 0) {
       const values = {};
-      values[varName] = 120;
+      let numOfValues = 0;
+      let noVariable = false;
+      variables.map((v) => {
+        if (message.indexOf('{' + v.name + '}') >= 0) {
+          values[v.name] = Math.floor(Math.random() * (1000 + 1) + 12);
+          numOfValues++;
+        }
+        if (v.name === '')
+          noVariable = true;
+      });
       console.log(values);
-      const sample = template(message, values);
-      Notify.success({title: 'Message builder', message: `Message sample: "${sample}"`});
+      if (noVariable) {
+        Notify.warning({title: 'Message invalid', message: 'There are NO variable'});
+      } else if (variables.length != numOfValues) {
+        Notify.warning({title: 'Message invalid', message: 'Template DO NOT match with given variables'});
+      } else {
+        const sample = template(message, values);
+        Notify.success({title: 'Message Sample:', message: ` "${sample}"`});
+      }
     } else {
-      Notify.warning({title: 'Message builder', message: 'Message invalid.'});
-      console.log(countLeft + "!=" + countRight);
+      Notify.warning({title: 'Message invalid', message: 'Template is INVALID '});
     }
   }
 
+  _getDefaultVariable() {
+    return {
+      summaryType: '',
+      field: '',
+      name: '',
+    }
+  }
+
+  handleRemoveRow(row) {
+    const {variables} = this.state;
+    variables.splice(row, 1);
+    return this.setState({
+      variables,
+    });
+  }
+
+  _addRow(e) {
+    e.preventDefault();
+    const {variables} = this.state;
+    variable = this._getDefaultVariable()
+    ;
+    variables.push(variable);
+
+    return this.setState({
+      variables,
+    });
+  }
+
+  handleFieldChange(row, key, value) {
+    const
+      {variables} = this.state,
+      variable = variables[row];
+    let newVar = {...variable, [`${key}`]: value};
+    const newVariables = variables.map((c, i) => {
+      if (i === row) {
+        return newVar;
+      } else {
+        return c;
+      }
+    });
+    // console.log("newVariables", newVariables);
+    return this.setState({
+      variables: newVariables
+    });
+  }
+
   _handleFieldChange(field, value) {
-    // console.log("field:" + field + " value:" + value);
     this.setState({
       [field]: value
     });
+  }
+
+  getDefaultHandlers() {
+    return {
+      handleFieldChange: this.handleFieldChange,
+      handleRemoveRow: this.handleRemoveRow,
+    };
   }
 
   getData() {
@@ -59,122 +135,91 @@ class MessageBuilder extends Component {
   }
 
   render() {
-    const {summaryType, field, varName, template} = this.state;
-    const {readonly} =this.props;
+    const {variables, template} = this.state;
+    let {handlers, readonly} = this.props;
+    if (_.isEmpty(handlers)) {
+      handlers = this.getDefaultHandlers();
+    }
     return (
-      <div>
-        <Label
-          className="col-md-12 uppercase bold pull-left"
-          value="Message Builder"
-        />
-        <div className="row" style={{marginBottom: 20}}>
-          <div className="col-md-3">
-            <Label
-              className="col-md-3 pull-left"
-              value="SummaryType"
-            />
-            {readonly ?
-              <Label
-                className="col-md-3 form-control pull-left"
-                value={summaryType}
-              /> :
-              <FormInput
-                ref="summaryType"
-                type="select"
-                className="form-control"
-                value={summaryType}
-                options={[
-                {name: '', label: ''},
-                {name: 'count', label: 'count'},
-                {name: 'sum', label: 'sum'},
-                {name: 'average', label: 'average'},
-              ]}
-                handleOnChange={value => this._handleFieldChange('summaryType', value)}
-              />
-            }
-
-          </div>
-          <div className="col-md-3">
-            <Label
-              className="col-md-3 pull-left"
-              value="CustomField"
-            />
-            {readonly ?
-              <Label
-                className="col-md-3 form-control pull-left"
-                value={field}
-              /> :
-              <FormInput
-                ref="field"
-                type="select"
-                className="form-control "
-                value={field}
-                options={[
-                {name: '', label: ''},
-                {name: 'iCM', label: 'iCM'},
-                {name: 'customer', label: 'customer'},
-                {name: 'ticket', label: 'ticket'},
-                {name: 'bill', label: 'bill'},
-                {name: 'amount', label: 'amount'},
-              ]}
-                handleOnChange={value => this._handleFieldChange('field', value)}
-              />
-            }
-          </div>
-          <div className="col-md-3">
-            <Label
-              className="col-md-3 pull-left"
-              value="Variable"
-            />
-            {readonly ?
-              <Label
-                className="col-md-3 form-control pull-left"
-                value={varName}
-              /> :
-              <FormInput
-                ref="varName"
-                type="text"
-                value={varName}
-                className="form-control"
-                placeholder="variable"
-                handleOnChange={value => this._handleFieldChange('varName', value)}
-              />
-            }
-          </div>
+      <div className="col-md-12">
+        <div className="row">
+          <Label
+            className="uppercase bold pull-left"
+            value="Message Builder"
+          />
+          {readonly
+            ? null
+            : <Button
+              className="btn-default pull-right"
+              onClick={e => this._addRow(e)}
+            ><span className="fa fa-plus"></span>{' Add'}</Button>
+          }
         </div>
         <div className="row">
-          <div className="col-md-12">
-            <Label
-              className="col-md-12 pull-left"
-              value="Template"
-            />
-            <div className="col-md-6">
-              {readonly ?
-                <Label
-                  className="col-md-6 form-control pull-left"
-                  value={template}
-                /> :
-                <FormInput
-                  ref="template"
-                  type="text"
-                  value={template}
-                  className="form-control"
-                  placeholder="message template"
-                  handleOnChange={value => this._handleFieldChange('template', value)}
-                />}
-            </div>
-            {readonly ? null :
-              < div className="col-md-2">
-                <Button
-                  className="green"
-                  onClick={e => this.handleCheck(e)}
-                >Preview</Button>
-              </div>
-            }
-          </div>
-
+          <table className="table table-striped">
+            <thead>
+            <tr>
+              <th>summaryType</th>
+              <th>Field</th>
+              <th>Variable</th>
+              <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody
+            >
+            {variables.map((variable, idx) => {
+              console.log("var",variable);
+              return (
+                <Variable
+                  key={idx}
+                  id={idx}
+                  ref={`var-${idx}`}
+                  variable={variable}
+                  readonly={readonly}
+                  handlers={handlers}
+                />
+              );
+            })}
+            </tbody>
+          </table>
         </div>
-      < / div >
+        <div className="row">
+          <Label
+            className="col-md-12 bold pull-left"
+            value="Template"
+          />
+          <div className="col-md-8">
+            {readonly ?
+              <Label
+                className="col-md-8 form-control pull-left"
+                value={template}
+              /> :
+              <FormInput
+                ref="template"
+                multiline={true}
+                type="text"
+                value={template}
+                className="form-control"
+                placeholder="message template"
+                handleOnChange={value => this._handleFieldChange('template', value)}
+              />
+            }
+            <div className="">
+              <Label className="small col-md-10 pull-left"
+                     value="Ex: There are {icm} customers who has less than 110 iCare Members."/>
+            </div>
+          </div>
+          {readonly ? null :
+            < div className="col-md-2">
+              <Button
+                className="green"
+                onClick={e => this.handleCheck(e)}
+              >Preview</Button>
+            </div>
+          }
+        </div>
+
+      </div>
     )
 
   }
