@@ -16,12 +16,24 @@ import {
 
   BlankPage,
 
+  ErrorPage,
+
   Discover,
   ConditionBuilderTree,
   Redux,
 } from '../../ui/pages';
 import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
 import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
+
+FlowRouter.notFound = {
+  action() {
+    mount(MainLayout, {
+      content() {
+        return <ErrorPage/>;
+      }
+    });
+  }
+};
 
 FlowRouter.route('/', {
   name: 'countries',
