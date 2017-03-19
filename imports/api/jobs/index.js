@@ -6,6 +6,16 @@ const JobServer = (country) => {
   const server = DDP.connect('http://localhost:4000');
 
   return {
+    getJobs: ({name}, callback = () => {}) => {
+      const params = {
+        type: `${country}-${name}`,
+      };
+      server.call('controllers.getJobs', params, (err, res) => {
+        if(err) callback(err, null);
+
+        callback(null, res);
+      });
+    },
     createJob: ({name, priority, freqText, info}, callback = () => {}) => {
       const params = {
         type: `${country}-${name}`,
