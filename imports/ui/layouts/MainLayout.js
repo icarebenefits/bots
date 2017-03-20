@@ -1,81 +1,51 @@
 import React, {Component, PropTypes} from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 
-// components
-import NavBar from '../components/common/NavBar';
-import Navigation from '../components/common/Navigation';
-import Breadcrumbs from '../components/common/Breadcrumbs';
-import Footer from '../components/common/Footer';
+// Components
+// common
+import {
+  Header,
+  Footer
+} from '../../ui/components/common';
+import {
+  PageSideBar,
+} from '../../ui/components';
+
 
 class MainLayout extends Component {
 
-  constructor() {
-    super();
-
-    this.state = {
-      activeTab: 'home'
-    };
-  }
-
-  handleTabChange = (tab) => {
-    this.setState({activeTab: tab});
-  };
-
   render() {
-    const
-      {route: {name: routeName}} = FlowRouter.current(),
-      tabs = [
-        {
-          id: 'home',
-          href: FlowRouter.path('home'),
-          title: 'iCare bots',
-        },
-        {
-          id: 'examples',
-          href: FlowRouter.path('conditions-builder', {style: 'netsuite'}),
-          title: 'Examples',
-        }
-      ],
-      {
-        content = () => {
-        },
-        crumbs = [],
-        activeCrumb,
-        pageHeader
-      } = this.props,
-      {activeTab} = this.state
-      ;
+    const {
+      tabs = [],
+      content = () => {
+      },
+      slogan
+    } = this.props;
 
     return (
-      <div className="container">
-        {/* .. NavBar .. */}
-        <NavBar
-          tabs={tabs}
-          activeTab={activeTab}
-          handleTabChange={this.handleTabChange}
-        />
+      <div className="page-header-fixed page-sidebar-closed-hide-logo">
+        <div className="wrapper">
+          {/* Header */}
+          <Header
+            slogan={slogan}
+            tabs={tabs}
+          />
 
-        {/* .. Breadcrumbs .. */}
-        {!_.isEmpty(crumbs) && (
-          <div className="row">
-            <Breadcrumbs
-              crumbs={crumbs}
-              active={activeCrumb}
-            />
+          <div id="index" className="container-fluid">
+            <div className="page-content">
+              {/* Breadcrumbs */}
+
+              <div className="page-content-container">
+                {/* Content */}
+                {content()}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <Footer />
           </div>
-        )}
-
-        {/* .. Page Header .. */}
-        <div className="page-header">
-          <h1>{pageHeader}</h1>
         </div>
-        
-        {/* .. Content .. */}
-        <div className="row">
-          {content()}
-        </div>
-
-        {/* .. Footer .. */}
+        {/* Quick Sidebar */}
       </div>
     );
   }

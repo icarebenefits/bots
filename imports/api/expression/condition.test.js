@@ -11,13 +11,13 @@ var expr = [
     "abb"
 ];
 
-console.log(Condition.buildExpr(expr));
+// console.log(Condition.buildExpr(expr));
 var str = Condition.buildExpr(expr);
 
-console.log(Array.isArray(expr));
+// console.log(Array.isArray(expr));
 var parsedExpr = Condition.parseExpr(str);
-console.log(parsedExpr);
-console.log(Array.isArray(parsedExpr));
+// console.log(parsedExpr);
+// console.log(Array.isArray(parsedExpr));
 
 var condition = {
     "operator": "and",
@@ -82,4 +82,4 @@ var newCondition = {
   ],
   "combinator": "or"
 };
-console.log(Condition.buildQuery(newCondition));
+// console.log(Condition.buildQuery(newCondition));

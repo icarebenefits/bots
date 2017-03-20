@@ -1,20 +1,23 @@
 import React, {Component} from 'react';
 import _ from 'lodash';
-import moment from 'moment';
 
+import {
+  Button,
+  Dialog,
+  Form,
+  Label,
+} from '../../elements';
 import {Condition} from './Condition';
-import Button from '../../elements/Button';
-import {Dialog} from '../../elements/Dialog';
-import {Form} from '../../elements/Form';
+import {Fields} from '/imports/api/fields';
 import {Schema} from './schema';
 
 export class ConditionGroup extends Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
-      conditions: this.getDefaultConditions(),
+      conditions: !_.isEmpty(props.conditions) ? props.conditions : this.getDefaultConditions(),
       dialog: {}, // get field had been change, {row, fieldId}
       hidden: true, // flag for second value of dialog form,
       edit: 0,
@@ -42,18 +45,24 @@ export class ConditionGroup extends Component {
 
   componentWillReceiveProps(nextProps) {
     const {conditions} = nextProps;
-    this.setState({conditions});
+    if (!_.isEmpty(conditions))
+      this.setState({conditions});
   }
 
-  _addCondition() {
+  getConditions() {
+    return this.state.conditions;
+  }
+
+  _addCondition(e) {
+    e.preventDefault();
     const
       {conditions} = this.state,
       condition = this.getDefaultCondition()
       ;
 
-    if(!_.isEmpty(conditions)) {
+    if (!_.isEmpty(conditions)) {
       const {filter, operator, values} = conditions[0];
-      if(_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
+      if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
         return alert(`Please enter value(s) for Filter, Description`);
       }
     }
@@ -62,7 +71,7 @@ export class ConditionGroup extends Component {
 
     return this.setState({
       conditions,
-      edit: conditions.length -1
+      edit: conditions.length - 1
     });
   }
 
@@ -92,18 +101,11 @@ export class ConditionGroup extends Component {
         {values} = condition,
         newValues = []
         ;
-      // console.log(row, key, value, index)
-      //
-      // console.log('values changing');
-      // console.log(values);
 
       if (_.isEmpty(values)) {
         newValues.push(value);
       } else {
-        // console.log({values, idx, value});
         values.map((val, idx) => {
-          console.log('changed exists values');
-          console.log(idx, index);
           if (idx === index) {
             newValues.push(value);
           } else {
@@ -117,9 +119,6 @@ export class ConditionGroup extends Component {
       newCond = {...condition, [`${key}`]: value};
     }
 
-    // console.log('handleFieldChange');
-    // console.log(newCond);
-
     conditions.map((cond, idx) => {
       if (idx === row) {
         newConditions.push(newCond);
@@ -132,7 +131,6 @@ export class ConditionGroup extends Component {
     if (key === 'filter') {
       const dialog = {
         row,
-        // type: this.getFieldProps(value).fieldType,
         fieldId: value
       };
 
@@ -215,15 +213,14 @@ export class ConditionGroup extends Component {
   }
 
   getDescription(condition) {
-    // console.log(condition);
     const {operator, values} = condition;
     let description = '';
 
-    if(operator) {
+    if (operator) {
       description = `${operator} `;
-      if(values.length > 1) {
+      if (values.length > 1) {
         values.map((value, idx) => {
-          if(idx === values.length -1) {
+          if (idx === values.length - 1) {
             description = `${description} "${value}"`;
           } else {
             description = `${description} "${value}" and `;
@@ -243,7 +240,7 @@ export class ConditionGroup extends Component {
     conditions.map(condition => {
       const {not, openParens, filter, closeParens, bitwise} = condition;
 
-      if(!_.isEmpty(filter)) {
+      if (!_.isEmpty(filter)) {
         expression = `${expression} ${not ? '!' : ''} ${openParens} ${filter} ${this.getDescription(condition)} ${closeParens} ${bitwise}`;
       }
     });
@@ -371,7 +368,7 @@ export class ConditionGroup extends Component {
   }
 
   _closeDialog(newConds) {
-    if(!_.isEmpty(newConds)) {
+    if (!_.isEmpty(newConds)) {
       this.setState({
         dialog: {},
         conditions: newConds
@@ -388,24 +385,32 @@ export class ConditionGroup extends Component {
       {conditions, edit} = this.state,
       expression = this.getExpression(conditions)
       ;
-    let {handlers} = this.props;
+    let {handlers, readonly} = this.props;
 
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();
     }
 
+    console.log('conditions', conditions);
+
     return (
-      <div className="container">
+      <div className="col-md-12">
         <div className="row">
-          <h3>Expression:</h3>
-          <h5>{expression}</h5>
+          <Label
+            className="col-md-12 bold uppercase pull-left"
+            value="Conditions: "
+          />
+          {/* <h5>{expression}</h5>*/}
         </div>
-        <div className="row">
-          <Button
-            className="btn-default"
-            onClick={this._addCondition}
-          ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
-        </div>
+        {/*readonly
+          ? null
+          : <div className="row">
+              <Button
+                className="btn-default pull-right"
+                onClick={e => this._addCondition(e)}
+              ><span className="glyphicon glyphicon-plus"></span>{' Add'}</Button>
+            </div>
+        */}
         <div className="row">
           <table className="table table-striped">
             <thead>
@@ -429,7 +434,7 @@ export class ConditionGroup extends Component {
                   id={idx}
                   ref={`condition-${idx}`}
                   condition={condition}
-                  readonly={Number(edit) === idx ? false : true}
+                  readonly={readonly || (Number(edit) === idx ? false : true)}
                   handlers={handlers}
                 />
               );

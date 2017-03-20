@@ -28,7 +28,7 @@ const buildExpr = function (exprs) {
   // return `(${args[0]} ${args[1]} "${args[2]}")`;
     return exprs.join(regex);
   else {
-    console.log("invalid args:" + exprs);
+    // console.log("invalid args:" + exprs);
     throw new Error("invalid args");
   }
 };
@@ -60,7 +60,7 @@ const parseExpr = function (str) {
   let arr = str.split(regex);
   if (arr.length > 2) return arr;
   else {
-    console.log("invalid args:" + str);
+    // console.log("invalid args:" + str);
     throw new Error("invalid args");
   }
 };
