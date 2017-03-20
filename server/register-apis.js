@@ -25,6 +25,21 @@ import '/imports/api/fields';
 import '/imports/api/node_rules/register-server';
 // workplaces
 import '/imports/api/facebook/index';
-// clients
+
+/**
+ * Clients
+ */
 // B2B
 import '/imports/api/clients/b2b';
+// Elasticsearch
+import '/imports/api/elastic';
+
+/**
+ * Jobs
+ */
+import '/imports/api/jobs';
+
+/**
+ * Bots
+ */
+import '/imports/api/bots';

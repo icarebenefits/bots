@@ -17,7 +17,8 @@ FbRequest.prototype = {
       }
     };
 
-    console.log({personalId, groupId});
+    // console.log({personalId, groupId});
+    console.log(options)
 
     request(options, function (error, response, body) {
       if (error) throw new Error(error);
