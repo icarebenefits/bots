@@ -6,46 +6,210 @@ import StandardFields from '../standard/fields';
  */
 
 // string
-const Email = () => ({
-  id: 'Email',
-  description: 'Email',
-  active: true,
-  operators: Object.assign({}, StandardFields.StringField().operators),
-  getType: () => {return StandardFields.StringField().id}
-});
+const name = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'name',
+      name: 'Name',
+    }
+  }
+);
+const email = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'email',
+      name: 'Email',
+    }
+  }
+);
+const phone = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'phone',
+      name: 'Phone',
+    }
+  }
+);
+const alternatePhone = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'alternatePhone',
+      name: 'Alternate Phone',
+    }
+  }
+);
+const address = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'address',
+      name: 'Address',
+    }
+  }
+);
+const repaymentMechanism = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'repaymentMechanism',
+      name: 'Repayment Mechanism',
+    }
+  }
+);
+const typeOfContract = () => Object.assign(
+  {},
+  StandardFields.StringField(),
+  {
+    props: {
+      id: 'typeOfContract',
+      name: 'Type of Contract',
+    }
+  }
+);
 
 // date
-const HireDate = () => ({
-  id: 'HireDate',
-  description: 'Hire date',
-  active: true,
-  operators: Object.assign({}, StandardFields.DateField().operators),
-  getType: () => {return StandardFields.DateField().id}
-});
-const BirthDay = () => ({
-  id: 'BirthDay',
-  description: 'Day of birth',
-  active: false,
-  operators: Object.assign({}, StandardFields.DateField().operators),
-  getType: () => {return StandardFields.DateField().id}
-});
+const contractStartDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'contractStartDate',
+      name: 'Contract Start Date',
+    }
+  }
+);
+const contractEndDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'contractEndDate',
+      name: 'Contract End Date',
+    }
+  }
+);
+const hireDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'hireDate',
+      name: 'Hire Date',
+    }
+  }
+);
+const terminationDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'terminationDate',
+      name: 'Termination Date',
+    }
+  }
+);
 
 // number
-const iCareMember = () => ({
-  id: 'iCareMember',
-  description: 'iCare member',
-  active: true,
-  operators: Object.assign({}, StandardFields.NumberField().operators),
-  getType: () => {return StandardFields.NumberField().id}
+const numberOfEmployees = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'numberOfEmployees',
+      name: 'Number of Employees',
+    },
+  },
+);
+const numberOfiCMs = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'numberOfiCMs',
+      name: 'Number of iCMs',
+    },
+  },
+);
+const paymentDay = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'paymentDay',
+      name: 'Payment Day',
+    },
+  },
+);
+const numberOfCutOffTimes = () => Object.assign(
+  {},
+  StandardFields.NumberField(),
+  {
+    props: {
+      id: 'numberOfCutOffTimes',
+      name: '# of cut-off times',
+    },
+  },
+);
+
+// Combo fields
+const businessUnits = () => ({
+  props: {
+    id: 'businessUnits',
+    name: 'Business Units Fields...',
+  },
+  fields: {
+    name: Object.assign({}, name()),
+    paymentDay: Object.assign({}, paymentDay()),
+    numberOfCutOffTimes: Object.assign({}, numberOfCutOffTimes()),
+  }
+});
+const primaryContacts = () => ({
+  props: {
+    id: 'primaryContacts',
+    name: 'Primary Contact Fields...',
+  },
+  fields: {
+    name: Object.assign({}, name()),
+    email: Object.assign({}, email()),
+  }
+});
+const iCareStaffs = () => ({
+  props: {
+    id: 'iCareStaffs',
+    name: 'iCare Staff Fields...',
+  },
+  fields: {
+    name: Object.assign({}, name()),
+    email: Object.assign({}, email()),
+    hireDate: Object.assign({}, hireDate()),
+    terminationDate: Object.assign({}, terminationDate()),
+  }
 });
 
-// combinator
-
 const Fields = {
-  Email,
-  HireDate,
-  BirthDay,
-  iCareMember,
+  email,
+  phone,
+  alternatePhone,
+  address,
+  repaymentMechanism,
+  typeOfContract,
+  contractStartDate,
+  contractEndDate,
+  numberOfEmployees,
+  numberOfiCMs,
+  businessUnits,
+  primaryContacts,
+  iCareStaffs,
 };
 
 export default Fields

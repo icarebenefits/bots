@@ -3,25 +3,108 @@ import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
 
 // layouts
-import MainLayout from '../../ui/layouts/MainLayout';
+import {
+  MainLayout,
+  BlankLayout
+} from '../../ui/layouts';
 
 // pages
-import Home from '../../ui/pages/Home';
-import ConditionBuilderTree from '../../ui/pages/examples/ConditionBuilderTree';
-import {ConditionGroup} from '../../ui/components/conditions-builder/netsuite-style/ConditionGroup';
+import {
+  CountriesPage,
+  WorkplacesPage,
+  SLAsPage,
+
+  BlankPage,
+
+  ErrorPage,
+
+  Discover,
+  ConditionBuilderTree,
+  Redux,
+} from '../../ui/pages';
+import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
+import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
+
+FlowRouter.notFound = {
+  action() {
+    mount(MainLayout, {
+      content() {
+        return <ErrorPage/>;
+      }
+    });
+  }
+};
 
 FlowRouter.route('/', {
-  name: 'home',
+  name: 'countries',
   action() {
     mount(MainLayout, {
       content() {
         return (
-          <Home />
+          <CountriesPage />
         );
       }
     });
   }
 });
+
+FlowRouter.route('/setup/:country', {
+  name: 'SLAs',
+  action(params, queryParams) {
+    const
+      {country} = params,
+      {tab} = queryParams
+      ;
+    let slogan = '';
+    switch(country) {
+      case 'vn': {
+        slogan = 'Vietnam';
+        break;
+      }
+      case 'kh': {
+        slogan = 'Cambodia';
+        break;
+      }
+      case 'la': {
+        slogan = 'Laos';
+        break;
+      }
+      default: {
+        slogan = '';
+      }
+    }
+
+    mount(MainLayout, {
+      slogan,
+      tabs: [
+        {id: 'workplaces', name: 'Workplaces'},
+        {id: 'sla', name: 'SLA'},
+      ],
+      content() {
+        switch (tab) {
+          case 'workplaces':
+          {
+            return (
+              <WorkplacesPage />
+            );
+          }
+          case 'sla':
+          {
+            return (
+              <SLAsPage />
+            );
+          }
+          default:
+          {
+            return (
+              <WorkplacesPage />
+            );
+          }
+        }
+      }
+    });
+  }
+})
 
 const examplesRoutes = FlowRouter.group({
   name: 'examples',
@@ -33,13 +116,6 @@ examplesRoutes.route('/conditions-builder/:style', {
   action(params, queryParams) {
     const {style} = params;
     mount(MainLayout, {
-      crumbs: [
-        {id: 'examples', href: FlowRouter.path('examples'), title: 'Examples'},
-        {id: 'conditions-builder', href: FlowRouter.path('conditions-builder'), title: 'Conditions builder'},
-        {id: style, href: '#', title: style},
-      ],
-      activeCrumb: style,
-      pageHeader: style,
       content() {
         switch (style) {
           case 'tree':
@@ -57,5 +133,39 @@ examplesRoutes.route('/conditions-builder/:style', {
         }
       }
     })
+  }
+});
+
+examplesRoutes.route('/discovery', {
+  name: 'discovery',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <Discover />
+        );
+      }
+    });
+  }
+});
+
+examplesRoutes.route('/schedule-builder', {
+  name: 'schedule-builder',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <ScheduleBuilder
+            frequency={{
+              preps: 'on the',
+              range: 'first',
+              unit: 'day of the week',
+              preps2: '',
+              range2: '',
+            }}
+          />
+        );
+      }
+    });
   }
 });

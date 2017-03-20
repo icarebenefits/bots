@@ -1,9 +1,15 @@
-import React, {Component} from 'react';
+import React, {PropTypes} from 'react';
 
-export class Label extends Component {
-  render() {
-    return (
-      <span>{this.props.value}</span>
-    );
-  }
-}
+const Label = (props) => {
+  const {className, value} = props;
+  return (
+    <label className={className}>{value}</label>
+  );
+};
+
+Label.propTypes = {
+  className: PropTypes.string,
+  value: PropTypes.string,
+};
+
+export default Label

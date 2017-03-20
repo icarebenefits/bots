@@ -18,25 +18,36 @@ const Methods = {};
 Methods.create = new ValidatedMethod({
   name: 'slas.create',
   validate: null,
-  // validate: new SimpleSchema({
-  //   name: {
-  //     type: String
-  //   },
-  //   expression: {
-  //     type: Object
-  //   },
-  //   countries: {
-  //     type: [String],
-  //     allowedValues: COUNTRIES
-  //   }
-  // }).validator(),
-  run({name, expression, countries}) {
-    return SLAs.insert({name, expression, countries});
+  run({name, description, workplace, frequency, conditions, message, status, country}) {
+    return SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
   }
 });
 
 /**
- * Method edit an SLA
+ * Method set status an SLA
+ * @param {} name - description
+ * @return {}
+ */
+Methods.setStatus = new ValidatedMethod({
+  name: 'slas.setStatus',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    status: {
+      type: String,
+    }
+  }).validator(),
+  run({_id, status}) {
+    const
+      selector = {_id},
+      modifier = {status}
+      ;
+
+    return SLAs.update(selector, {$set: modifier});
+  }
+});
+
+/**
+ * Method edit a SLA
  * @param {String} _id - description
  * @param {String} name - sla name
  * @param {String} expression - sla expression (email contains 'bot')
@@ -45,66 +56,51 @@ Methods.create = new ValidatedMethod({
  */
 Methods.edit = new ValidatedMethod({
   name: 'slas.edit',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    name: {
-      type: String,
-      optional: true
-    },
-    expression: {
-      type: String,
-      optional: true
-    },
-    schedule: {
-      type: String,
-      optional: true
-    }
-  }).validator(),
-  run({_id, name, expression, schedule}) {
+  validate: null,
+  run({_id, name, description, workplace, frequency, conditions, message, status, country}) {
     const
       selector = {_id},
       modifier = {}
       ;
 
-    if (!name && !expression && !schedule) {
-      console.log(`throw error`);
-      throw new ValidationError([{
-        name: 'modifier',
-        type: 'MISSING_MODIFIERS',
-        reason: 'Should have 1 field to update.'
-      }]);
-    }
-
     !_.isEmpty(name) && (modifier.name = name);
-    !_.isEmpty(expression) && (modifier.expression = expression);
-    !_.isEmpty(schedule) && (modifier.schedule = schedule);
-    console.log(selector, modifier);
-
+    !_.isEmpty(description) && (modifier.description = description);
+    !_.isEmpty(workplace) && (modifier.workplace = workplace);
+    !_.isEmpty(frequency) && (modifier.frequency = frequency);
+    !_.isEmpty(conditions) && (modifier.conditions = conditions);
+    (!_.isEmpty(status) || status === 0) && (modifier.status = status);
+    !_.isEmpty(country) && (modifier.country = country);
+    !_.isEmpty(message) && (modifier.message = message);
     return SLAs.update(selector, {$set: modifier});
   }
 });
 
 /**
- * Method remove an SLA
- * @param {} name - description
- * @return {}
+ * Method validate name of a SLA
+ * @param {String} _id - description
+ * @param {String} name - sla name
+ * @param {String} country - sla country
+ * @return {error} - validate result
  */
-Methods.addCountry = new ValidatedMethod({
-  name: 'slas.addCountry',
+Methods.validateName = new ValidatedMethod({
+  name: 'slas.validateName',
   validate: new SimpleSchema({
-    ...IDValidator,
+    name: {
+      type: String,
+    },
     country: {
       type: String,
-      regEx: SimpleSchema.RegEx.Id,
     }
   }).validator(),
-  run({_id, country}) {
-    const
-      selector = {_id},
-      modifier = {country}
-      ;
-
-    return SLAs.update(selector, {$addToSet: modifier});
+  run({name, country}) {
+    if(!this.isSimulation) {
+      const sla = SLAs.findOne({name, country});
+      if(!_.isEmpty(sla)) {
+        return {error: 'SLA name is exists.'}
+      } else {
+        return {error: null};
+      }
+    }
   }
 });
 
@@ -123,28 +119,5 @@ Methods.remove = new ValidatedMethod({
   }
 });
 
-/**
- * Method set status an SLA
- * @param {} name - description
- * @return {}
- */
-Methods.setStatus = new ValidatedMethod({
-  name: 'slas.setStatus',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    status: {
-      type: String,
-      // allowedValues: [SLAs.status.active, SLAs.status.inactive]
-    }
-  }).validator(),
-  run({_id, status}) {
-    const
-      selector = {_id},
-      modifier = {status}
-      ;
-
-    return SLAs.update(selector, {$set: modifier});
-  }
-});
 
 export default Methods

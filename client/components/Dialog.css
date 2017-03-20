@@ -7,7 +7,7 @@
 }
 
 .Dialog .DialogHeader {
-  background-color: #1ab394;
+  background-color: #2f373e;
   color: #F0F0F0;
   font-family: Arial, cursive;
   font-size: 30px;
@@ -37,7 +37,7 @@
   left: 0;
   position: fixed;
   right: 0;
-  top: 0;
+  top: 70px;
   z-index: 1;
 }
 

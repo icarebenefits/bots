@@ -1,241 +1,179 @@
+import moment from 'moment';
+import S from 'string';
+
 /**
  * Composition Objects for all of operators
  */
 
 // generic
-const empty = {
-  id: 'empty',
-  description: 'empty',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const notEmpty = {
-  id: 'notEmpty',
-  description: 'not empty',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const any = {
-  id: 'any',
-  description: 'any',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
+
 
 // bitwise
-const and = {
-  id: 'and',
-  description: 'And',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const or = {
-  id: 'or',
-  description: 'Or',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const not = {
-  id: 'not',
-  description: 'Not',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
+
 
 // string
-const is = {
-  id: 'is',
-  description: 'is',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const startsWith = {
-  id: 'startsWith',
-  description: 'starts with',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const contains = {
-  id: 'contains',
-  description: 'contains',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
+const is = (s1, s2) => ({
+  props: {
+    id: 'is',
+    name: 'is',
+    type: 'string',
+    params: 2,
+  },
+  check: (s1, s2) => s1 === s2,
+});
+const contains = (s1, s2) => ({
+  props: {
+    id: 'contains',
+    name: 'contains',
+    type: 'string',
+    params: 2,
+  },
+  check: (s1, s2) => S(s1).contains(s2),
+});
+const startsWith = (s1, s2) => ({
+  props: {
+    id: 'startsWith',
+    name: 'starts with',
+    type: 'string',
+    params: 2,
+  },
+  check: (s1, s2) => S(s1).startsWith(s2),
+});
 
 // date
-const on = {
-  id: 'on',
-  description: 'on',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const before = {
-  id: 'before',
-  description: 'before',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const after = {
-  id: 'after',
-  description: 'after',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const onOrBefore = {
-  id: 'onOrBefore',
-  description: 'on or before',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const onOrAfter = {
-  id: 'onOrAfter',
-  description: 'on or after',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const within ={
-  id: 'within',
-  description: 'within',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
+const on = (d1, d2) => ({
+  props: {
+    id: 'on',
+    name: 'on',
+    type: 'date',
+    params: 2,
+  },
+  check: (d1, d2) => moment(d1).isSame(d2),
+});
+const before = (d1, d2) => ({
+  props: {
+    id: 'before',
+    name: 'before',
+    type: 'date',
+    params: 2,
+  },
+  check: (d1, d2) => moment(d1).isBefore(d2),
+});
+const after = (d1, d2) => ({
+  props: {
+    id: 'after',
+    name: 'after',
+    type: 'date',
+    params: 2,
+  },
+  check: (d1, d2) => moment(d1).isAfter(d2),
+});
+const onOrBefore = (d1, d2) => ({
+  props: {
+    id: 'onOrBefore',
+    name: 'on or before',
+    type: 'date',
+    params: 2,
+  },
+  check: (d1, d2) => moment(d1).isSameOrBefore(d2),
+});
+const onOrAfter = (d1, d2) => ({
+  props: {
+    id: 'onOrAfter',
+    name: 'on or after',
+    type: 'date',
+    params: 2,
+  },
+  check: (d1, d2) => moment(d1).isSameOrAfter(d2),
+});
+const within = (d1, d2) => ({
+  props: {
+    id: 'within',
+    name: 'within',
+    type: 'date',
+    params: 3,
+  },
+  check: (d, d1, d2) => moment(d).isBetween(d1, d2)
+});
 
 // number
-const equal ={
-  id: 'equal',
-  description: 'equal to',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const lessThan = {
-  id: 'lessThan',
-  description: 'less than',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const greaterThan = {
-  id: 'greaterThan',
-  description: 'greater than',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const lessThanOrEqual = {
-  id: 'lessThanOrEqual',
-  description: 'less than or equal to',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const greaterThanOrEqual = {
-  id: 'greaterThanOrEqual',
-  description: 'greater than or equal to',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const between = {
-  id: 'is',
-  description: 'between',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
+const equal = (n1, n2) => ({
+  props: {
+    id: 'equal',
+    name: 'equal to',
+    type: 'number',
+    params: 2,
+  },
+  check: (n1, n2) => n1 === n2,
+});
+const lessThan = (n1, n2) => ({
+  props: {
+    id: 'lessThan',
+    name: 'less than',
+    type: 'number',
+    params: 2,
+  },
+  check: (n1, n2) => n1 < n2,
+});
+const greaterThan = (n1, n2) => ({
+  props: {
+    id: 'greaterThan',
+    name: 'greater than',
+    type: 'number',
+    params: 2,
+  },
+  check: (n1, n2) => n1 > n2
+});
+const lessThanOrEqual = (n1, n2) => ({
+  props: {
+    id: 'lessThanOrEqual',
+    name: 'less than or equal to',
+    type: 'number',
+    params: 2,
+  },
+  check: (n1, n2) => n1 <= n2
+});
+const greaterThanOrEqual = (n1, n2) => ({
+  props: {
+    id: 'greaterThanOrEqual',
+    name: 'greater than or equal to',
+    type: 'number',
+    params: 2,
+  },
+  check: (n1, n2) => n1 >= n2
+});
+const between = (n, n1, n2) => ({
+  props: {
+    id: 'between',
+    name: 'between',
+    type: 'number',
+    params: 3,
+  },
+  check: (n, n1, n2) => (n >= n1 && n <= n2)
+});
 
 // aggregation
 
-const count = {
-  id: 'count',
-  description: 'count',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const average = {
-  id: 'average',
-  description: 'average',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const sum = {
-  id: 'sum',
-  description: 'sum',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const median = {
-  id: 'median',
-  description: 'median',
-  params: 1,
-  active: true,
-  operate: () => {}
-};
-const min = {
-  id: 'min',
-  description: 'min',
-  params: 1,
-  active: true,
-  operate: () => {},
-};
-const max = {
-  id: 'max',
-  description: 'max',
-  params: 1,
-  active: true,
-  operate: () => {},
-};
-const percentage = {
-  id: 'percentage',
-  description: 'percentage',
-  params: 1,
-  active: true,
-  operate: () => {},
-};
 
 const Operators = {
-  empty,
-  notEmpty,
-  any,
+  // string
   is,
-  startsWith,
   contains,
+  startsWith,
+  // date
   on,
   before,
   after,
   onOrBefore,
   onOrAfter,
   within,
+  // number
   equal,
   lessThan,
   greaterThan,
   lessThanOrEqual,
   greaterThanOrEqual,
-  between,
-  count,
-  average,
-  median,
-  min,
-  max,
-  percentage
+  between
 };
 
 export default Operators
