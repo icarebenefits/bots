@@ -22,7 +22,7 @@ const fistSLACheck = () => {
   // send notify to workplace
   if(total) {
     if(total > threshold) {
-      message = `There are ${threshold} customers who has less than 100 iCare Members.`;
+      message = `There are ${total} customers who has less than 100 iCare Members.`;
       const wpRequest = new FbRequest();
       wpRequest.post(personId, workplace, message);
       return {
