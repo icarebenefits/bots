@@ -38,7 +38,7 @@ Meteor.startup(function() {
         const params = {
           name: 'bots',
           priority: 'normal',
-          freqText: 'at 10:00 AM every weekday',
+          freqText: 'at 3:00 AM every weekday',
           info: {
             method: 'bots.test'
           }
