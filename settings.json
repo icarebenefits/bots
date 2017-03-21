@@ -1,0 +1,50 @@
+{
+  "public": {
+    "env": "dev"
+  },
+  "logger": {
+    "file": {
+      "name": "bots",
+      "filename": "bots.log",
+      "logstash": true,
+      "rotationFormat": true,
+      "zippedArchive": true,
+      "maxFiles": 10
+    }
+  },
+  "elastic": {
+    "host": "amazonaws.com",
+    "region": "aws-region",
+    "accessKey": "DK23KJEOO;PZWERRA",
+    "secretKey": "AS7T2jw23HTOEKlseirowwer23402"
+  },
+  "jobs": {
+    "test": false,
+    "server": {
+      "ddpInfo": {
+        "host": "",
+        "port": 4000,
+        "use_ejson": true
+      },
+      "account": "bots@bots.com",
+      "pass": "123456"
+    }
+  },
+  "facebook": {
+    "prefixUrl": "https://graph.facebook.com/",
+    "appToken": "askdfkqwoerKHOPUE&**%$^I)kdjhfskeworiuqwpsdfsadfgvxvsdfHIOTOUYT"
+  },
+  "clients": {
+    "b2b": {
+      "id": "kd23204sfds2",
+      "secret": "sdfsdfsfsdh",
+      "username": "bots@bots.com",
+      "password": "123456",
+      "baseUrl": "http://abc.com",
+      "tenant": {
+        "Cambodia": "ca",
+        "Vietnam": "vn"
+      }
+    }
+  }
+}
