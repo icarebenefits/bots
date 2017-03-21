@@ -1,6 +1,8 @@
 import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
 
+import {Operators} from '/imports/api/fields';
+
 const conditions = [
   {
     not: false,
@@ -14,24 +16,24 @@ const conditions = [
   },
   {
     not: true,
-    openParens: '',
+    openParens: '(',
     filter: 'salary',
     field: '',
     operator: 'lessThan',
     values: ['1000'],
     closeParens: '',
+    bitwise: 'or'
+  },
+  {
+    not: false,
+    openParens: '',
+    filter: 'credit_limit',
+    field: '',
+    operator: 'lessThan',
+    values: ['2000'],
+    closeParens: ')',
     bitwise: ''
   },
-  // {
-  //   not: true,
-  //   openParens: '',
-  //   filter: 'credit_limit',
-  //   field: '',
-  //   operator: 'lessThan',
-  //   values: ['2000'],
-  //   closeParens: ')',
-  //   bitwise: 'or'
-  // },
   // {
   //   not: true,
   //   openParens: '',
@@ -45,31 +47,10 @@ const conditions = [
 ];
 
 // list of supported operators
-const operators = ['(', ')', 'not', 'and', 'or', 'contains', 'startsWith', 'greaterThan', 'lessThan', 'before'];
+const operators = Object.keys(Operators);
 // support for compound conditions
 operators.push('(');
 operators.push(')');
-
-const contains = (field, value) => {
-  return bodybuilder()
-    .query('wildcard', `${field}.keyword`, `*${value}*`)
-    .build();
-};
-const greaterThan = (field, value) => {
-  return bodybuilder()
-    .query('range', field, {gt: value})
-    .build();
-};
-const lessThan = (field, value) => {
-  return bodybuilder()
-    .query('range', field, {lt: value})
-    .build();
-};
-const before = (field, value) => {
-  return bodybuilder()
-    .query('range', field, {gt: value})
-    .build();
-};
 
 /**
  * Function convert conditions object to array of conditions
@@ -164,7 +145,9 @@ const infixToPostfix = (expression) => {
             if (c !== '(') queue.push(c);
           } while (c !== '(')
         } else {
-          while (!_.isEmpty(stack) && stack[stack.length - 1] !== '(' && getPriority(stack[stack.length - 1]) > getPriority(e)) {
+          while (!_.isEmpty(stack) &&
+          stack[stack.length - 1] !== '(' &&
+          getPriority(stack[stack.length - 1]) > getPriority(e)) {
             const c = stack.pop();
             queue.push(c);
           }
@@ -195,7 +178,23 @@ const isQueryObject = (q) => {
  * @return {string}
  */
 const queryBuilder = (conditions) => {
+  /* validate conditions */
   const expression = makeExpression(conditions);
+  // number of open parens have to equal to number of close parens
+  const noOfOpenParens = expression.filter(e => e === '(').length;
+  const noOfCloseParens = expression.filter(e => e === ')').length;
+  if(noOfOpenParens !== noOfCloseParens)
+    return {error: 'The number of open Parens and close Parens mismatched!!'};
+  // the last condition can't have bitwise
+  const e = expression[expression.length - 1];
+  if(['and', 'or'].indexOf(e) > -1)
+    return {error: 'The last condition can not have bitwise operator!!'};
+  // the number of bitwise have to be the number of conditions - 1
+  const noOfBitwise = expression.filter(e => (e === 'and' || e === 'or')).length;
+  if(noOfBitwise !== (expression.length - 1))
+    return {error: 'The number of bitwise unacceptable!!'};
+
+
   const polishNotation = infixToPostfix(expression);
   const stack = [];
   let query = {};
@@ -203,33 +202,53 @@ const queryBuilder = (conditions) => {
   polishNotation.map(p => {
     if (isOperator(p)) {
       switch (p) {
-        case 'not': {
+        case 'not':
+        {
           // only build query with 1 param
           const param = stack.pop();
           if (isQueryObject(param)) {
             // build query from a previous query
             const {query: preQuery} = param;
-            query = bodybuilder()
-              .query("bool", {"must_not": [preQuery]})
-              .build();
+            query = Operators[p]().buildQuery(preQuery);
 
             stack.push(query);
             break;
           } else {
             // build new query
-            console.log("can't build 'not' query from a non query object!!!");
-            return {};
+            return {error: "can't build 'not' query from a non query object!!!"};
           }
         }
-        case 'and': {
+        case 'and':
+        {
           // build query with 2 params
           const
             param2 = stack.pop(),
             param1 = stack.pop();
 
           // verify params type
-          if(!isQueryObject(param1) || !isQueryObject(param2)) {
-            console.log("can't build 'and' query from a non query object!!!");
+          if (!isQueryObject(param1) || !isQueryObject(param2)) {
+            return {error: "can't build 'and' query from a non query object!!!"};
+          }
+          const
+            {query: preQuery1} = param1,
+            {query: preQuery2} = param2
+            ;
+
+          query = Operators[p]().buildQuery(preQuery1, preQuery2);
+
+          stack.push(query);
+          break;
+        }
+        case 'or':
+        {
+          // build query with 2 params
+          const
+            param2 = stack.pop(),
+            param1 = stack.pop();
+
+          // verify params type
+          if (!isQueryObject(param1) || !isQueryObject(param2)) {
+            console.log("can't build 'or' query from a non query object!!!");
             return {};
           }
           const
@@ -237,67 +256,20 @@ const queryBuilder = (conditions) => {
             {query: preQuery2} = param2
             ;
 
-          query = bodybuilder()
-            .query("bool", {"must": [preQuery1]})
-            .query("bool", {"must": [preQuery2]})
-            .build()
+          query = Operators[p]().buildQuery(preQuery1, preQuery2);
 
           stack.push(query);
           break;
         }
-        case 'or': {
-          // build query with 2 params
-          const
-            param2 = stack.pop(),
-            param1 = stack.pop();
-
-          // verify params type
-          if(!isQueryObject(param1) || !isQueryObject(param2)) {
-            console.log("can't build 'and' query from a non query object!!!");
-            return {};
-          }
-          const
-            {query: preQuery1} = param1,
-            {query: preQuery2} = param2
-            ;
-
-          query = bodybuilder()
-            .query("bool", {"should": [preQuery1]})
-            .query("bool", {"should": [preQuery2]})
-            .build()
-
-          stack.push(query);
-          break;
-        }
-        default: {
+        default:
+        {
           // build new query
           const
             values = stack.pop(),
             field = stack.pop()
             ;
 
-          switch (p) {
-            case 'contains': {
-              query = contains(field, values[0]);
-              break;
-            }
-            case 'greaterThan': {
-              query = greaterThan(field, values[0]);
-              break;
-            }
-            case 'lessThan': {
-              query = lessThan(field, values[0]);
-              break;
-            }
-            case 'before': {
-              query = before(field, values[0]);
-              break;
-            }
-            default: {
-              console.log(`Unsupported operator ${p}`);
-              return {};
-            }
-          }
+          query = Operators[p]().buildQuery(field, values[0]);
 
           stack.push(query);
         }
@@ -307,10 +279,16 @@ const queryBuilder = (conditions) => {
     }
   });
 
-  return query;
+  return {query};
 };
+
+// testing
+const {error, query} = queryBuilder(conditions);
+if(error) {
+  console.log('error', error);
+} else {
+  console.log(JSON.stringify(query, null, 2));
+}
 
 export default queryBuilder
 
-// const query = queryBuilder(conditions);
-// console.log(JSON.stringify(query, null, 2));

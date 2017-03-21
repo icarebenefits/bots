@@ -1,14 +1,56 @@
 import moment from 'moment';
 import S from 'string';
+import bodybuilder from 'bodybuilder';
 
 /**
  * Composition Objects for all of operators
  */
 
 // generic
-
+const not = () => ({
+  props: {
+    id: 'not',
+    name: 'not',
+    type: 'not',
+    params: 1,
+  },
+  buildQuery: (query) => {
+    return bodybuilder()
+      .query("bool", {"must_not": [query]})
+      .build();
+  }
+});
 
 // bitwise
+const and = () => ({
+  props: {
+    id: 'and',
+    name: 'and',
+    type: 'and',
+    params: 2,
+  },
+  buildQuery: (query1, query2) => {
+    return bodybuilder()
+      .query("bool", {"must": [query1]})
+      .query("bool", {"must": [query2]})
+      .build();
+  }
+});
+const or = () => ({
+  props: {
+    id: 'or',
+    name: 'or',
+    type: 'or',
+    params: 2,
+  },
+  buildQuery: (query1, query2) => {
+    return bodybuilder()
+      .query("bool", {"should": [query1]})
+      .query("bool", {"should": [query2]})
+      .build();
+  }
+});
+
 
 
 // string
@@ -20,6 +62,11 @@ const is = (s1, s2) => ({
     params: 2,
   },
   check: (s1, s2) => s1 === s2,
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('term', `${field}.keyword`, value)
+      .build();
+  }
 });
 const contains = (s1, s2) => ({
   props: {
@@ -29,6 +76,11 @@ const contains = (s1, s2) => ({
     params: 2,
   },
   check: (s1, s2) => S(s1).contains(s2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('wildcard', `${field}.keyword`, `*${value}*`)
+      .build();
+  }
 });
 const startsWith = (s1, s2) => ({
   props: {
@@ -38,6 +90,11 @@ const startsWith = (s1, s2) => ({
     params: 2,
   },
   check: (s1, s2) => S(s1).startsWith(s2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('prefix', `${field}.keyword`, value)
+      .build();
+  }
 });
 
 // date
@@ -49,6 +106,11 @@ const on = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isSame(d2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('term', field, value)
+      .build();
+  }
 });
 const before = (d1, d2) => ({
   props: {
@@ -58,6 +120,11 @@ const before = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isBefore(d2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {gt: value})
+      .build();
+  }
 });
 const after = (d1, d2) => ({
   props: {
@@ -67,6 +134,11 @@ const after = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isAfter(d2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {lt: value})
+      .build();
+  }
 });
 const onOrBefore = (d1, d2) => ({
   props: {
@@ -76,6 +148,11 @@ const onOrBefore = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isSameOrBefore(d2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {gte: value})
+      .build();
+  }
 });
 const onOrAfter = (d1, d2) => ({
   props: {
@@ -85,6 +162,11 @@ const onOrAfter = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isSameOrAfter(d2),
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {lte: value})
+      .build();
+  }
 });
 const within = (d1, d2) => ({
   props: {
@@ -93,7 +175,12 @@ const within = (d1, d2) => ({
     type: 'date',
     params: 3,
   },
-  check: (d, d1, d2) => moment(d).isBetween(d1, d2)
+  check: (d, d1, d2) => moment(d).isBetween(d1, d2),
+  buildQuery: (field, value1, value2) => {
+    return bodybuilder()
+      .query('range', field, {gte: value1, lte: value2})
+      .build();
+  }
 });
 
 // number
@@ -105,8 +192,13 @@ const equal = (n1, n2) => ({
     params: 2,
   },
   check: (n1, n2) => n1 === n2,
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('term', field, value)
+      .build();
+  }
 });
-const lessThan = (n1, n2) => ({
+const lessThan = () => ({
   props: {
     id: 'lessThan',
     name: 'less than',
@@ -114,6 +206,11 @@ const lessThan = (n1, n2) => ({
     params: 2,
   },
   check: (n1, n2) => n1 < n2,
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {lt: value})
+      .build();
+  }
 });
 const greaterThan = (n1, n2) => ({
   props: {
@@ -122,7 +219,12 @@ const greaterThan = (n1, n2) => ({
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 > n2
+  check: (n1, n2) => n1 > n2,
+  buildQuery: () => {
+    return bodybuilder()
+      .query('range', field, {gt: value})
+      .build();
+  }
 });
 const lessThanOrEqual = (n1, n2) => ({
   props: {
@@ -131,7 +233,12 @@ const lessThanOrEqual = (n1, n2) => ({
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 <= n2
+  check: (n1, n2) => n1 <= n2,
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {lte: value})
+      .build();
+  }
 });
 const greaterThanOrEqual = (n1, n2) => ({
   props: {
@@ -140,7 +247,12 @@ const greaterThanOrEqual = (n1, n2) => ({
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 >= n2
+  check: (n1, n2) => n1 >= n2,
+  buildQuery: (field, value) => {
+    return bodybuilder()
+      .query('range', field, {gte: value})
+      .build();
+  }
 });
 const between = (n, n1, n2) => ({
   props: {
@@ -149,13 +261,23 @@ const between = (n, n1, n2) => ({
     type: 'number',
     params: 3,
   },
-  check: (n, n1, n2) => (n >= n1 && n <= n2)
+  check: (n, n1, n2) => (n >= n1 && n <= n2),
+  buildQuery: (field, value1, value2) => {
+    return bodybuilder()
+      .query('range', field, {gte: value1, lte: value2})
+      .build();
+  }
 });
 
 // aggregation
 
 
 const Operators = {
+  //generic
+  not,
+  // bitwise
+  and,
+  or,
   // string
   is,
   contains,
