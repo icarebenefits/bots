@@ -38,22 +38,92 @@ SLAs.schema = new SimpleSchema({
     type: String,
     unique: true,
   },
-  expression: {
-    type: Object,
-  },
-  schedule: {
+  description: {
     type: String,
     optional: true,
   },
-  status: {
+  workplace: {
     type: String,
-    allowedValues: ['active', 'inactive'],
-    defaultValue: 'inactive',
   },
-  countries: {
-    type: [String],
-    // regEx: [SimpleSchema.RegEx.Id],
-    allowedValues: COUNTRIES,
+  frequency: {
+    type: Object,
+    optional: true,
+  },
+  'frequency.preps': {
+    type: String,
+    optional: true,
+  },
+  'frequency.range': {
+    type: String,
+    optional: true,
+  },
+  'frequency.unit': {
+    type: String,
+    optional: true,
+  },
+  'frequency.preps2': {
+    type: String,
+    optional: true,
+  },
+  'frequency.range2': {
+    type: String,
+    optional: true,
+  },
+  conditions: {
+    type: [Object]
+  },
+  "conditions.$.not": {
+    type: Boolean,
+    optional: true,
+  },
+  "conditions.$.openParens": {
+    type: String,
+    optional: true,
+  },
+  "conditions.$.filter": {
+    type: String,
+  },
+  "conditions.$.field": {
+    type: String,
+    optional: true,
+  },
+  "conditions.$.operator": {
+    type: String,
+  },
+  "conditions.$.values": {
+    type: [String]
+  },
+  "conditions.$.closeParens": {
+    type: String,
+    optional: true,
+  },
+  "conditions.$.bitwise": {
+    type: String,
+    optional: true,
+  },
+  message: {
+    type: Object
+  },
+  "message.summaryType": {
+    type: String,
+  },
+  "message.field": {
+    type: String,
+  },
+  "message.varName": {
+    type: String,
+  },
+  "message.template": {
+    type: String,
+  },
+  status: {
+    type: Number,
+    allowedValues: ['draft', 'active', 'paused', 'resumed', 'restarted'],
+    defaultValue: 'draft',
+  },
+  country: {
+    type: String,
+    allowedValues: COUNTRIES
   },
   createdAt: {
     type: Date,
@@ -75,8 +145,8 @@ SLAs.helpers({
   name() {
     return this.name;
   },
-  countries() {
-    return this.countries;
+  country() {
+    return this.country;
   },
   status() {
     return this.status;

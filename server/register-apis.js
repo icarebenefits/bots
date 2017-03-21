@@ -7,8 +7,10 @@
  */
 // jobs-collection
 import '/imports/api/jobs';
-// slas
-import '/imports/api/collections/slas';
+// db collections
+import '/imports/api/collections/countries/register.server';
+import '/imports/api/collections/slas/register.server';
+import '/imports/api/collections/workplaces';
 
 /**
  * Fields
@@ -21,8 +23,23 @@ import '/imports/api/fields';
  */
 // node-rules
 import '/imports/api/node_rules/register-server';
-// facebook
+// workplaces
 import '/imports/api/facebook/index';
-// clients
+
+/**
+ * Clients
+ */
 // B2B
 import '/imports/api/clients/b2b';
+// Elasticsearch
+import '/imports/api/elastic';
+
+/**
+ * Jobs
+ */
+import '/imports/api/jobs';
+
+/**
+ * Bots
+ */
+import '/imports/api/bots';
