@@ -1,8 +1,13 @@
 import bodybuilder from 'bodybuilder';
 
+import {SLAs} from '../collections/slas';
 import {Elastic} from '../elastic';
 import {FbRequest} from '../facebook';
 
+/**
+ * Function for checking operation of bot
+ * @return {*}
+ */
 const fistSLACheck = () => {
   const personId = '100015398923627', workplace = '257279828017220';
   const index = 'icare_prod_kh', type = 'b2b_customer';
@@ -44,8 +49,18 @@ const fistSLACheck = () => {
   }
 };
 
+/**
+ * Function execute the bot operation
+ * @param {String} slaId
+ */
+const execute = (slaId) => {
+  const sla = SLAs.findOne({_id: slaId});
+  console.log(sla);
+};
+
 const Bots = {
-  fistSLACheck
+  fistSLACheck,
+  execute,
 };
 
 export default Bots

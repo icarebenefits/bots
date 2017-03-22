@@ -4,19 +4,15 @@ import {createContainer} from 'meteor/react-meteor-data';
 import classNames from 'classnames';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
-
 // collections
 import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 import SLAsCollection from '/imports/api/collections/slas/slas';
 
 import * as Notify from '/imports/api/notifications';
-
 // Job Server
 import JobServer from '/imports/api/jobs/index';
-
 // methods
 import Methods from '/imports/api/collections/slas/methods';
-
 // components
 import {
   ListSLAs,
@@ -50,12 +46,17 @@ class SLAs extends Component {
     this._pauseSLA = this._pauseSLA.bind(this);
     this._resumeSLA = this._resumeSLA.bind(this);
     this._removeSLA = this._removeSLA.bind(this);
+    this._validateAndPreview = this._validateAndPreview.bind(this);
 
     // render
     this._renderListSLAs = this._renderListSLAs.bind(this);
     this._renderSingleSLA = this._renderSingleSLA.bind(this);
   }
 
+  /**
+   * Verify workplace exists
+   * @param nextProps
+   */
   componentWillReceiveProps(nextProps) {
     const {ready, Workplaces} = nextProps;
     if (ready && _.isEmpty(Workplaces)) {
@@ -63,11 +64,24 @@ class SLAs extends Component {
     }
   }
 
+  /**
+   * Stop rendering when there is no workplace
+   * @param nextProps
+   * @return {*|boolean}
+   */
   shouldComponentUpdate(nextProps) {
     const {ready, Workplaces} = nextProps;
     return ready && !_.isEmpty(Workplaces);
   }
 
+  /**
+   * Validate the SLA data before save
+   * @param SLA
+   * @param mode
+   * @param callback
+   * @return {{}}
+   * @private
+   */
   _validateData({SLA, mode}, callback) {
     const
       {name, workplace, frequency, conditions, message, country} = SLA
@@ -149,7 +163,13 @@ class SLAs extends Component {
     return {};
   }
 
-  // function check the frequency is the same
+  /**
+   * Check the frequency is changed or not
+   * @param freq
+   * @param nextFreq
+   * @return {boolean}
+   * @private
+   */
   _isSameFreq(freq, nextFreq) {
     const keys = Object.keys(freq);
     let isSame = true;
@@ -157,18 +177,21 @@ class SLAs extends Component {
     return isSame;
   }
 
+  /**
+   * Add SLA into Database
+   * @param action
+   * @private
+   */
   _addSLA(action) {
     const
-      {Workplaces} = this.props,
-      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
-      country = FlowRouter.getParam('country')
+      {country, Workplaces} = this.props,
+      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData()
       ;
 
     const
-      wpName = Workplaces.filter(wp => wp.id === workplace)[0].name,
       status = (action === 'draft') ? action : 'active'
       ;
-    const SLA = {name, description, workplace: wpName, frequency, conditions, message, country, status};
+    const SLA = {name, description, workplace, frequency, conditions, message, country, status};
 
     // validate SLA data
     this._validateData({SLA, mode: 'add'}, ({error}) => {
@@ -217,18 +240,23 @@ class SLAs extends Component {
     });
   }
 
+  /**
+   * Edit SLA on Database
+   * @param SLA
+   * @param action
+   * @private
+   */
   _editSLA(SLA, action) {
     const
-      {Workplaces} = this.props,
+      {country, Workplaces} = this.props,
       {_id, frequency: oldFreq} = SLA,
-      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
-      country = FlowRouter.getParam('country')
+      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData()
       ;
 
-    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name,
+    const
       status = (action === 'draft') ? action : null;
     const
-      newSLA = {_id, name, description, frequency, conditions, message, workplace: wpName, status, country}
+      newSLA = {_id, name, description, frequency, conditions, message, workplace, status, country}
       ;
 
 
@@ -273,11 +301,44 @@ class SLAs extends Component {
     });
   }
 
+  _validateAndPreview() {
+    const
+      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
+      {country, Workplaces} = this.props
+      ;
+
+    // validate SLA data
+    this._validateData({SLA: {name, workplace, conditions, frequency, country}, mode: 'edit'}, ({error}) => {
+      if (error) {
+        Notify.error({title: 'Validate SLA', message: error});
+        return this.setState({action: null});
+      } else {
+        Methods.validateConditions.call({conditions}, (err, res) => {
+          if(err) {
+            Notify.error({title: 'Validate conditions', message: 'Invalid.'});
+          } else if(res) {
+            Notify.info({title: 'Validate conditions', message: 'Good.'});
+          } else {
+            Notify.warning({title: 'Validate conditions', message: 'Invalid.'});
+          }
+          return this.setState({action: null});
+        });
+      }
+    });
+  }
+
+  /**
+   * Pause the SLA
+   * * Update status of SLA
+   * * Send pause signal to job server to pause the job
+   * @param id
+   * @private
+   */
   _pauseSLA(id) {
-    const {_id, name, status} = this.props.SLAsList[id],
-      country = FlowRouter.getParam('country');
+    const
+      {_id, name, status} = this.props.SLAsList[id],
+      {country} = this.props;
     let message = '';
-    console.log('pause', _id)
     JobServer(country).pauseJob({name}, (err, res) => {
       if (err) Notify.error({title: 'Pause SLA', message: err.reason});
       else {
@@ -295,11 +356,18 @@ class SLAs extends Component {
 
   }
 
+  /**
+   * Restart SLA
+   * * Used when an SLA had been save as draft (job in job server had been canceled)
+   * * Send restart signal to job server to restart the job
+   * @param id
+   * @private
+   */
   _restartSLA(id) {
-    const {_id, name, status} = this.props.SLAsList[id],
-      country = FlowRouter.getParam('country');
+    const
+      {_id, name, status} = this.props.SLAsList[id],
+      {country} = this.props;
     let message = '';
-    console.log('restart', _id)
     JobServer(country).restartJob({name}, (err, res) => {
       if (err) Notify.error({title: 'Restart SLA', message: err.reason});
       else {
@@ -316,11 +384,17 @@ class SLAs extends Component {
     return this.setState({mode: 'list', action: null});
   }
 
+  /**
+   * Resume SLA
+   * * Edit status of SLA
+   * * Send resume signal to job server to resume the paused job
+   * @param id
+   * @private
+   */
   _resumeSLA(id) {
     const {_id, name, status} = this.props.SLAsList[id],
-      country = FlowRouter.getParam('country');
+      {country} = this.props;
     let message = '';
-    console.log('resume', _id)
     JobServer(country).resumeJob({name}, (err, res) => {
       if (err) Notify.error({title: 'Resume SLA', message: err.reason});
       else {
@@ -337,9 +411,16 @@ class SLAs extends Component {
     return this.setState({mode: 'list', action: null});
   }
 
+  /**
+   * Remove SLA
+   * * Remove SLA from Database
+   * * Remove jobs from job server
+   * @param id
+   * @private
+   */
   _removeSLA(id) {
     const {_id, name} = this.props.SLAsList[id],
-      country = FlowRouter.getParam('country');
+      {country} = this.props;
     Methods.remove.call({_id}, (error, result) => {
       if (error) {
         Notify.error({title: 'Remove SLA', message: error.reason});
@@ -356,14 +437,14 @@ class SLAs extends Component {
     });
   }
 
-
+  /**
+   * Combine the frequency elements to a schedule text for using with later.js
+   * @param freq
+   * @return {string}
+   */
   getScheduleText(freq) {
     const
-      {
-        first: {preps, range, unit},
-        second: {preps: preps2, range: range2},
-      } = freq
-      ;
+      {preps, range, unit, preps2, range2} = freq;
     let text = '';
 
     !_.isEmpty(preps) && (text = `${preps}`);
@@ -375,17 +456,39 @@ class SLAs extends Component {
     return text;
   }
 
+  /**
+   * Use later.js to validate the schedule text
+   * @param freq
+   * @return {*}
+   * @private
+   */
   _validateSchedule(freq) {
     const text = this.getScheduleText(freq);
     const {error} = later.parse.text(text);
     return error; // -1: success; >0 failed
   }
 
+  /**
+   * Change state - mode for rendering the page
+   * * Current modes are: list | edit | add | view
+   * @param event
+   * @param action
+   * @param row
+   */
   handleChangeMode(event, action, row) {
     event.preventDefault();
     this.setState({mode: action, row});
   }
 
+  /**
+   * Change state - mode & action when user click on Actions
+   * * Current actions are: back | cancel | validate | draft | save | execute | edit
+   * *    | remove | pause | resume | restart
+   * @param event
+   * @param action
+   * @param row
+   * @return {*}
+   */
   handleActionSLA(event, action, row) {
     event.preventDefault();
 
@@ -407,8 +510,10 @@ class SLAs extends Component {
       case 'restart': {
         return this._restartSLA(row);
       }
-      case 'validate': {
-        Notify.info({title: 'Validate conditions', message: 'looks great.'});
+      case 'validate':
+      {
+        // Notify.info({title: 'Validate conditions', message: 'looks great.'});
+        this._validateAndPreview();
         return this.setState({action});
       }
       case 'draft': {
@@ -444,20 +549,11 @@ class SLAs extends Component {
     }
   }
 
-  getScheduleText(freq) {
-    const
-      {preps, range, unit, preps2, range2} = freq;
-    let text = '';
-
-    !_.isEmpty(preps) && (text = `${preps}`);
-    !_.isEmpty(range) && (text = `${text} ${range}`);
-    !_.isEmpty(unit) && (preps === 'at') ? (text = `${text}:${unit}`) : (text = `${text} ${unit}`);
-    !_.isEmpty(preps2) && (text = `${text} ${preps2}`);
-    !_.isEmpty(range2) && (text = `${text} ${range2}`);
-
-    return text;
-  }
-
+  /**
+   * Render list of SLAs when mode is list
+   * @return {XML}
+   * @private
+   */
   _renderListSLAs() {
     const
       {SLAsList} = this.props,
@@ -512,6 +608,12 @@ class SLAs extends Component {
     );
   }
 
+  /**
+   * Render single SLA in mode view | add | edit
+   * @param mode
+   * @return {XML}
+   * @private
+   */
   _renderSingleSLA(mode) {
     const
       {Workplaces, SLAsList} = this.props,
@@ -582,10 +684,13 @@ class SLAs extends Component {
     );
   }
 
+  /**
+   * Render page
+   * @return {XML}
+   */
   render() {
     const
-      {ready, Workplaces} = this.props,
-      country = FlowRouter.getParam('country'),
+      {ready, country, Workplaces} = this.props,
       {mode} = this.state,
       sideBarProps = {
         options: [
@@ -632,8 +737,16 @@ class SLAs extends Component {
   }
 }
 
-SLAs.propTypes = {};
+SLAs.propTypes = {
+  country: PropTypes.string,
+  ready: PropTypes.bool,
+  Workplaces: PropTypes.array,
+  SLAsList: PropTypes.array,
+};
 
+/**
+ * Prepare data for component
+ */
 const SLAsContainer = createContainer(() => {
   const
     country = FlowRouter.getParam('country'),
@@ -646,6 +759,7 @@ const SLAsContainer = createContainer(() => {
 
   return {
     ready,
+    country,
     Workplaces,
     SLAsList,
   };

@@ -43,3 +43,8 @@ import '/imports/api/jobs';
  * Bots
  */
 import '/imports/api/bots';
+
+/**
+ * Query builder
+ */
+import '/imports/api/query-builder';
