@@ -62,9 +62,9 @@ const is = (s1, s2) => ({
     params: 2,
   },
   check: (s1, s2) => s1 === s2,
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('term', `${field}.keyword`, value)
+      .query('term', `${field}.keyword`, values[0].value)
       .build();
   }
 });
@@ -76,9 +76,9 @@ const contains = (s1, s2) => ({
     params: 2,
   },
   check: (s1, s2) => S(s1).contains(s2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('wildcard', `${field}.keyword`, `*${value}*`)
+      .query('wildcard', `${field}.keyword`, `*${values[0].value}*`)
       .build();
   }
 });
@@ -90,9 +90,9 @@ const startsWith = (s1, s2) => ({
     params: 2,
   },
   check: (s1, s2) => S(s1).startsWith(s2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('prefix', `${field}.keyword`, value)
+      .query('prefix', `${field}.keyword`, values[0].value)
       .build();
   }
 });
@@ -106,9 +106,9 @@ const on = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isSame(d2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('term', field, value)
+      .query('term', field, values[0].value)
       .build();
   }
 });
@@ -120,9 +120,9 @@ const before = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isBefore(d2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {gt: value})
+      .query('range', field, {gt: values[0].value})
       .build();
   }
 });
@@ -134,9 +134,9 @@ const after = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isAfter(d2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {lt: value})
+      .query('range', field, {lt: values[0].value})
       .build();
   }
 });
@@ -148,9 +148,9 @@ const onOrBefore = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isSameOrBefore(d2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {gte: value})
+      .query('range', field, {gte: values[0].value})
       .build();
   }
 });
@@ -162,9 +162,9 @@ const onOrAfter = (d1, d2) => ({
     params: 2,
   },
   check: (d1, d2) => moment(d1).isSameOrAfter(d2),
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {lte: value})
+      .query('range', field, {lte: values[0].value})
       .build();
   }
 });
@@ -176,9 +176,9 @@ const within = (d1, d2) => ({
     params: 3,
   },
   check: (d, d1, d2) => moment(d).isBetween(d1, d2),
-  buildQuery: (field, value1, value2) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {gte: value1, lte: value2})
+      .query('range', field, {gte: values[0].value, lte: values[1].value})
       .build();
   }
 });
@@ -192,9 +192,9 @@ const equal = (n1, n2) => ({
     params: 2,
   },
   check: (n1, n2) => n1 === n2,
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('term', field, value)
+      .query('term', field, values[0].value)
       .build();
   }
 });
@@ -206,9 +206,9 @@ const lessThan = () => ({
     params: 2,
   },
   check: (n1, n2) => n1 < n2,
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {lt: value})
+      .query('range', field, {lt: values[0].value})
       .build();
   }
 });
@@ -220,9 +220,9 @@ const greaterThan = (n1, n2) => ({
     params: 2,
   },
   check: (n1, n2) => n1 > n2,
-  buildQuery: () => {
+  buildQuery: (values) => {
     return bodybuilder()
-      .query('range', field, {gt: value})
+      .query('range', field, {gt: values[0].value})
       .build();
   }
 });
@@ -234,9 +234,9 @@ const lessThanOrEqual = (n1, n2) => ({
     params: 2,
   },
   check: (n1, n2) => n1 <= n2,
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {lte: value})
+      .query('range', field, {lte: values[0].value})
       .build();
   }
 });
@@ -248,9 +248,9 @@ const greaterThanOrEqual = (n1, n2) => ({
     params: 2,
   },
   check: (n1, n2) => n1 >= n2,
-  buildQuery: (field, value) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {gte: value})
+      .query('range', field, {gte: values[0].value})
       .build();
   }
 });
@@ -262,9 +262,9 @@ const between = (n, n1, n2) => ({
     params: 3,
   },
   check: (n, n1, n2) => (n >= n1 && n <= n2),
-  buildQuery: (field, value1, value2) => {
+  buildQuery: (field, values) => {
     return bodybuilder()
-      .query('range', field, {gte: value1, lte: value2})
+      .query('range', field, {gte: values[0].value, lte: values[1].value})
       .build();
   }
 });

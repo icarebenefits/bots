@@ -40,7 +40,7 @@ class MessageBuilder extends Component {
   handleCheck(e) {
     e.preventDefault();
 
-    console.log(this.state);
+    // console.log(this.state);
     const {variables} = this.state;
     const message = this.refs.template.getValue();
     const countLeft = (message.match(/{/g) || []).length;
@@ -57,7 +57,7 @@ class MessageBuilder extends Component {
         if (v.name === '')
           noVariable = true;
       });
-      console.log(values);
+      // console.log(values);
       if (noVariable) {
         Notify.warning({title: 'Message invalid', message: 'There are NO variable'});
       } else if (variables.length != numOfValues) {
@@ -168,7 +168,7 @@ class MessageBuilder extends Component {
             <tbody
             >
             {variables.map((variable, idx) => {
-              console.log("var",variable);
+              // console.log("var",variable);
               return (
                 <Variable
                   key={idx}

@@ -3,48 +3,48 @@ import _ from 'lodash';
 
 import {Operators} from '/imports/api/fields';
 
-const conditions = [
-  {
-    not: false,
-    openParens: '',
-    filter: 'business units',
-    field: 'full_name',
-    operator: 'contains',
-    values: ['Justin'],
-    closeParens: '',
-    bitwise: 'and'
-  },
-  {
-    not: true,
-    openParens: '(',
-    filter: 'salary',
-    field: '',
-    operator: 'lessThan',
-    values: ['1000'],
-    closeParens: '',
-    bitwise: 'or'
-  },
-  {
-    not: false,
-    openParens: '',
-    filter: 'credit_limit',
-    field: '',
-    operator: 'lessThan',
-    values: ['2000'],
-    closeParens: ')',
-    bitwise: ''
-  },
-  // {
-  //   not: true,
-  //   openParens: '',
-  //   filter: 'hiring_date',
-  //   field: '',
-  //   operator: 'before',
-  //   values: ['2012-01-27'],
-  //   closeParens: '))',
-  //   bitwise: ''
-  // },
-];
+// const conditions = [
+//   {
+//     not: false,
+//     openParens: '',
+//     filter: 'business units',
+//     field: 'full_name',
+//     operator: 'contains',
+//     values: ['Justin'],
+//     closeParens: '',
+//     bitwise: 'and'
+//   },
+//   {
+//     not: true,
+//     openParens: '(',
+//     filter: 'salary',
+//     field: '',
+//     operator: 'lessThan',
+//     values: ['1000'],
+//     closeParens: '',
+//     bitwise: 'or'
+//   },
+//   {
+//     not: false,
+//     openParens: '',
+//     filter: 'credit_limit',
+//     field: '',
+//     operator: 'lessThan',
+//     values: ['2000'],
+//     closeParens: ')',
+//     bitwise: ''
+//   },
+//   // {
+//   //   not: true,
+//   //   openParens: '',
+//   //   filter: 'hiring_date',
+//   //   field: '',
+//   //   operator: 'before',
+//   //   values: ['2012-01-27'],
+//   //   closeParens: '))',
+//   //   bitwise: ''
+//   // },
+// ];
 
 // list of supported operators
 const operators = Object.keys(Operators);
@@ -191,7 +191,7 @@ const queryBuilder = (conditions) => {
     return {error: 'The last condition can not have bitwise operator!!'};
   // the number of bitwise have to be the number of conditions - 1
   const noOfBitwise = expression.filter(e => (e === 'and' || e === 'or')).length;
-  if(noOfBitwise !== (expression.length - 1))
+  if(noOfBitwise !== (conditions.length - 1))
     return {error: 'The number of bitwise unacceptable!!'};
 
 
@@ -269,7 +269,7 @@ const queryBuilder = (conditions) => {
             field = stack.pop()
             ;
 
-          query = Operators[p]().buildQuery(field, values[0]);
+          query = Operators[p]().buildQuery(field, values);
 
           stack.push(query);
         }
@@ -283,12 +283,12 @@ const queryBuilder = (conditions) => {
 };
 
 // testing
-const {error, query} = queryBuilder(conditions);
-if(error) {
-  console.log('error', error);
-} else {
-  console.log(JSON.stringify(query, null, 2));
-}
+// const {error, query} = queryBuilder(conditions);
+// if(error) {
+//   console.log('error', error);
+// } else {
+//   console.log(JSON.stringify(query, null, 2));
+// }
 
 export default queryBuilder
 
