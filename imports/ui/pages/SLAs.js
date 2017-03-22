@@ -308,7 +308,7 @@ class SLAs extends Component {
       ;
 
     // validate SLA data
-    this._validateData({SLA: {name, workplace, conditions, frequency, country}, mode: 'edit'}, ({error}) => {
+    this._validateData({SLA: {name, workplace, conditions, frequency, country, message}, mode: 'edit'}, ({error}) => {
       if (error) {
         Notify.error({title: 'Validate SLA', message: error});
         return this.setState({action: null});

@@ -1,0 +1,1 @@
+export {default as iCareMember} from './icare-member';

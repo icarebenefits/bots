@@ -80,6 +80,9 @@ SLAs.schema = new SimpleSchema({
     type: String,
     optional: true,
   },
+  "conditions.$.group": {
+    type: String,
+  },
   "conditions.$.filter": {
     type: String,
   },

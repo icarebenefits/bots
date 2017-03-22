@@ -3,48 +3,6 @@ import _ from 'lodash';
 
 import {Operators} from '/imports/api/fields';
 
-// const conditions = [
-//   {
-//     not: false,
-//     openParens: '',
-//     filter: 'business units',
-//     field: 'full_name',
-//     operator: 'contains',
-//     values: ['Justin'],
-//     closeParens: '',
-//     bitwise: 'and'
-//   },
-//   {
-//     not: true,
-//     openParens: '(',
-//     filter: 'salary',
-//     field: '',
-//     operator: 'lessThan',
-//     values: ['1000'],
-//     closeParens: '',
-//     bitwise: 'or'
-//   },
-//   {
-//     not: false,
-//     openParens: '',
-//     filter: 'credit_limit',
-//     field: '',
-//     operator: 'lessThan',
-//     values: ['2000'],
-//     closeParens: ')',
-//     bitwise: ''
-//   },
-//   // {
-//   //   not: true,
-//   //   openParens: '',
-//   //   filter: 'hiring_date',
-//   //   field: '',
-//   //   operator: 'before',
-//   //   values: ['2012-01-27'],
-//   //   closeParens: '))',
-//   //   bitwise: ''
-//   // },
-// ];
 
 // list of supported operators
 const operators = Object.keys(Operators);
@@ -282,7 +240,53 @@ const queryBuilder = (conditions) => {
   return {query};
 };
 
-// testing
+export default queryBuilder
+
+/**
+ * Testing
+ */
+// const conditions = [
+//   {
+//     not: false,
+//     openParens: '',
+//     filter: 'business units',
+//     field: 'full_name',
+//     operator: 'contains',
+//     values: ['Justin'],
+//     closeParens: '',
+//     bitwise: 'and'
+//   },
+//   {
+//     not: true,
+//     openParens: '(',
+//     filter: 'salary',
+//     field: '',
+//     operator: 'lessThan',
+//     values: ['1000'],
+//     closeParens: '',
+//     bitwise: 'or'
+//   },
+//   {
+//     not: false,
+//     openParens: '',
+//     filter: 'credit_limit',
+//     field: '',
+//     operator: 'lessThan',
+//     values: ['2000'],
+//     closeParens: ')',
+//     bitwise: ''
+//   },
+//   // {
+//   //   not: true,
+//   //   openParens: '',
+//   //   filter: 'hiring_date',
+//   //   field: '',
+//   //   operator: 'before',
+//   //   values: ['2012-01-27'],
+//   //   closeParens: '))',
+//   //   bitwise: ''
+//   // },
+// ];
 // const {error, query} = queryBuilder(conditions);
 // if(error) {
 //   console.log('error', error);
@@ -290,5 +294,4 @@ const queryBuilder = (conditions) => {
 //   console.log(JSON.stringify(query, null, 2));
 // }
 
-export default queryBuilder
 

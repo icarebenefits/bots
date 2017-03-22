@@ -126,6 +126,10 @@ Methods.validateConditions = new ValidatedMethod({
       type: String,
       optional: true,
     },
+    "conditions.$.group": {
+      type: String,
+      optional: true,
+    },
     "conditions.$.filter": {
       type: String,
       optional: true,
