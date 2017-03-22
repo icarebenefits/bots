@@ -4,20 +4,15 @@ import {createContainer} from 'meteor/react-meteor-data';
 import classNames from 'classnames';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
-
 // collections
 import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 import SLAsCollection from '/imports/api/collections/slas/slas';
 
 import * as Notify from '/imports/api/notifications';
-
 // Job Server
 import JobServer from '/imports/api/jobs/index';
-
 // methods
 import Methods from '/imports/api/collections/slas/methods';
-
-
 // components
 import {
   ListSLAs,
@@ -160,10 +155,9 @@ class SLAs extends Component {
       ;
 
     const
-      wpName = Workplaces.filter(wp => wp.id === workplace)[0].name,
       status = (action === 'draft') ? action : 'active'
       ;
-    const SLA = {name, description, workplace: wpName, frequency, conditions, message, country, status};
+    const SLA = {name, description, workplace, frequency, conditions, message, country, status};
 
     // validate SLA data
     this._validateData({SLA, mode: 'add'}, ({error}) => {
@@ -225,10 +219,10 @@ class SLAs extends Component {
       {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData()
       ;
 
-    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name,
+    const
       status = (action === 'draft') ? action : null;
     const
-      newSLA = {_id, name, description, frequency, conditions, message, workplace: wpName, status, country}
+      newSLA = {_id, name, description, frequency, conditions, message, workplace, status, country}
       ;
 
 
@@ -278,10 +272,9 @@ class SLAs extends Component {
       {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
       {country, Workplaces} = this.props
       ;
-    const wpName = Workplaces.filter(wp => wp.id === workplace)[0].name;
 
     // validate SLA data
-    this._validateData({SLA: {name, workplace: wpName, conditions, frequency, country}, mode: 'edit'}, ({error}) => {
+    this._validateData({SLA: {name, workplace, conditions, frequency, country}, mode: 'edit'}, ({error}) => {
       if (error) {
         Notify.error({title: 'Validate SLA', message: error});
         return this.setState({action: null});

@@ -2,6 +2,7 @@ import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
 import ListItem from './ListItem';
+import {NoContent} from './common';
 
 const List = (props) => {
   const
@@ -12,6 +13,14 @@ const List = (props) => {
       handleDoubleClick = () => {},
       readonly = true
     } = props;
+
+  if(_.isEmpty(data)) {
+    return (
+      <NoContent
+        message="There is no SLA."
+      />
+    );
+  }
 
   return (
     <table className="table table-hover">

@@ -46,11 +46,16 @@ class ConditionsBuilder extends Component {
     this._addCondition = this._addCondition.bind(this);
   }
 
+  /**
+   * Get new conditions when props change
+   * 
+   */
   componentWillReceiveProps(nextProps) {
     const {conditions} = nextProps;
     !_.isEmpty(conditions) && this.setState({conditions});
   }
 
+  
   getConditions() {
     return this.state.conditions;
   }
