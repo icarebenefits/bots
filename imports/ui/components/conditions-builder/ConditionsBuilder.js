@@ -319,7 +319,6 @@ class ConditionsBuilder extends Component {
     if(_.isEmpty(fieldId)) {
       return null;
     }
-
     const FieldData = Fields[fieldId](),
       {fields, operators, props: {name: header}} = FieldData,
       {operator, values: condValues, field} = conditions[row]

@@ -84,7 +84,7 @@ class SLAs extends Component {
    */
   _validateData({SLA, mode}, callback) {
     const
-      {name, workplace, frequency, conditions, country} = SLA
+      {name, workplace, frequency, conditions, message, country} = SLA
       ;
 
     if (_.isEmpty(name)) {
@@ -103,27 +103,61 @@ class SLAs extends Component {
             if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
               callback({error: `Conditions of SLA is required.`});
             } else {
-              if (mode === 'add') {
-                Methods.validateName.call({name, country}, (error, result) => {
-                  if (error) {
-                    callback({error: error.reason});
-                  } else {
-                    const {error} = result;
-                    if (error) {
-                      callback({error});
+              if (_.isEmpty(message)) {
+                callback({error: `Message of SLA is required.`});
+              } else {
+                const {messageTemplate, variables} = message;
+                if (_.isEmpty(messageTemplate)) {
+                  callback({error: `Message template is required.`});
+                } else {
+                  const countLeft = (messageTemplate.match(/{/g) || []).length;
+                  const countRight = (messageTemplate.match(/}/g) || []).length;
+                  if (countLeft !== countRight || countLeft === 0 || countRight === 0) {
+                    callback({error: `Message template is INVALID.`});
+                  }
+                  else {
+                    const values = {};
+                    let numOfValues = 0;
+                    let hasInvalidVariable = false;
+                    variables.map((v) => {
+                      const {summaryType, field, name} =v;
+                      if (messageTemplate.indexOf('{' + name + '}') >= 0) {
+                        values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+                        numOfValues++;
+                      }
+                      if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
+                        hasInvalidVariable = true;
+                    });
+                    // console.log(values);
+                    if (hasInvalidVariable) {
+                      callback({error: `Message has INVALID variable`});
+                    } else if (variables.length != numOfValues || numOfValues != countLeft) {
+                      callback({error: `Message template DO NOT match with given variables`});
                     } else {
-                      callback({});
+                      if (mode === 'add') {
+                        Methods.validateName.call({name, country}, (error, result) => {
+                          if (error) {
+                            callback({error: error.reason});
+                          } else {
+                            const {error} = result;
+                            if (error) {
+                              callback({error});
+                            } else {
+                              callback({});
+                            }
+                          }
+                        });
+                      } else {
+                        callback({});
+                      }
                     }
                   }
-                });
-              } else {
-                callback({});
+                }
               }
             }
           }
         }
       }
-
     }
 
     return {};
@@ -459,27 +493,21 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back':
-      {
+      case 'back': {
       }
-      case 'cancel':
-      {
+      case 'cancel': {
         return this.setState({mode: 'list', action: null});
       }
-      case 'remove':
-      {
+      case 'remove': {
         return this._removeSLA(row);
       }
-      case 'pause':
-      {
+      case 'pause': {
         return this._pauseSLA(row);
       }
-      case 'resume':
-      {
+      case 'resume': {
         return this._resumeSLA(row);
       }
-      case 'restart':
-      {
+      case 'restart': {
         return this._restartSLA(row);
       }
       case 'validate':
@@ -488,8 +516,7 @@ class SLAs extends Component {
         this._validateAndPreview();
         return this.setState({action});
       }
-      case 'draft':
-      {
+      case 'draft': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -497,8 +524,7 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'save':
-      {
+      case 'save': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -506,8 +532,7 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'execute':
-      {
+      case 'execute': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -515,12 +540,10 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'edit':
-      {
+      case 'edit': {
         return this.setState({mode: action, action});
       }
-      default:
-      {
+      default: {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -602,11 +625,9 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add':
-      {
+      case 'add': {
       }
-      case 'edit':
-      {
+      case 'edit': {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
@@ -631,8 +652,7 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view':
-      {
+      case 'view': {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -645,8 +665,7 @@ class SLAs extends Component {
         ]
         break;
       }
-      default:
-      {
+      default: {
         alert(`Unknown action: ${mode}`);
       }
     }
