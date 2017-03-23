@@ -47,7 +47,7 @@ const DateField = () => ({
   }
 });
 
-const BooleanField = () => ({
+const BoolField = () => ({
   props: {
     id: 'boolean',
     name: 'boolean',
@@ -78,7 +78,7 @@ const GenderField = () => ({
 });
 
 const Fields = {
-  BooleanField,
+  BoolField,
   StringField,
   NumberField,
   DateField,

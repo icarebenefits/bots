@@ -29,10 +29,14 @@ export class Variable extends Component {
     const grpOptions = listGroups.map(groupName => {
       const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
       const listFields = Object.keys(fields);
-      const options = listFields.map(field => {
-        const {id: name, name: label} = fields[field]().props;
-        return {name, label};
-      });
+      const options = listFields
+        // message builder apply for number fields only
+        .filter(f => fields[f]().props.type === 'number')
+        .map(f => {
+          const {id: name, name: label} = fields[f]().props;
+          return {name, label};
+        });
+      console.log(options);
       options.splice(0, 0, {name: 'total', label: 'total'});
       options.splice(0, 0, {name: '', label: ''});
       return {name, label, options};
@@ -59,27 +63,27 @@ export class Variable extends Component {
           {readonly
             ? summaryType
             : (<Selectbox
-              className="form-control"
-              value={summaryType}
-              options={[
+            className="form-control"
+            value={summaryType}
+            options={[
                 {name: '', label: ''},
                 {name: 'count', label: 'count'},
                 {name: 'sum', label: 'sum'},
                 {name: 'average', label: 'average'},
               ]}
-              handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
-            />)
+            handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
+          />)
           }
         </td>
         <td data-row={id}>
           {readonly
             ? field
             : (<SelectboxGrouped
-              className="form-control"
-              value={field}
-              grpOptions={filters}
-              handleOnChange={value => handleFieldChange(id, 'field', value)}
-            />)
+            className="form-control"
+            value={field}
+            grpOptions={filters}
+            handleOnChange={value => handleFieldChange(id, 'field', value)}
+          />)
           }
         </td>
         <td data-row={id}>
@@ -96,11 +100,11 @@ export class Variable extends Component {
           {readonly
             ? null
             : <div>
-              <Button
-                onClick={e => {e.preventDefault(); handleRemoveRow(id);}}
-                className="btn-danger"
-              >Remove</Button>
-            </div>
+            <Button
+              onClick={e => {e.preventDefault(); handleRemoveRow(id);}}
+              className="btn-danger"
+            >Remove</Button>
+          </div>
           }
         </td>
       </tr>

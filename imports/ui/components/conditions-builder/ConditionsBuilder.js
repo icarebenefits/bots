@@ -424,7 +424,6 @@ class ConditionsBuilder extends Component {
               className="col-md-4 bold uppercase pull-left"
               value="Conditions: "
             />
-            {/* <h5>{expression}</h5>*/}
             {readonly
               ? null
               : <Button
@@ -436,7 +435,6 @@ class ConditionsBuilder extends Component {
         </div>
         <div className="row">
           <div className="col-md-12">
-
             <table className="table table-striped">
               <thead>
               <tr>

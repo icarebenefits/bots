@@ -118,7 +118,7 @@ class MessageBuilder extends Component {
       ;
     let newVar = {};
 
-    if(key === 'field') {
+    if (key === 'field') {
       const {groupId, value: val} = value;
       newVar = {...variable, [`${key}`]: val};
     } else {
@@ -265,8 +265,8 @@ class MessageBuilder extends Component {
         <div className="row">
           <div className="col-md-12">
             <Label
-              className="uppercase bold pull-left"
-              value="Message Builder"
+              className="col-md-4 bold uppercase pull-left"
+              value="Message: "
             />
             {readonly
               ? null
@@ -282,7 +282,7 @@ class MessageBuilder extends Component {
             <table className="table table-striped">
               <thead>
               <tr>
-                <th>summaryType</th>
+                <th>Type</th>
                 <th>Field</th>
                 <th>Variable</th>
                 <th>Actions</th>
@@ -307,11 +307,13 @@ class MessageBuilder extends Component {
           </div>
         </div>
         <div className="row">
-          <Label
-            className="col-md-12 bold pull-left"
-            value="Template"
-          />
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold pull-left"
+              value="Template"
+            />
           </div>
+        </div>
         <div className="row">
           <div className="col-md-8">
             {readonly ?
