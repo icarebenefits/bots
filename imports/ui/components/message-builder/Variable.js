@@ -29,13 +29,14 @@ export class Variable extends Component {
     const grpOptions = listGroups.map(groupName => {
       const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
       const listFields = Object.keys(fields);
-      const options = listFields
-        // message builder apply for number fields only
-        .filter(f => fields[f]().props.type === 'number')
-        .map(f => {
-          const {id: name, name: label} = fields[f]().props;
-          return {name, label};
-        });
+      const options = []; // temporary support for count only
+      // const options = listFields
+      //   // message builder apply for number fields only
+      //   .filter(f => fields[f]().props.type === 'number')
+      //   .map(f => {
+      //     const {id: name, name: label} = fields[f]().props;
+      //     return {name, label};
+      //   });
       options.splice(0, 0, {name: 'total', label: 'total'});
       options.splice(0, 0, {name: '', label: ''});
       return {name, label, options};

@@ -109,7 +109,7 @@ class Workplaces extends Component {
                   <input name="groupId"
                          type="text"
                          ref="groupId"
-                         placeholder="enter workplace groupId"
+                         placeholder="workplace groupId..."
                   />
                   <button className="btn-link" onClick={this.handleCheck.bind(this)}>GetName
                   </button>
