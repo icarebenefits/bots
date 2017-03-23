@@ -4,6 +4,7 @@ import {SLAs} from '../collections/slas';
 // import {Elastic} from '../elastic';
 import {FbRequest} from '../facebook';
 import {queryBuilder} from '../query-builder';
+import format from 'string-template';
 
 /**
  * Function for checking operation of bot
@@ -26,9 +27,9 @@ const fistSLACheck = () => {
   });
 
   // send notify to workplace
-  if(total) {
-    if(total > threshold) {
-      message = `There are ${total} customers who has less than 100 iCare Members.`;
+  if (total) {
+    if (total > threshold) {
+      message = `Test bots: There are ${total} customers who has less than 100 iCare Members.`;
       const wpRequest = new FbRequest();
       wpRequest.post(personId, workplace, message);
       return {
@@ -54,26 +55,46 @@ const fistSLACheck = () => {
  * Function execute the bot operation
  * @param {String} slaId
  */
-const execute = (slaId) => {
+const executeElastic = (slaId) => {
   const sla = SLAs.findOne({_id: slaId});
-  const {_id, conditions, workplaces, message} = sla;
+  const {_id, conditions, workplace, message: {variables, messageTemplate}} = sla;
   // const threshold = 
-  
+
   const {error, query} = queryBuilder(conditions);
 
-  if(error) {
+  if (error) {
     throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
   } else {
-    console.log(JSON.stringify(query, null, 2))
 
     const {Elastic} = require('../elastic');
 
     // validate query before run
     const {valid} = Elastic.indices.validateQuery({body: query});
-    if(valid) {
+    if (valid) {
       const {hits: {total, hits}} = Elastic.search({body: query});
-      if(hits) {
-        console.log('ES result', {total, hits});
+      if (hits) {
+        const vars = {};
+        // build message to send to workplace
+        variables.map(v => {
+          const {summaryType, field, name} = v;
+          if (field === 'total' && summaryType === 'count') {
+            vars[name] = total;
+          } else {
+            // handle orther type of result from aggregation
+            // not support yet
+            throw new Meteor.Error('CANT_HANDLE_SUMMARY', `${summaryType} of ${field} isn't supported yet.`)
+          }
+        });
+        const message = format(messageTemplate, vars);
+
+        // send message to workplace
+        const wpRequest = new FbRequest();
+        const {personalId} = Meteor.settings.facebook;
+        wpRequest.post(personalId, workplace, message);
+        return {
+          check: true,
+          notify: true,
+        };
       } else {
         throw new Meteor.Error('EXECUTE_ES_QUERY_FAILED');
       }
@@ -86,7 +107,7 @@ const execute = (slaId) => {
 
 const Bots = {
   fistSLACheck,
-  execute,
+  executeElastic,
 };
 
 export default Bots

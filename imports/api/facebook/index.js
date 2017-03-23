@@ -17,9 +17,6 @@ FbRequest.prototype = {
       }
     };
 
-    // console.log({personalId, groupId});
-    console.log(options)
-
     request(options, function (error, response, body) {
       if (error) throw new Error(error);
       const obj = JSON.parse(body);
@@ -38,7 +35,6 @@ FbRequest.prototype = {
         },
         json: true
       };
-      // console.log(options);
       request(options, function (error, response, body) {
         if (error) throw new Error(error);
 

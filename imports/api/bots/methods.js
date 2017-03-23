@@ -13,6 +13,17 @@ const testBots = new ValidatedMethod({
   }
 });
 
+const elastic = new ValidatedMethod({
+  name: 'bots.elastic',
+  validate: null,
+  run({slaId}) {
+    if(Meteor.isServer) {
+      const result = Bots.executeElastic(slaId);
+      return result;
+    }
+  }
+});
+
 const BotsMethods = {
   testBots,
 };
