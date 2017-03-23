@@ -311,9 +311,9 @@ class SLAs extends Component {
         return this.setState({action: null});
       } else {
         Methods.validateConditions.call({conditions}, (err, res) => {
-          if(err) {
+          if (err) {
             Notify.error({title: 'Validate conditions', message: 'Invalid.'});
-          } else if(res) {
+          } else if (res) {
             Notify.info({title: 'Validate conditions', message: 'Good.'});
           } else {
             Notify.warning({title: 'Validate conditions', message: 'Invalid.'});
@@ -490,21 +490,27 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back': {
+      case 'back':
+      {
       }
-      case 'cancel': {
+      case 'cancel':
+      {
         return this.setState({mode: 'list', action: null});
       }
-      case 'remove': {
+      case 'remove':
+      {
         return this._removeSLA(row);
       }
-      case 'pause': {
+      case 'pause':
+      {
         return this._pauseSLA(row);
       }
-      case 'resume': {
+      case 'resume':
+      {
         return this._resumeSLA(row);
       }
-      case 'restart': {
+      case 'restart':
+      {
         return this._restartSLA(row);
       }
       case 'validate':
@@ -513,7 +519,8 @@ class SLAs extends Component {
         this._validateAndPreview();
         return this.setState({action});
       }
-      case 'draft': {
+      case 'draft':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -521,7 +528,8 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'save': {
+      case 'save':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -529,7 +537,8 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'execute': {
+      case 'execute':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -537,10 +546,12 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'edit': {
+      case 'edit':
+      {
         return this.setState({mode: action, action});
       }
-      default: {
+      default:
+      {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -581,7 +592,8 @@ class SLAs extends Component {
               className: 'btn-danger', handleAction: this.handleActionSLA
             },
           ],
-          handleDoubleClick: (dataset) => {},
+          handleDoubleClick: (dataset) => {
+          },
         },
       }
       ;
@@ -619,9 +631,11 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add': {
+      case 'add':
+      {
       }
-      case 'edit': {
+      case 'edit':
+      {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
@@ -646,7 +660,8 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view': {
+      case 'view':
+      {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -659,22 +674,21 @@ class SLAs extends Component {
         ]
         break;
       }
-      default: {
+      default:
+      {
         alert(`Unknown action: ${mode}`);
       }
     }
 
     return (
-      <div className="row">
-        <SingleSLA
-          ref="SLA"
-          mode={mode}
-          Workplaces={Workplaces}
-          SLA={SLAsList[row]}
-          actions={actions}
-          getScheduleText={this.getScheduleText}
-        />
-      </div>
+      <SingleSLA
+        ref="SLA"
+        mode={mode}
+        Workplaces={Workplaces}
+        SLA={SLAsList[row]}
+        actions={actions}
+        getScheduleText={this.getScheduleText}
+      />
     );
   }
 
@@ -710,16 +724,13 @@ class SLAs extends Component {
             {...sideBarProps}
           />
           <div className="page-content-col">
-            <div className="portlet light bordered">
-              <div className="portlet-title">
-                <div className="caption font-dark">
-                  <i className="icon-settings font-dark"></i>
-                  <span className="caption-subject bold uppercase">{`${mode} SLA`}</span>
-                </div>
-              </div>
-              <div className={classNames({"portlet-body": true, 'form': !(mode === 'list')})}>
-                {renderSLA(mode)}
-              </div>
+            <div className="note note-info">
+              <h2>
+                <span className="label label-primary uppercase"> {`${mode} SLA`} </span>
+              </h2>
+            </div>
+            <div className="row">
+              {renderSLA(mode)}
             </div>
           </div>
         </div>

@@ -310,6 +310,17 @@ const purchaseDate = () => Object.assign(
     }
   }
 );
+const createdAt = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'createdAt',
+      name: 'Create Date',
+      ESField: 'created_at',
+    }
+  }
+);
 
 const iCareMember = {
   props: {
@@ -323,6 +334,7 @@ const iCareMember = {
     contractType, creditLimit, dueLimit, // availableCL, availableDL,
     maternityLeaveStartDate, maternityLeaveEndDate, salaryPaymentMethod, bankName,
     // soNumber, purchaseDate
+    createdAt,
   }
 };
 

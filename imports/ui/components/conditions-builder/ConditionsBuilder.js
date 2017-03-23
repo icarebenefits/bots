@@ -419,49 +419,54 @@ class ConditionsBuilder extends Component {
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="col-md-4 bold uppercase pull-left"
-            value="Conditions: "
-          />
-          {/* <h5>{expression}</h5>*/}
-          {readonly
-            ? null
-            : <Button
-            className="btn-default pull-right"
-            onClick={e => this._addCondition(e)}
-          ><span className="fa fa-plus"></span>{' Add'}</Button>
-          }
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold uppercase pull-left"
+              value="Conditions: "
+            />
+            {/* <h5>{expression}</h5>*/}
+            {readonly
+              ? null
+              : <Button
+              className="btn-default pull-right"
+              onClick={e => this._addCondition(e)}
+            ><span className="fa fa-plus"></span>{' Add'}</Button>
+            }
+          </div>
         </div>
         <div className="row">
-          <table className="table table-striped">
-            <thead>
-            <tr>
-              <th>Not</th>
-              <th>Parens</th>
-              <th>Filter</th>
-              <th>Description</th>
-              <th>Parens</th>
-              <th>And/Or</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody
-              onDoubleClick={this._handleClickCondition}
-            >
-            {conditions.map((condition, idx) => {
-              return (
-                <Condition
-                  key={idx}
-                  id={idx}
-                  ref={`condition-${idx}`}
-                  condition={condition}
-                  readonly={readonly || (Number(edit) === idx ? false : true)}
-                  handlers={handlers}
-                />
-              );
-            })}
-            </tbody>
-          </table>
+          <div className="col-md-12">
+
+            <table className="table table-striped">
+              <thead>
+              <tr>
+                <th>Not</th>
+                <th>Parens</th>
+                <th>Filter</th>
+                <th>Description</th>
+                <th>Parens</th>
+                <th>And/Or</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody
+                onDoubleClick={this._handleClickCondition}
+              >
+              {conditions.map((condition, idx) => {
+                return (
+                  <Condition
+                    key={idx}
+                    id={idx}
+                    ref={`condition-${idx}`}
+                    condition={condition}
+                    readonly={readonly || (Number(edit) === idx ? false : true)}
+                    handlers={handlers}
+                  />
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="row">
           {this._renderDialog()}

@@ -96,12 +96,14 @@ export class FormInput extends Component {
         } else {
           options = [
             {name: '', label: ''},
-            {name: '1', label: '1'},
-            {name: '3', label: '3'},
-            {name: '6', label: '6'},
-            {name: '9', label: '9'},
-            {name: '12', label: '12'},
-            {name: '24', label: '24'},
+            {name: '1', label: '1'}, {name: '2', label: '2'}, {name: '3', label: '3'},
+            {name: '4', label: '4'}, {name: '5', label: '5'}, {name: '6', label: '6'},
+            {name: '7', label: '7'}, {name: '8', label: '8'}, {name: '9', label: '9'},
+            {name: '10', label: '10'}, {name: '11', label: '11'}, {name: '12', label: '12'},
+            {name: '13', label: '13'}, {name: '14', label: '14'}, {name: '15', label: '15'},
+            {name: '16', label: '16'}, {name: '17', label: '17'}, {name: '18', label: '18'},
+            {name: '19', label: '19'}, {name: '20', label: '20'}, {name: '21', label: '21'},
+            {name: '22', label: '22'}, {name: '23', label: '23'}, {name: '24', label: '24'},
           ];
         }
         return (

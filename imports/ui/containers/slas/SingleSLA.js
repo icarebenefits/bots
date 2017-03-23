@@ -104,7 +104,7 @@ class SingleSLA extends Component {
       );
     }
     return (
-      <div>
+      <div className="col-md-12">
         {/* information */}
         <div className="portlet light bordered">
           <div className="portlet-body">

@@ -263,50 +263,56 @@ class MessageBuilder extends Component {
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="uppercase bold pull-left"
-            value="Message Builder"
-          />
-          {readonly
-            ? null
-            : <Button
+          <div className="col-md-12">
+            <Label
+              className="uppercase bold pull-left"
+              value="Message Builder"
+            />
+            {readonly
+              ? null
+              : <Button
               className="btn-default pull-right"
               onClick={e => this._addRow(e)}
             ><span className="fa fa-plus"></span>{' Add'}</Button>
-          }
+            }
+          </div>
         </div>
         <div className="row">
-          <table className="table table-striped">
-            <thead>
-            <tr>
-              <th>summaryType</th>
-              <th>Field</th>
-              <th>Variable</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody
-            >
-            {variables.map((variable, idx) => {
-              return (
-                <Variable
-                  key={idx}
-                  id={idx}
-                  ref={`var-${idx}`}
-                  variable={variable}
-                  readonly={readonly}
-                  handlers={handlers}
-                />
-              );
-            })}
-            </tbody>
-          </table>
+          <div className="col-md-12">
+            <table className="table table-striped">
+              <thead>
+              <tr>
+                <th>summaryType</th>
+                <th>Field</th>
+                <th>Variable</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody
+              >
+              {variables.map((variable, idx) => {
+                return (
+                  <Variable
+                    key={idx}
+                    id={idx}
+                    ref={`var-${idx}`}
+                    variable={variable}
+                    readonly={readonly}
+                    handlers={handlers}
+                  />
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="row">
           <Label
             className="col-md-12 bold pull-left"
             value="Template"
           />
+          </div>
+        <div className="row">
           <div className="col-md-8">
             {readonly ?
               <Label
