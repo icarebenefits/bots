@@ -58,7 +58,7 @@ const fistSLACheck = () => {
  */
 const executeElastic = (slaId) => {
   const sla = SLAs.findOne({_id: slaId});
-  const {_id, conditions, workplace, message: {variables, messageTemplate}} = sla;
+  const {_id, name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
   // const threshold = 
 
   const {error, query} = queryBuilder(conditions);
@@ -66,13 +66,18 @@ const executeElastic = (slaId) => {
   if (error) {
     throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
   } else {
-
+    console.log({name, query: JSON.stringify(query, null, 2)});
     const {Elastic} = require('../elastic');
 
     // validate query before run
     const {valid} = Elastic.indices.validateQuery({body: query});
     if (valid) {
-      const {hits: {total, hits}} = Elastic.search({body: query});
+      const {elastic: {indexPrefix}, public: {env}} = Meteor.settings;
+      const {hits: {total, hits}} = Elastic.search({
+        index: `${indexPrefix}_${env}_${country}`,
+        type: "customer",
+        body: query
+      });
       if (hits) {
         const vars = {};
         // build message to send to workplace
