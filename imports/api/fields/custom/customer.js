@@ -212,4 +212,8 @@ const Fields = {
   iCareStaffs,
 };
 
+const GroupFields = [
+  {id: 'iCareMember', name: 'iCare Member', fields: []}
+];
+
 export default Fields

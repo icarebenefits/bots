@@ -1,50 +1,8 @@
 import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
 
-import {Operators} from '/imports/api/fields';
+import {Operators, FieldsGroups} from '/imports/api/fields';
 
-// const conditions = [
-//   {
-//     not: false,
-//     openParens: '',
-//     filter: 'business units',
-//     field: 'full_name',
-//     operator: 'contains',
-//     values: ['Justin'],
-//     closeParens: '',
-//     bitwise: 'and'
-//   },
-//   {
-//     not: true,
-//     openParens: '(',
-//     filter: 'salary',
-//     field: '',
-//     operator: 'lessThan',
-//     values: ['1000'],
-//     closeParens: '',
-//     bitwise: 'or'
-//   },
-//   {
-//     not: false,
-//     openParens: '',
-//     filter: 'credit_limit',
-//     field: '',
-//     operator: 'lessThan',
-//     values: ['2000'],
-//     closeParens: ')',
-//     bitwise: ''
-//   },
-//   // {
-//   //   not: true,
-//   //   openParens: '',
-//   //   filter: 'hiring_date',
-//   //   field: '',
-//   //   operator: 'before',
-//   //   values: ['2012-01-27'],
-//   //   closeParens: '))',
-//   //   bitwise: ''
-//   // },
-// ];
 
 // list of supported operators
 const operators = Object.keys(Operators);
@@ -60,7 +18,7 @@ operators.push(')');
 const makeExpression = (conditions) => {
   const stack = [];
   conditions.map((condition, idx) => {
-    const {not, openParens, filter, field, operator, values, closeParens, bitwise} = condition;
+    const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
     if (not) {
       stack.push('not');
     }
@@ -69,10 +27,12 @@ const makeExpression = (conditions) => {
       parens.map(p => stack.push(p));
     }
     if (!_.isEmpty(field)) {
-      stack.push(field);
+      const {ESField} = FieldsGroups[group].fields[field]().props;
+      stack.push(ESField);
     } else {
       if (!_.isEmpty(filter)) {
-        stack.push(filter);
+        const {ESField} = FieldsGroups[group].fields[filter]().props;
+        stack.push(ESField);
       }
     }
     if (!_.isEmpty(operator)) {
@@ -282,7 +242,53 @@ const queryBuilder = (conditions) => {
   return {query};
 };
 
-// testing
+export default queryBuilder
+
+/**
+ * Testing
+ */
+// const conditions = [
+//   {
+//     not: false,
+//     openParens: '',
+//     filter: 'business units',
+//     field: 'full_name',
+//     operator: 'contains',
+//     values: ['Justin'],
+//     closeParens: '',
+//     bitwise: 'and'
+//   },
+//   {
+//     not: true,
+//     openParens: '(',
+//     filter: 'salary',
+//     field: '',
+//     operator: 'lessThan',
+//     values: ['1000'],
+//     closeParens: '',
+//     bitwise: 'or'
+//   },
+//   {
+//     not: false,
+//     openParens: '',
+//     filter: 'credit_limit',
+//     field: '',
+//     operator: 'lessThan',
+//     values: ['2000'],
+//     closeParens: ')',
+//     bitwise: ''
+//   },
+//   // {
+//   //   not: true,
+//   //   openParens: '',
+//   //   filter: 'hiring_date',
+//   //   field: '',
+//   //   operator: 'before',
+//   //   values: ['2012-01-27'],
+//   //   closeParens: '))',
+//   //   bitwise: ''
+//   // },
+// ];
 // const {error, query} = queryBuilder(conditions);
 // if(error) {
 //   console.log('error', error);
@@ -290,5 +296,4 @@ const queryBuilder = (conditions) => {
 //   console.log(JSON.stringify(query, null, 2));
 // }
 
-export default queryBuilder
 

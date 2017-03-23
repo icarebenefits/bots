@@ -4,7 +4,7 @@
 import React, {Component, PropTypes} from 'react';
 
 // Fields
-import {Fields} from '/imports/api/fields';
+import {Fields, FieldsGroups} from '/imports/api/fields';
 
 import {
   Dialog,
@@ -35,7 +35,7 @@ class MessageBuilder extends Component {
     this.state = {
       variables,
       messageTemplate,
-      dialog: {}, // get field had been change, {row, fieldId}
+      dialog: {}, // get field had been change, {row, groupId, fieldId}
     };
 
     // handlers
@@ -114,8 +114,17 @@ class MessageBuilder extends Component {
   handleFieldChange(row, key, value) {
     const
       {variables} = this.state,
-      variable = variables[row];
-    let newVar = {...variable, [`${key}`]: value};
+      variable = variables[row]
+      ;
+    let newVar = {};
+
+    if (key === 'field') {
+      const {groupId, value: val} = value;
+      newVar = {...variable, [`${key}`]: val};
+    } else {
+      newVar = {...variable, [`${key}`]: value};
+    }
+
     const newVariables = variables.map((c, i) => {
       if (i === row) {
         return newVar;
@@ -205,10 +214,12 @@ class MessageBuilder extends Component {
     if (_.isEmpty(fieldId)) {
       return null;
     }
-    const FieldData = Fields[fieldId](),
-      {fields, operators, props: {name: header}} = FieldData,
+    const FieldGroup = FieldsGroups[groupId],
+      {props, fields: FieldData} = FieldGroup,
+      {fields, operators, props: {name: header}} = FieldData[fieldId](),
       {summaryType, field, name} = variables[row]
       ;
+
     if (fields) {
       // Dialog field props
       const options = Object.keys(fields)
@@ -248,53 +259,62 @@ class MessageBuilder extends Component {
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();
     }
+
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="uppercase bold pull-left"
-            value="Message Builder"
-          />
-          {readonly
-            ? null
-            : <Button
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold uppercase pull-left"
+              value="Message: "
+            />
+            {readonly
+              ? null
+              : <Button
               className="btn-default pull-right"
               onClick={e => this._addRow(e)}
             ><span className="fa fa-plus"></span>{' Add'}</Button>
-          }
+            }
+          </div>
         </div>
         <div className="row">
-          <table className="table table-striped">
-            <thead>
-            <tr>
-              <th>summaryType</th>
-              <th>Field</th>
-              <th>Variable</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody
-            >
-            {variables.map((variable, idx) => {
-              return (
-                <Variable
-                  key={idx}
-                  id={idx}
-                  ref={`var-${idx}`}
-                  variable={variable}
-                  readonly={readonly}
-                  handlers={handlers}
-                />
-              );
-            })}
-            </tbody>
-          </table>
+          <div className="col-md-12">
+            <table className="table table-striped">
+              <thead>
+              <tr>
+                <th>Type</th>
+                <th>Field</th>
+                <th>Variable</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody
+              >
+              {variables.map((variable, idx) => {
+                return (
+                  <Variable
+                    key={idx}
+                    id={idx}
+                    ref={`var-${idx}`}
+                    variable={variable}
+                    readonly={readonly}
+                    handlers={handlers}
+                  />
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="row">
-          <Label
-            className="col-md-12 bold pull-left"
-            value="Template"
-          />
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold pull-left"
+              value="Template"
+            />
+          </div>
+        </div>
+        <div className="row">
           <div className="col-md-8">
             {readonly ?
               <Label

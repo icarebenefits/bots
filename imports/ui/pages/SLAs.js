@@ -43,6 +43,7 @@ class SLAs extends Component {
     // helpers
     this._addSLA = this._addSLA.bind(this);
     this._editSLA = this._editSLA.bind(this);
+    this._startSLA = this._startSLA.bind(this);
     this._pauseSLA = this._pauseSLA.bind(this);
     this._resumeSLA = this._resumeSLA.bind(this);
     this._removeSLA = this._removeSLA.bind(this);
@@ -128,7 +129,6 @@ class SLAs extends Component {
                       if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
                         hasInvalidVariable = true;
                     });
-                    // console.log(values);
                     if (hasInvalidVariable) {
                       callback({error: `Message has INVALID variable`});
                     } else if (variables.length != numOfValues || numOfValues != countLeft) {
@@ -205,7 +205,6 @@ class SLAs extends Component {
             return this.setState({action: null});
           }
           else {
-            console.log('add sla')
             if (action !== 'draft') {
               try {
                 JobServer(country).createJob({
@@ -284,7 +283,6 @@ class SLAs extends Component {
             }
             if (action === 'draft') {
               // cancel all Jobs
-              // console.log('going to cancel job')
               JobServer(country).cancelJob({name},
                 (err, res) => {
                   if (err) {
@@ -308,15 +306,15 @@ class SLAs extends Component {
       ;
 
     // validate SLA data
-    this._validateData({SLA: {name, workplace, conditions, frequency, country}, mode: 'edit'}, ({error}) => {
+    this._validateData({SLA: {name, workplace, conditions, frequency, country, message}, mode: 'edit'}, ({error}) => {
       if (error) {
         Notify.error({title: 'Validate SLA', message: error});
         return this.setState({action: null});
       } else {
         Methods.validateConditions.call({conditions}, (err, res) => {
-          if(err) {
+          if (err) {
             Notify.error({title: 'Validate conditions', message: 'Invalid.'});
-          } else if(res) {
+          } else if (res) {
             Notify.info({title: 'Validate conditions', message: 'Good.'});
           } else {
             Notify.warning({title: 'Validate conditions', message: 'Invalid.'});
@@ -354,6 +352,44 @@ class SLAs extends Component {
     });
     return this.setState({mode: 'list', action: null});
 
+  }
+
+  /**
+   * Start SLA
+   * * Used when an SLA had been save as draft (job in job server had been canceled)
+   * * Send restart signal to job server to restart the job
+   * @param id
+   * @private
+   */
+  _startSLA(id) {
+    const
+      {_id: slaId, name, status, frequency} = this.props.SLAsList[id],
+      {country} = this.props;
+    let message = '';
+    try {
+      JobServer(country).createJob({
+        name,
+        freqText: this.getScheduleText(frequency),
+        info: {slaId}
+      }, (err, res) => {
+        if (err) {
+          Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
+          return Methods.setStatus.call({_id: slaId, status: 'draft'});
+        }
+
+        if (action === 'start') {
+          // execute the SLA immediately
+          Notify.warning({title: 'Start SLA', message: `starting SLA: ${slaId}`});
+        }
+        Notify.info({title: 'Start SLA', message: 'success'});
+        return this.setState({mode: 'list', action: null});
+      });
+    } catch (e) {
+      Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
+      Methods.setStatus.call({_id, status: 'draft'});
+      return this.setState({mode: 'list', action: null});
+    }
+    return this.setState({mode: 'list', action: null});
   }
 
   /**
@@ -493,21 +529,31 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back': {
+      case 'back':
+      {
       }
-      case 'cancel': {
+      case 'cancel':
+      {
         return this.setState({mode: 'list', action: null});
       }
-      case 'remove': {
+      case 'remove':
+      {
         return this._removeSLA(row);
       }
-      case 'pause': {
+      case 'start':
+      {
+        return this._startSLA(row);
+      }
+      case 'pause':
+      {
         return this._pauseSLA(row);
       }
-      case 'resume': {
+      case 'resume':
+      {
         return this._resumeSLA(row);
       }
-      case 'restart': {
+      case 'restart':
+      {
         return this._restartSLA(row);
       }
       case 'validate':
@@ -516,7 +562,8 @@ class SLAs extends Component {
         this._validateAndPreview();
         return this.setState({action});
       }
-      case 'draft': {
+      case 'draft':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -524,7 +571,8 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'save': {
+      case 'save':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -532,7 +580,8 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'execute': {
+      case 'execute':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -540,10 +589,12 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'edit': {
+      case 'edit':
+      {
         return this.setState({mode: action, action});
       }
-      default: {
+      default:
+      {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -556,7 +607,7 @@ class SLAs extends Component {
    */
   _renderListSLAs() {
     const
-      {SLAsList} = this.props,
+      {SLAsList, Workplaces} = this.props,
       listSLAsProps = {
         toolbar: {
           buttons: [
@@ -575,18 +626,22 @@ class SLAs extends Component {
           data: [[]],
           readonly: true,
           actions: [
-            {id: 'view', label: 'View details', handleAction: this.handleChangeMode},
+            {
+              id: 'view', label: 'View details',
+              icon: 'fa fa-pencil', className: 'btn-primary',
+              handleAction: this.handleChangeMode
+            },
+            {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
             {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
             {id: 'pause', label: 'Pause', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'resume', label: 'Resume', className: 'green', handleAction: this.handleActionSLA},
+            {id: 'resume', label: 'Resume', handleAction: this.handleActionSLA},
             {
-              id: 'remove', label: '', icon: 'fa fa-times',
-              className: 'btn-danger', handleAction: this.handleActionSLA
+              id: 'remove', label: '',
+              icon: 'fa fa-times', className: 'btn-danger',
+              handleAction: this.handleActionSLA
             },
           ],
           handleDoubleClick: (dataset) => {
-            const {row, cell} = dataset;
-            // console.log('click on field', {row, cell});
           },
         },
       }
@@ -594,7 +649,7 @@ class SLAs extends Component {
 
     const dataList = SLAsList.map(s => ([
       {id: 'name', type: 'input', value: s.name},
-      {id: 'workplace', type: 'input', value: s.workplace},
+      {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
       {id: 'status', type: 'input', value: s.status},
     ]));
@@ -625,9 +680,11 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add': {
+      case 'add':
+      {
       }
-      case 'edit': {
+      case 'edit':
+      {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
@@ -638,13 +695,13 @@ class SLAs extends Component {
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'save', label: 'Save',
+            id: 'save', label: 'Save and Execute',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
-          {
-            id: 'execute', label: 'Save and Execute',
-            className: 'green', type: 'button', handleOnClick: this.handleActionSLA
-          },
+          // {
+          //   id: 'execute', label: 'Save and Execute',
+          //   className: 'green', type: 'button', handleOnClick: this.handleActionSLA
+          // },
           {
             id: 'cancel', label: 'Cancel',
             className: 'btn-default', type: 'button', handleOnClick: this.handleActionSLA
@@ -652,7 +709,8 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view': {
+      case 'view':
+      {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -665,22 +723,21 @@ class SLAs extends Component {
         ]
         break;
       }
-      default: {
+      default:
+      {
         alert(`Unknown action: ${mode}`);
       }
     }
 
     return (
-      <div className="row">
-        <SingleSLA
-          ref="SLA"
-          mode={mode}
-          Workplaces={Workplaces}
-          SLA={SLAsList[row]}
-          actions={actions}
-          getScheduleText={this.getScheduleText}
-        />
-      </div>
+      <SingleSLA
+        ref="SLA"
+        mode={mode}
+        Workplaces={Workplaces}
+        SLA={SLAsList[row]}
+        actions={actions}
+        getScheduleText={this.getScheduleText}
+      />
     );
   }
 
@@ -716,16 +773,13 @@ class SLAs extends Component {
             {...sideBarProps}
           />
           <div className="page-content-col">
-            <div className="portlet light bordered">
-              <div className="portlet-title">
-                <div className="caption font-dark">
-                  <i className="icon-settings font-dark"></i>
-                  <span className="caption-subject bold uppercase">{`${mode} SLA`}</span>
-                </div>
-              </div>
-              <div className={classNames({"portlet-body": true, 'form': !(mode === 'list')})}>
-                {renderSLA(mode)}
-              </div>
+            <div className="note note-info">
+              <h2>
+                <span className="label label-primary uppercase"> {`${mode} SLA`} </span>
+              </h2>
+            </div>
+            <div className="row">
+              {renderSLA(mode)}
             </div>
           </div>
         </div>

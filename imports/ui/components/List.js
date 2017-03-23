@@ -29,7 +29,7 @@ const List = (props) => {
         {headers.map((header, idx) => (
           <th key={idx}>{header}</th>
         ))}
-        {!_.isEmpty(actions) && (<td>Actions</td>)}
+        {!_.isEmpty(actions) && (<th>Actions</th>)}
       </tr>
       </thead>
       <tbody

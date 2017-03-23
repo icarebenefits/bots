@@ -1,10 +1,12 @@
 import React, {Component} from 'react';
 import _ from 'lodash';
 import moment from 'moment';
-import accounting from 'accounting';
 
 // Fields
-import {Fields} from '/imports/api/fields';
+import {
+  Fields,
+  FieldsGroups,
+} from '/imports/api/fields';
 
 import {
   Button,
@@ -13,6 +15,7 @@ import {
   Label,
 } from '../elements';
 import {Condition} from './Condition';
+import FormDialog from './FormDialog';
 import * as Notify from '/imports/api/notifications';
 
 class ConditionsBuilder extends Component {
@@ -48,14 +51,14 @@ class ConditionsBuilder extends Component {
 
   /**
    * Get new conditions when props change
-   * 
+   *
    */
   componentWillReceiveProps(nextProps) {
     const {conditions} = nextProps;
     !_.isEmpty(conditions) && this.setState({conditions});
   }
 
-  
+
   getConditions() {
     return this.state.conditions;
   }
@@ -93,22 +96,25 @@ class ConditionsBuilder extends Component {
   handleFieldChange(row, key, value, index) {
 
     const
-      {conditions} = this.state,
+      {conditions, dialog: {groupId}} = this.state,
       condition = conditions[row];
     let cond = {};
 
     switch (key) {
       case 'filter':
       {
+        const {groupId, value: val} = value;
         cond = {
           ...condition,
-          filter: _.isEmpty(value) ? '' : value,
+          group: groupId,
+          filter: _.isEmpty(val) ? '' : val,
           field: '', operator: '', values: []
         };
         this.setState({
           dialog: {
             row,
-            fieldId: value
+            groupId,
+            fieldId: val
           },
           values: []
         });
@@ -124,14 +130,15 @@ class ConditionsBuilder extends Component {
         if (_.isEmpty(value)) {
           cond = {...condition, operator: '', values: []};
         } else {
+          // key: operator, value: bool
           const
+            {fields: Fields} = FieldsGroups[groupId],
             {filter, field} = conditions[row],
             newValues = []
             ;
           let FieldData = {};
-          if(!_.isEmpty(field)) {
+          if (!_.isEmpty(field)) {
             FieldData = Object.assign({}, Fields[filter]().fields[field]);
-            // {type, params} = FieldData.fields[field].operators[value].props
           } else {
             FieldData = Object.assign({}, Fields[filter]())
           }
@@ -153,6 +160,7 @@ class ConditionsBuilder extends Component {
             return (i === index) ? (value) : v;
           });
         cond = {...condition, values: newValues};
+        this.setState({values: newValues});
         break;
       }
       default:
@@ -168,7 +176,6 @@ class ConditionsBuilder extends Component {
         return c;
       }
     });
-    // console.log(newConds);
     return this.setState({
       conditions: newConds
     });
@@ -223,6 +230,14 @@ class ConditionsBuilder extends Component {
       {
         return '';
       }
+      case 'bool':
+      {
+        return 'true';
+      }
+      case 'gender':
+      {
+        return 'not specified';
+      }
       default:
       {
         return '';
@@ -234,6 +249,7 @@ class ConditionsBuilder extends Component {
     return [{
       not: false,
       openParens: '',
+      group: '',
       filter: '',
       field: '',
       operator: '',
@@ -244,7 +260,17 @@ class ConditionsBuilder extends Component {
   }
 
   _getDefaultCondition() {
-    return {not: false, openParens: '', filter: '', field: '', operator: '', values: [], closeParens: '', bitwise: ''};
+    return {
+      not: false,
+      openParens: '',
+      group: '',
+      filter: '',
+      field: '',
+      operator: '',
+      values: [],
+      closeParens: '',
+      bitwise: ''
+    };
   }
 
   getDefaultHandlers() {
@@ -262,30 +288,43 @@ class ConditionsBuilder extends Component {
     const {field, operator, values} = condition;
     let description = '';
 
-    if(!_.isEmpty(field)) {
+    if (!_.isEmpty(field)) {
       description = `${field} `;
     }
     if (operator) {
-      description = `${description} ${operator} `;
+      // special case for operator: bool, gender
+      if (['bool', 'gender'].indexOf(operator) === -1) {
+        if(operator === 'inLast') {
+          description = `${description} in last `;
+        } else {
+          description = `${description} ${operator} `;
+        }
+      }
       if (values.length > 1) {
         values.map(({type, value}, idx) => {
           let val = value;
-          if(type === 'date') {
+          if (type === 'date') {
             val = moment(new Date(value)).format('LL');
           }
           if (idx === values.length - 1) {
             description = `${description} "${val}"`;
           } else {
-            description = `${description} "${val}" and `;
+            if(operator === 'inLast') {
+              description = `${description} "${val}" `;
+            } else {
+              description = `${description} "${val}" and `;
+            }
           }
         })
       } else {
-        const {type, value} = values[0];
-        let val = value;
-        if(type === 'date') {
-          val = moment(new Date(value)).format('LL');
+        if (!_.isEmpty(values)) {
+          const {type, value} = values[0];
+          let val = value;
+          if (type === 'date') {
+            val = moment(new Date(value)).format('LL');
+          }
+          description = `${description} "${val}"`;
         }
-        description = `${description} "${val}"`;
       }
     }
 
@@ -314,129 +353,35 @@ class ConditionsBuilder extends Component {
     }
 
     const
-      {dialog: {row, fieldId}, conditions, values} = this.state;
+      {dialog: {row, groupId, fieldId}, conditions, values} = this.state;
 
-    if(_.isEmpty(fieldId)) {
+    if (_.isEmpty(fieldId)) {
       return null;
     }
-    const FieldData = Fields[fieldId](),
-      {fields, operators, props: {name: header}} = FieldData,
-      {operator, values: condValues, field} = conditions[row]
+
+    const FieldGroup = FieldsGroups[groupId],
+      {props, fields: FieldData} = FieldGroup,
+      {fields, operators, props: {name: header}} = FieldData[fieldId]()
       ;
 
-    if (fields) {
-      // Dialog field props
-      const options = Object.keys(fields)
-          .map(f => {
-            const {id: name, name: label} = fields[f].props;
-            return {name, label};
-          })
-        ;
-      options.splice(0, 0, {name: '', label: ''}); // default option
-      // Dialog operator props
-      let opOptions = [];
-      if(!_.isEmpty(field)) {
-        const {operators} = fields[field];
-        opOptions = Object.keys(operators)
-          .map(op => {
-            const {id: name, name: label} = operators[op].props;
-            return {name, label};
-          })
-        ;
-        opOptions.splice(0, 0, {name: '', label: ''}); // default option
-      }
-
-      return (
-        <Dialog
-          modal={true}
-          header={header}
-          confirmLabel="Set"
-          hasCancel={true}
-          onAction={this._saveDataDialog}
-        >
-          <div className="form-body">
-            <div className="form-group">
-              <FormInput
-                ref="field"
-                type="select"
-                value={field}
-                options={options}
-                handleOnChange={value => this.handleFieldChange(row, 'field', value)}
-              />
-            </div>
-            {!_.isEmpty(opOptions) && (
-              <div className="form-group">
-                <FormInput
-                  ref="operator"
-                  type="select"
-                  value={operator}
-                  options={opOptions}
-                  handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
-                />
-              </div>
-            )}
-            {!_.isEmpty(opOptions) && (
-              values.map((input, idx) => {
-                const {type, value} = input;
-                return (
-                  <div className="form-group" key={idx}>
-                    <FormInput
-                      type={type}
-                      value={value}
-                      handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
-                    />
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </Dialog>
-      );
-    } else {
-      // Dialog props
-      const
-        options = Object.keys(operators)
-          .map(op => {
-            const {id: name, name: label} = operators[op].props;
-            return {name, label};
-          })
-        ;
-      options.splice(0, 0, {name: '', label: ''}); // default option
-
-      return (
-        <Dialog
-          modal={true}
-          header={header}
-          confirmLabel="Set"
-          hasCancel={true}
-          onAction={this._saveDataDialog}
-        >
-          <div className="form-body">
-            <div className="form-group">
-              <FormInput
-                ref="operator"
-                type="select"
-                value={operator}
-                options={options}
-                handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
-              />
-            </div>
-            {values.map((input, idx) => {
-              const {type, value} = input;
-              return (
-                <div className="form-group" key={idx}>
-                  <FormInput
-                    type={type}
-                    value={value}
-                    handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </Dialog>
-      );
-    }
+    return (
+      <Dialog
+        modal={true}
+        header={header}
+        confirmLabel="Set"
+        hasCancel={true}
+        onAction={this._saveDataDialog}
+      >
+        <FormDialog 
+          row={row}
+          condition={conditions[row]}
+          fields={fields}
+          operators={operators}
+          values={values}
+          handleOnChange={this.handleFieldChange}
+        />
+      </Dialog>
+    );
   }
 
   _saveDataDialog(action) {
@@ -474,49 +419,52 @@ class ConditionsBuilder extends Component {
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="col-md-4 bold uppercase pull-left"
-            value="Conditions: "
-          />
-          {/* <h5>{expression}</h5>*/}
-          {readonly
-            ? null
-            : <Button
-            className="btn-default pull-right"
-            onClick={e => this._addCondition(e)}
-          ><span className="fa fa-plus"></span>{' Add'}</Button>
-          }
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold uppercase pull-left"
+              value="Conditions: "
+            />
+            {readonly
+              ? null
+              : <Button
+              className="btn-default pull-right"
+              onClick={e => this._addCondition(e)}
+            ><span className="fa fa-plus"></span>{' Add'}</Button>
+            }
+          </div>
         </div>
         <div className="row">
-          <table className="table table-striped">
-            <thead>
-            <tr>
-              <th>Not</th>
-              <th>Parens</th>
-              <th>Filter</th>
-              <th>Description</th>
-              <th>Parens</th>
-              <th>And/Or</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody
-              onDoubleClick={this._handleClickCondition}
-            >
-            {conditions.map((condition, idx) => {
-              return (
-                <Condition
-                  key={idx}
-                  id={idx}
-                  ref={`condition-${idx}`}
-                  condition={condition}
-                  readonly={readonly || (Number(edit) === idx ? false : true)}
-                  handlers={handlers}
-                />
-              );
-            })}
-            </tbody>
-          </table>
+          <div className="col-md-12">
+            <table className="table table-striped">
+              <thead>
+              <tr>
+                <th>Not</th>
+                <th>Parens</th>
+                <th>Filter</th>
+                <th>Description</th>
+                <th>Parens</th>
+                <th>And/Or</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody
+                onDoubleClick={this._handleClickCondition}
+              >
+              {conditions.map((condition, idx) => {
+                return (
+                  <Condition
+                    key={idx}
+                    id={idx}
+                    ref={`condition-${idx}`}
+                    condition={condition}
+                    readonly={readonly || (Number(edit) === idx ? false : true)}
+                    handlers={handlers}
+                  />
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="row">
           {this._renderDialog()}
