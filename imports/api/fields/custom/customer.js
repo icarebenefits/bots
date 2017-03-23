@@ -12,7 +12,9 @@ const name = () => Object.assign(
   {
     props: {
       id: 'name',
-      name: 'Name',
+      name: 'Company Name',
+      type: 'string',
+      ESField: 'company_name',
     }
   }
 );
@@ -23,6 +25,8 @@ const email = () => Object.assign(
     props: {
       id: 'email',
       name: 'Email',
+      type: 'string',
+      ESField: 'email',
     }
   }
 );
@@ -33,16 +37,8 @@ const phone = () => Object.assign(
     props: {
       id: 'phone',
       name: 'Phone',
-    }
-  }
-);
-const alternatePhone = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'alternatePhone',
-      name: 'Alternate Phone',
+      type: 'string',
+      ESField: 'phone',
     }
   }
 );
@@ -53,16 +49,20 @@ const address = () => Object.assign(
     props: {
       id: 'address',
       name: 'Address',
+      type: 'string',
+      ESField: 'address',
     }
   }
 );
-const repaymentMechanism = () => Object.assign(
+const repaymentMethod = () => Object.assign(
   {},
   StandardFields.StringField(),
   {
     props: {
-      id: 'repaymentMechanism',
-      name: 'Repayment Mechanism',
+      id: 'repaymentMethod',
+      name: 'Repayment Method',
+      type: 'string',
+      ESField: 'repayment_method',
     }
   }
 );
@@ -73,6 +73,8 @@ const typeOfContract = () => Object.assign(
     props: {
       id: 'typeOfContract',
       name: 'Type of Contract',
+      type: 'string',
+      ESField: 'type_of_contract',
     }
   }
 );
@@ -85,6 +87,8 @@ const contractStartDate = () => Object.assign(
     props: {
       id: 'contractStartDate',
       name: 'Contract Start Date',
+      type: 'date',
+      ESField: 'contract_start_date',
     }
   }
 );
@@ -95,30 +99,11 @@ const contractEndDate = () => Object.assign(
     props: {
       id: 'contractEndDate',
       name: 'Contract End Date',
+      type: 'date',
+      ESField: 'contract_end_date',
     }
   }
 );
-const hireDate = () => Object.assign(
-  {},
-  StandardFields.DateField(),
-  {
-    props: {
-      id: 'hireDate',
-      name: 'Hire Date',
-    }
-  }
-);
-const terminationDate = () => Object.assign(
-  {},
-  StandardFields.DateField(),
-  {
-    props: {
-      id: 'terminationDate',
-      name: 'Termination Date',
-    }
-  }
-);
-
 // number
 const numberOfEmployees = () => Object.assign(
   {},
@@ -127,93 +112,30 @@ const numberOfEmployees = () => Object.assign(
     props: {
       id: 'numberOfEmployees',
       name: 'Number of Employees',
-    },
-  },
-);
-const numberOfiCMs = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'numberOfiCMs',
-      name: 'Number of iCMs',
-    },
-  },
-);
-const paymentDay = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'paymentDay',
-      name: 'Payment Day',
-    },
-  },
-);
-const numberOfCutOffTimes = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'numberOfCutOffTimes',
-      name: '# of cut-off times',
+      type: 'number',
+      ESField: 'number_employees',
     },
   },
 );
 
-// Combo fields
-const businessUnits = () => ({
-  props: {
-    id: 'businessUnits',
-    name: 'Business Units Fields...',
-  },
-  fields: {
-    name: Object.assign({}, name()),
-    paymentDay: Object.assign({}, paymentDay()),
-    numberOfCutOffTimes: Object.assign({}, numberOfCutOffTimes()),
-  }
-});
-const primaryContacts = () => ({
-  props: {
-    id: 'primaryContacts',
-    name: 'Primary Contact Fields...',
-  },
-  fields: {
-    name: Object.assign({}, name()),
-    email: Object.assign({}, email()),
-  }
-});
-const iCareStaffs = () => ({
-  props: {
-    id: 'iCareStaffs',
-    name: 'iCare Staff Fields...',
-  },
-  fields: {
-    name: Object.assign({}, name()),
-    email: Object.assign({}, email()),
-    hireDate: Object.assign({}, hireDate()),
-    terminationDate: Object.assign({}, terminationDate()),
-  }
-});
 
-const Fields = {
-  email,
-  phone,
-  alternatePhone,
-  address,
-  repaymentMechanism,
-  typeOfContract,
-  contractStartDate,
-  contractEndDate,
-  numberOfEmployees,
-  numberOfiCMs,
-  businessUnits,
-  primaryContacts,
-  iCareStaffs,
+const Customer = {
+  props: {
+    id: 'Customer',
+    name: 'Customer',
+    type: 'group',
+  },
+  fields: {
+    name,
+    email,
+    phone,
+    address,
+    repaymentMethod,
+    typeOfContract,
+    contractStartDate,
+    contractEndDate,
+    numberOfEmployees,
+  }
 };
 
-const GroupFields = [
-  {id: 'iCareMember', name: 'iCare Member', fields: []}
-];
-
-export default Fields
+export default Customer
