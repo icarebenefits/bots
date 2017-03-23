@@ -1,4 +1,5 @@
 import bodybuilder from 'bodybuilder';
+import accounting from 'accounting';
 
 import {SLAs} from '../collections/slas';
 // import {Elastic} from '../elastic';
@@ -78,7 +79,7 @@ const executeElastic = (slaId) => {
         variables.map(v => {
           const {summaryType, field, name} = v;
           if (field === 'total' && summaryType === 'count') {
-            vars[name] = total;
+            vars[name] = total > 0 ? accounting.format(total) : 'no';
           } else {
             // handle orther type of result from aggregation
             // not support yet

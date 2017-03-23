@@ -43,6 +43,7 @@ class SLAs extends Component {
     // helpers
     this._addSLA = this._addSLA.bind(this);
     this._editSLA = this._editSLA.bind(this);
+    this._startSLA = this._startSLA.bind(this);
     this._pauseSLA = this._pauseSLA.bind(this);
     this._resumeSLA = this._resumeSLA.bind(this);
     this._removeSLA = this._removeSLA.bind(this);
@@ -354,6 +355,44 @@ class SLAs extends Component {
   }
 
   /**
+   * Start SLA
+   * * Used when an SLA had been save as draft (job in job server had been canceled)
+   * * Send restart signal to job server to restart the job
+   * @param id
+   * @private
+   */
+  _startSLA(id) {
+    const
+      {_id: slaId, name, status, frequency} = this.props.SLAsList[id],
+      {country} = this.props;
+    let message = '';
+    try {
+      JobServer(country).createJob({
+        name,
+        freqText: this.getScheduleText(frequency),
+        info: {slaId}
+      }, (err, res) => {
+        if (err) {
+          Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
+          return Methods.setStatus.call({_id: slaId, status: 'draft'});
+        }
+
+        if (action === 'start') {
+          // execute the SLA immediately
+          Notify.warning({title: 'Start SLA', message: `starting SLA: ${slaId}`});
+        }
+        Notify.info({title: 'Start SLA', message: 'success'});
+        return this.setState({mode: 'list', action: null});
+      });
+    } catch (e) {
+      Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
+      Methods.setStatus.call({_id, status: 'draft'});
+      return this.setState({mode: 'list', action: null});
+    }
+    return this.setState({mode: 'list', action: null});
+  }
+
+  /**
    * Restart SLA
    * * Used when an SLA had been save as draft (job in job server had been canceled)
    * * Send restart signal to job server to restart the job
@@ -501,6 +540,10 @@ class SLAs extends Component {
       {
         return this._removeSLA(row);
       }
+      case 'start':
+      {
+        return this._startSLA(row);
+      }
       case 'pause':
       {
         return this._pauseSLA(row);
@@ -583,13 +626,19 @@ class SLAs extends Component {
           data: [[]],
           readonly: true,
           actions: [
-            {id: 'view', label: 'View details', handleAction: this.handleChangeMode},
+            {
+              id: 'view', label: 'View details',
+              icon: 'fa fa-pencil', className: 'btn-primary',
+              handleAction: this.handleChangeMode
+            },
+            {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
             {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
             {id: 'pause', label: 'Pause', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'resume', label: 'Resume', className: 'green', handleAction: this.handleActionSLA},
+            {id: 'resume', label: 'Resume', handleAction: this.handleActionSLA},
             {
-              id: 'remove', label: '', icon: 'fa fa-times',
-              className: 'btn-danger', handleAction: this.handleActionSLA
+              id: 'remove', label: '',
+              icon: 'fa fa-times', className: 'btn-danger',
+              handleAction: this.handleActionSLA
             },
           ],
           handleDoubleClick: (dataset) => {
@@ -646,13 +695,13 @@ class SLAs extends Component {
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'save', label: 'Save',
+            id: 'save', label: 'Save and Execute',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
-          {
-            id: 'execute', label: 'Save and Execute',
-            className: 'green', type: 'button', handleOnClick: this.handleActionSLA
-          },
+          // {
+          //   id: 'execute', label: 'Save and Execute',
+          //   className: 'green', type: 'button', handleOnClick: this.handleActionSLA
+          // },
           {
             id: 'cancel', label: 'Cancel',
             className: 'btn-default', type: 'button', handleOnClick: this.handleActionSLA

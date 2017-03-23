@@ -22,7 +22,6 @@ FbRequest.prototype = {
       const obj = JSON.parse(body);
 
       const impersonate_token = obj.impersonate_token;
-      console.log(impersonate_token);
       const options = {
         method: 'POST',
         url: prefix_url + groupId + "/feed",

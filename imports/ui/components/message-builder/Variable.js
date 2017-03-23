@@ -36,7 +36,6 @@ export class Variable extends Component {
           const {id: name, name: label} = fields[f]().props;
           return {name, label};
         });
-      console.log(options);
       options.splice(0, 0, {name: 'total', label: 'total'});
       options.splice(0, 0, {name: '', label: ''});
       return {name, label, options};
