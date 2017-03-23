@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
 import _ from 'lodash';
 
@@ -30,6 +30,17 @@ export class Selectbox extends Component {
   }
 }
 
-Selectbox.propTypes = {};
+Selectbox.propTypes = {
+  value: PropTypes.string,
+  defaultValue: PropTypes.string,
+  className: PropTypes.string,
+  handleOnChange: PropTypes.func,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  )
+};
 
 export default Selectbox

@@ -128,7 +128,6 @@ class SLAs extends Component {
                       if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
                         hasInvalidVariable = true;
                     });
-                    // console.log(values);
                     if (hasInvalidVariable) {
                       callback({error: `Message has INVALID variable`});
                     } else if (variables.length != numOfValues || numOfValues != countLeft) {
@@ -205,7 +204,6 @@ class SLAs extends Component {
             return this.setState({action: null});
           }
           else {
-            console.log('add sla')
             if (action !== 'draft') {
               try {
                 JobServer(country).createJob({
@@ -284,7 +282,6 @@ class SLAs extends Component {
             }
             if (action === 'draft') {
               // cancel all Jobs
-              // console.log('going to cancel job')
               JobServer(country).cancelJob({name},
                 (err, res) => {
                   if (err) {
@@ -556,7 +553,7 @@ class SLAs extends Component {
    */
   _renderListSLAs() {
     const
-      {SLAsList} = this.props,
+      {SLAsList, Workplaces} = this.props,
       listSLAsProps = {
         toolbar: {
           buttons: [
@@ -584,17 +581,14 @@ class SLAs extends Component {
               className: 'btn-danger', handleAction: this.handleActionSLA
             },
           ],
-          handleDoubleClick: (dataset) => {
-            const {row, cell} = dataset;
-            // console.log('click on field', {row, cell});
-          },
+          handleDoubleClick: (dataset) => {},
         },
       }
       ;
 
     const dataList = SLAsList.map(s => ([
       {id: 'name', type: 'input', value: s.name},
-      {id: 'workplace', type: 'input', value: s.workplace},
+      {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
       {id: 'status', type: 'input', value: s.status},
     ]));

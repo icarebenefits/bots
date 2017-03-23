@@ -8,6 +8,7 @@ const name = () => Object.assign(
     props: {
       id: 'name',
       name: 'Name',
+      ESField: 'full_name',
     }
   }
 );
@@ -18,6 +19,7 @@ const socialId = () => Object.assign(
     props: {
       id: 'socialId',
       name: 'Social ID',
+      ESField: 'social_id',
     }
   }
 );
@@ -28,6 +30,7 @@ const gender = () => Object.assign(
     props: {
       id: 'gender',
       name: 'Gender',
+      ESField: 'gender',
     }
   }
 );
@@ -38,6 +41,7 @@ const dateOfBirth = () => Object.assign(
     props: {
       id: 'dateOfBirth',
       name: 'Date of Birth',
+      ESField: 'date_of_birth',
     }
   }
 );
@@ -48,6 +52,7 @@ const phone = () => Object.assign(
     props: {
       id: 'phone',
       name: 'Phone',
+      ESField: 'telephone',
     }
   }
 );
@@ -58,6 +63,7 @@ const email = () => Object.assign(
     props: {
       id: 'email',
       name: 'Email',
+      ESField: 'email',
     }
   }
 );
@@ -68,6 +74,7 @@ const address = () => Object.assign(
     props: {
       id: 'address',
       name: 'Address',
+      ESField: 'address',
     }
   }
 );
@@ -78,6 +85,7 @@ const employeeId = () => Object.assign(
     props: {
       id: 'employeeId',
       name: 'Employee ID',
+      ESField: 'employee_id',
     }
   }
 );
@@ -88,6 +96,7 @@ const jobTitle = () => Object.assign(
     props: {
       id: 'jobTitle',
       name: 'Job Title',
+      ESField: 'job_title',
     }
   }
 );
@@ -98,6 +107,7 @@ const department = () => Object.assign(
     props: {
       id: 'department',
       name: 'Department',
+      ESField: 'department',
     }
   }
 );
@@ -108,6 +118,7 @@ const salary = () => Object.assign(
     props: {
       id: 'salary',
       name: 'Salary',
+      ESField: 'salary',
     }
   }
 );
@@ -118,6 +129,7 @@ const hiringDate = () => Object.assign(
     props: {
       id: 'hiringDate',
       name: 'Hiring Date',
+      ESField: 'hiring_date',
     }
   }
 );
@@ -128,6 +140,7 @@ const terminationDate = () => Object.assign(
     props: {
       id: 'terminationDate',
       name: 'Termination Date',
+      ESField: 'termination_date',
     }
   }
 );
@@ -138,6 +151,7 @@ const contractType = () => Object.assign(
     props: {
       id: 'contractType',
       name: 'Contract Type',
+      ESField: 'contract_type',
     }
   }
 );
@@ -148,6 +162,7 @@ const inactivate = () => Object.assign(
     props: {
       id: 'inactivate',
       name: 'Inactivate',
+      ESField: 'is_active',
     }
   }
 );
@@ -158,6 +173,7 @@ const creditLimit = () => Object.assign(
     props: {
       id: 'creditLimit',
       name: 'Credit Limit',
+      ESField: 'credit_limit',
     }
   }
 );
@@ -168,9 +184,11 @@ const dueLimit = () => Object.assign(
     props: {
       id: 'dueLimit',
       name: 'Due Limit',
+      ESField: 'due_limit',
     }
   }
 );
+// not active
 const availableCL = () => Object.assign(
   {},
   StandardFields.NumberField(),
@@ -178,6 +196,7 @@ const availableCL = () => Object.assign(
     props: {
       id: 'availableCL',
       name: 'Available Credit Limit',
+      ESField: '',
     }
   }
 );
@@ -188,6 +207,7 @@ const availableDL = () => Object.assign(
     props: {
       id: 'availableDL',
       name: 'Available Due Limit',
+      ESField: '',
     }
   }
 );
@@ -198,6 +218,7 @@ const maternityLeaveStartDate = () => Object.assign(
     props: {
       id: 'maternityLeaveStartDate',
       name: 'Maternity Leave Start Date',
+      ESField: 'maternity_start_date',
     }
   }
 );
@@ -208,6 +229,7 @@ const maternityLeaveEndDate = () => Object.assign(
     props: {
       id: 'maternityLeaveEndDate',
       name: 'Maternity Leave End Date',
+      ESField: 'maternity_end_date',
     }
   }
 );
@@ -218,6 +240,7 @@ const salaryPaymentMethod = () => Object.assign(
     props: {
       id: 'salaryPaymentMethod',
       name: 'Salary Payment Method',
+      ESField: 'salary_payment_method',
     }
   }
 );
@@ -228,6 +251,29 @@ const bankName = () => Object.assign(
     props: {
       id: 'bankName',
       name: 'Bank Name',
+      ESField: 'bank_name',
+    }
+  }
+);
+const hasPurchased = () => Object.assign(
+  {},
+  StandardFields.BooleanField(),
+  {
+    props: {
+      id: 'hasPurchased',
+      name: 'Has Purchased',
+      ESField: 'has_purchased',
+    }
+  }
+);
+const lastPurchasedDate = () => Object.assign(
+  {},
+  StandardFields.DateField(),
+  {
+    props: {
+      id: 'lastPurchasedDate',
+      name: 'Last Purchased Date',
+      ESField: 'last_purchased',
     }
   }
 );
@@ -238,16 +284,18 @@ const hasAnySO = () => Object.assign(
     props: {
       id: 'hasAnySO',
       name: 'Has Any SO',
+      ESField: '',
     }
   }
 );
 const soNumber = () => Object.assign(
   {},
-  StandardFields.DateField(),
+  StandardFields.NumberField(),
   {
     props: {
       id: 'soNumber',
       name: 'SO Number',
+      ESField: '',
     }
   }
 );
@@ -258,21 +306,10 @@ const purchaseDate = () => Object.assign(
     props: {
       id: 'purchaseDate',
       name: 'Purchase Date',
+      ESField: '',
     }
   }
 );
-// Combo fields
-const SOs = () => ({
-  props: {
-    id: 'SOs',
-    name: 'SO Fields...',
-  },
-  fields: {
-    hasAnySO: Object.assign({}, hasAnySO()),
-    soNumber: Object.assign({}, soNumber()),
-    purchaseDate: Object.assign({}, purchaseDate()),
-  }
-});
 
 const iCareMember = {
   props: {
@@ -280,13 +317,13 @@ const iCareMember = {
     name: 'iCare Member',
   },
   fields: {
-    name, socialId, dateOfBirth, phone, email, address,
+    hasPurchased, lastPurchasedDate,
+    name, gender, socialId, dateOfBirth, phone, email, address,
     employeeId, jobTitle, department, salary, hiringDate, terminationDate,
-    contractType, creditLimit, dueLimit, availableCL, availableDL,
+    contractType, creditLimit, dueLimit, // availableCL, availableDL,
     maternityLeaveStartDate, maternityLeaveEndDate, salaryPaymentMethod, bankName,
-    SOs
+    // soNumber, purchaseDate
   }
-  // missing gender and boolean field
 };
 
 export default iCareMember

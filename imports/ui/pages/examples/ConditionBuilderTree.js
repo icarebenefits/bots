@@ -5,7 +5,7 @@ import Button from '../../components/elements/Button';
 import {QueryBuilder} from '../../components/conditions-builder';
 
 // fields
-import Fields from '/imports/api/fields/custom/fields';
+import Fields from '/imports/api/fields/custom/customer';
 import Condition from '/imports/api/expression/condition';
 
 

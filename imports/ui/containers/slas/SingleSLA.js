@@ -66,7 +66,7 @@ class SingleSLA extends Component {
                 />
                 <Label
                   className="col-md-2 control-label pull-left"
-                  value={workplace}
+                  value={Workplaces.filter(w => w.id === workplace)[0].name }
                 />
               </div>
               <div className="form-group">
@@ -83,22 +83,18 @@ class SingleSLA extends Component {
           </form>
 
           <div className="row">
-            <div className="col-md-12">
-              <ConditionsBuilder
-                readonly={true}
-                ref="conditions"
-                conditions={conditions}
-              />
-            </div>
+            <ConditionsBuilder
+              readonly={true}
+              ref="conditions"
+              conditions={conditions}
+            />
           </div>
           <div className="row" style={{marginBottom: 20}}>
-            <div className="col-md-12">
-              <MessageBuilder
-                ref="message"
-                readonly={true}
-                message={message}
-              />
-            </div>
+            <MessageBuilder
+              ref="message"
+              readonly={true}
+              message={message}
+            />
           </div>
 
           <FormActions

@@ -31,7 +31,7 @@ const NumberField = (...args) => ({
   }
 });
 
-const DateField = (...args) => ({
+const DateField = () => ({
   props: {
     id: 'date',
     name: 'date',
@@ -43,10 +43,11 @@ const DateField = (...args) => ({
     onOrBefore: Object.assign({}, Operators.onOrBefore()),
     onOrAfter: Object.assign({}, Operators.onOrAfter()),
     within: Object.assign({}, Operators.within()),
+    inLast: Object.assign({}, Operators.inLast()),
   }
 });
 
-const BooleanField = (...args) => ({
+const BooleanField = () => ({
   props: {
     id: 'boolean',
     name: 'boolean',
@@ -56,7 +57,7 @@ const BooleanField = (...args) => ({
   }
 });
 
-const ArrayField = (...args) => ({
+const ArrayField = () => ({
   props: {
     id: 'array',
     name: 'array',
@@ -66,13 +67,13 @@ const ArrayField = (...args) => ({
   }
 });
 
-const GenderField = (...args) => ({
+const GenderField = () => ({
   props: {
     id: 'gender',
     name: 'gender',
   },
   operators: {
-    is: Object.assign({}, Operators.gender()),
+    gender: Object.assign({}, Operators.gender()),
   }
 });
 

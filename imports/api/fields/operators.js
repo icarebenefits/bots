@@ -67,8 +67,8 @@ const bool = () => ({
   props: {
     id: 'bool',
     name: 'is',
-    type: 'boolean',
-    param: 1,
+    type: 'bool',
+    params: 2,
   },
   buildQuery: (field, values) => {
     const bool = Boolean(values[0].value);
@@ -82,9 +82,9 @@ const bool = () => ({
 const gender = () => ({
   props: {
     id: 'gender',
-    name: 'gender',
+    name: 'is',
     type: 'gender',
-    param: 1,
+    params: 2,
   },
   buildQuery: (field, values) => {
     const str = values[0].value.toString();
@@ -242,8 +242,8 @@ const inLast = () => ({
   props: {
     id: 'inLast',
     name: 'in last',
-    type: 'date',
-    params: 2,
+    type: 'inLast',
+    params: 3,
   },
   buildQuery: (field, values) => {
     const num = Number(values[0].value); // 3
@@ -368,6 +368,7 @@ const Operators = {
   onOrBefore,
   onOrAfter,
   within,
+  inLast,
   // number
   equal,
   lessThan,

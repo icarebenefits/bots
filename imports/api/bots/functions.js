@@ -1,8 +1,9 @@
 import bodybuilder from 'bodybuilder';
 
 import {SLAs} from '../collections/slas';
-import {Elastic} from '../elastic';
+// import {Elastic} from '../elastic';
 import {FbRequest} from '../facebook';
+import {queryBuilder} from '../query-builder';
 
 /**
  * Function for checking operation of bot
@@ -55,7 +56,32 @@ const fistSLACheck = () => {
  */
 const execute = (slaId) => {
   const sla = SLAs.findOne({_id: slaId});
-  console.log(sla);
+  const {_id, conditions, workplaces, message} = sla;
+  // const threshold = 
+  
+  const {error, query} = queryBuilder(conditions);
+
+  if(error) {
+    throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
+  } else {
+    console.log(JSON.stringify(query, null, 2))
+
+    const {Elastic} = require('../elastic');
+
+    // validate query before run
+    const {valid} = Elastic.indices.validateQuery({body: query});
+    if(valid) {
+      const {hits: {total, hits}} = Elastic.search({body: query});
+      if(hits) {
+        console.log('ES result', {total, hits});
+      } else {
+        throw new Meteor.Error('EXECUTE_ES_QUERY_FAILED');
+      }
+    } else {
+      throw new Meteor.Error('VALIDATE_ES_QUERY_FAIELD');
+    }
+  }
+
 };
 
 const Bots = {

@@ -1,7 +1,7 @@
 import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
 
-import {Operators} from '/imports/api/fields';
+import {Operators, FieldsGroups} from '/imports/api/fields';
 
 
 // list of supported operators
@@ -18,7 +18,7 @@ operators.push(')');
 const makeExpression = (conditions) => {
   const stack = [];
   conditions.map((condition, idx) => {
-    const {not, openParens, filter, field, operator, values, closeParens, bitwise} = condition;
+    const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
     if (not) {
       stack.push('not');
     }
@@ -27,10 +27,12 @@ const makeExpression = (conditions) => {
       parens.map(p => stack.push(p));
     }
     if (!_.isEmpty(field)) {
-      stack.push(field);
+      const {ESField} = FieldsGroups[group].fields[field]().props;
+      stack.push(ESField);
     } else {
       if (!_.isEmpty(filter)) {
-        stack.push(filter);
+        const {ESField} = FieldsGroups[group].fields[filter]().props;
+        stack.push(ESField);
       }
     }
     if (!_.isEmpty(operator)) {

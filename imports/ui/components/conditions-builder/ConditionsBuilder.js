@@ -15,6 +15,7 @@ import {
   Label,
 } from '../elements';
 import {Condition} from './Condition';
+import FormDialog from './FormDialog';
 import * as Notify from '/imports/api/notifications';
 
 class ConditionsBuilder extends Component {
@@ -129,6 +130,7 @@ class ConditionsBuilder extends Component {
         if (_.isEmpty(value)) {
           cond = {...condition, operator: '', values: []};
         } else {
+          // key: operator, value: bool
           const
             {fields: Fields} = FieldsGroups[groupId],
             {filter, field} = conditions[row],
@@ -137,7 +139,6 @@ class ConditionsBuilder extends Component {
           let FieldData = {};
           if (!_.isEmpty(field)) {
             FieldData = Object.assign({}, Fields[filter]().fields[field]);
-            // {type, params} = FieldData.fields[field].operators[value].props
           } else {
             FieldData = Object.assign({}, Fields[filter]())
           }
@@ -159,6 +160,7 @@ class ConditionsBuilder extends Component {
             return (i === index) ? (value) : v;
           });
         cond = {...condition, values: newValues};
+        this.setState({values: newValues});
         break;
       }
       default:
@@ -174,7 +176,6 @@ class ConditionsBuilder extends Component {
         return c;
       }
     });
-    // console.log(newConds);
     return this.setState({
       conditions: newConds
     });
@@ -229,6 +230,14 @@ class ConditionsBuilder extends Component {
       {
         return '';
       }
+      case 'bool':
+      {
+        return 'true';
+      }
+      case 'gender':
+      {
+        return 'not specified';
+      }
       default:
       {
         return '';
@@ -251,7 +260,17 @@ class ConditionsBuilder extends Component {
   }
 
   _getDefaultCondition() {
-    return {not: false, openParens: '', group: '', filter: '', field: '', operator: '', values: [], closeParens: '', bitwise: ''};
+    return {
+      not: false,
+      openParens: '',
+      group: '',
+      filter: '',
+      field: '',
+      operator: '',
+      values: [],
+      closeParens: '',
+      bitwise: ''
+    };
   }
 
   getDefaultHandlers() {
@@ -273,7 +292,14 @@ class ConditionsBuilder extends Component {
       description = `${field} `;
     }
     if (operator) {
-      description = `${description} ${operator} `;
+      // special case for operator: bool, gender
+      if (['bool', 'gender'].indexOf(operator) === -1) {
+        if(operator === 'inLast') {
+          description = `${description} in last `;
+        } else {
+          description = `${description} ${operator} `;
+        }
+      }
       if (values.length > 1) {
         values.map(({type, value}, idx) => {
           let val = value;
@@ -283,16 +309,22 @@ class ConditionsBuilder extends Component {
           if (idx === values.length - 1) {
             description = `${description} "${val}"`;
           } else {
-            description = `${description} "${val}" and `;
+            if(operator === 'inLast') {
+              description = `${description} "${val}" `;
+            } else {
+              description = `${description} "${val}" and `;
+            }
           }
         })
       } else {
-        const {type, value} = values[0];
-        let val = value;
-        if (type === 'date') {
-          val = moment(new Date(value)).format('LL');
+        if (!_.isEmpty(values)) {
+          const {type, value} = values[0];
+          let val = value;
+          if (type === 'date') {
+            val = moment(new Date(value)).format('LL');
+          }
+          description = `${description} "${val}"`;
         }
-        description = `${description} "${val}"`;
       }
     }
 
@@ -326,126 +358,30 @@ class ConditionsBuilder extends Component {
     if (_.isEmpty(fieldId)) {
       return null;
     }
-    
+
     const FieldGroup = FieldsGroups[groupId],
       {props, fields: FieldData} = FieldGroup,
-      {fields, operators, props: {name: header}} = FieldData[fieldId](),
-      {operator, values: condValues, field} = conditions[row]
+      {fields, operators, props: {name: header}} = FieldData[fieldId]()
       ;
 
-    if (fields) {
-      // Dialog field props
-      const options = Object.keys(fields)
-          .map(f => {
-            const {id: name, name: label} = fields[f].props;
-            return {name, label};
-          })
-        ;
-      options.splice(0, 0, {name: '', label: ''}); // default option
-      // Dialog operator props
-      let opOptions = [];
-      if (!_.isEmpty(field)) {
-        const {operators} = fields[field];
-        opOptions = Object.keys(operators)
-          .map(op => {
-            const {id: name, name: label} = operators[op].props;
-            return {name, label};
-          })
-        ;
-        opOptions.splice(0, 0, {name: '', label: ''}); // default option
-      }
-
-      return (
-        <Dialog
-          modal={true}
-          header={header}
-          confirmLabel="Set"
-          hasCancel={true}
-          onAction={this._saveDataDialog}
-        >
-          <div className="form-body">
-            <div className="form-group">
-              <FormInput
-                ref="field"
-                type="select"
-                value={field}
-                options={options}
-                handleOnChange={value => this.handleFieldChange(row, 'field', value)}
-              />
-            </div>
-            {!_.isEmpty(opOptions) && (
-              <div className="form-group">
-                <FormInput
-                  ref="operator"
-                  type="select"
-                  value={operator}
-                  options={opOptions}
-                  handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
-                />
-              </div>
-            )}
-            {!_.isEmpty(opOptions) && (
-              values.map((input, idx) => {
-                const {type, value} = input;
-                return (
-                  <div className="form-group" key={idx}>
-                    <FormInput
-                      type={type}
-                      value={value}
-                      handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
-                    />
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </Dialog>
-      );
-    } else {
-      // Dialog props
-      const
-        options = Object.keys(operators)
-          .map(op => {
-            const {id: name, name: label} = operators[op].props;
-            return {name, label};
-          })
-        ;
-      options.splice(0, 0, {name: '', label: ''}); // default option
-
-      return (
-        <Dialog
-          modal={true}
-          header={header}
-          confirmLabel="Set"
-          hasCancel={true}
-          onAction={this._saveDataDialog}
-        >
-          <div className="form-body">
-            <div className="form-group">
-              <FormInput
-                ref="operator"
-                type="select"
-                value={operator}
-                options={options}
-                handleOnChange={value => this.handleFieldChange(row, 'operator', value)}
-              />
-            </div>
-            {values.map((input, idx) => {
-              const {type, value} = input;
-              return (
-                <div className="form-group" key={idx}>
-                  <FormInput
-                    type={type}
-                    value={value}
-                    handleOnChange={value => this.handleFieldChange(row, 'values', {type, value}, idx)}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </Dialog>
-      );
-    }
+    return (
+      <Dialog
+        modal={true}
+        header={header}
+        confirmLabel="Set"
+        hasCancel={true}
+        onAction={this._saveDataDialog}
+      >
+        <FormDialog 
+          row={row}
+          condition={conditions[row]}
+          fields={fields}
+          operators={operators}
+          values={values}
+          handleOnChange={this.handleFieldChange}
+        />
+      </Dialog>
+    );
   }
 
   _saveDataDialog(action) {

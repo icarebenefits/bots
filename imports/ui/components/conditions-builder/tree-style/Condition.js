@@ -4,7 +4,7 @@ import React, {Component, PropTypes} from 'react';
 // components
 import {ValueSelector, ValuesEditor, ActionElement} from './controls';
 // fields
-import Fields from '/imports/api/fields/custom/fields';
+import Fields from '/imports/api/fields/custom/customer';
 
 class Condition extends Component {
 
