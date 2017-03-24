@@ -367,29 +367,20 @@ class SLAs extends Component {
       {country} = this.props;
     let message = '';
     try {
-      JobServer(country).createJob({
-        name,
-        freqText: this.getScheduleText(frequency),
-        info: {slaId}
-      }, (err, res) => {
+      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {slaId}}, (err, res) => {
         if (err) {
           Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
           return Methods.setStatus.call({_id: slaId, status: 'draft'});
         }
-
-        if (action === 'start') {
-          // execute the SLA immediately
-          Notify.warning({title: 'Start SLA', message: `starting SLA: ${slaId}`});
-        }
+        Methods.setStatus.call({_id: slaId, status: 'started'});
         Notify.info({title: 'Start SLA', message: 'success'});
         return this.setState({mode: 'list', action: null});
       });
     } catch (e) {
       Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
-      Methods.setStatus.call({_id, status: 'draft'});
+      Methods.setStatus.call({_id: slaId, status: 'draft'});
       return this.setState({mode: 'list', action: null});
     }
-    return this.setState({mode: 'list', action: null});
   }
 
   /**

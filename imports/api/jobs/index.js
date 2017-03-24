@@ -2,8 +2,15 @@ import {Meteor} from 'meteor/meteor';
 import {DDP} from 'meteor/ddp-client';
 import {later} from 'meteor/mrt:later';
 
+/**
+ * Function create job on job server from bots client
+ * @param country
+ * @return {{getJobs: (function()), createJob: (function()), editJob: (function()), pauseJob: (function()), resumeJob: (function()), restartJob: (function()), cancelJob: (function()), removeJob: (function())}}
+ * @constructor
+ */
 const JobServer = (country) => {
-  const server = DDP.connect('http://localhost:4000');
+  const {host, port} = Meteor.settings.public.jobs_server;
+  const server = DDP.connect(`http://${host}:${port}`);
 
   return {
     getJobs: ({name}, callback = () => {}) => {
@@ -95,6 +102,24 @@ const JobServer = (country) => {
         type: `${country}-${name}`,
       };
       server.call('controllers.remove', params, (err, res) => {
+        if(err) callback(err, null);
+
+        callback(null, res);
+      });
+    },
+    startJob: ({name, priority, freqText, info}, callback = () => {}) => {
+      const params = {
+        type: `${country}-${name}`,
+        attributes: {
+          priority: priority || 'normal',
+          repeat: {
+            schedule: later.parse.text(freqText)
+          }
+        },
+        data: info
+      };
+      console.log('params', params);
+      server.call('controllers.start', params, (err, res) => {
         if(err) callback(err, null);
 
         callback(null, res);

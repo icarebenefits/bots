@@ -52,7 +52,6 @@ class Workplaces extends Component {
         inputName.value = '';
       }
       else {
-        console.log('result', result.name);
         inputName.value = result.name;
       }
     });

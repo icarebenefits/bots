@@ -68,8 +68,8 @@ export class Variable extends Component {
             options={[
                 {name: '', label: ''},
                 {name: 'count', label: 'count'},
-                {name: 'sum', label: 'sum'},
-                {name: 'average', label: 'average'},
+                // {name: 'sum', label: 'sum'},
+                // {name: 'average', label: 'average'},
               ]}
             handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
           />)
