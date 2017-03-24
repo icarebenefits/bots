@@ -29,6 +29,7 @@ export class Variable extends Component {
     const grpOptions = listGroups.map(groupName => {
       const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
       const listFields = Object.keys(fields);
+      // const options = []; // temporary support for count only
       const options = listFields
         // message builder apply for number fields only
         .filter(f => fields[f]().props.type === 'number')
@@ -68,7 +69,9 @@ export class Variable extends Component {
                 {name: '', label: ''},
                 {name: 'count', label: 'count'},
                 {name: 'sum', label: 'sum'},
-                {name: 'average', label: 'average'},
+                {name: 'max', label: 'max'},
+                {name: 'min', label: 'min'},
+                {name: 'avg', label: 'average'},
               ]}
             handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
           />)

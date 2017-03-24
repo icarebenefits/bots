@@ -164,7 +164,7 @@ class ScheduleBuilder extends Component {
       },
       secondPart = {
         prepsOpts: [
-          {name: '', label: ''},
+          {name: '', label: 'daily'},
           {name: 'on', label: 'on'},
           {name: 'every', label: 'on every'},
         ],
