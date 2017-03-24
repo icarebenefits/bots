@@ -3,9 +3,11 @@ import accounting from 'accounting';
 import _ from 'lodash';
 // collections
 import {SLAs} from '../collections/slas';
-// import {Elastic} from '../elastic';
+// fields
+import {FieldsGroups} from '/imports/api/fields';
+// functions
 import {FbRequest} from '../facebook';
-import {queryBuilder} from '../query-builder';
+import {queryBuilder, aggsBuilder} from '../query-builder';
 import format from 'string-template';
 
 /**
@@ -62,53 +64,77 @@ const executeElastic = (slaId) => {
 
   if(!_.isEmpty(sla)) {
     const {name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
-    // const threshold =
 
-    const {error, query} = queryBuilder(conditions);
+    /* validate conditions and message */
+    if(_.isEmpty(conditions)) {
+      throw new Meteor.Error('CONDITIONS_EMPTY');
+    }
+    if(_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+      throw new Meteor.Error('MESSAGE_EMPTY');
+    }
 
-    if (error) {
+    const {error, query: {query}} = queryBuilder(conditions);
+    const {error: aggsErr, aggs} = aggsBuilder(variables);
+
+
+    if (error || aggsErr) {
       throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
     } else {
-      // console.log({name, query: JSON.stringify(query, null, 2)});
+      // build the query
+      const ESQuery = {
+        query,
+        aggs,
+        size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+      };
+      console.log('query', JSON.stringify(ESQuery, null, 2))
+
       const {Elastic} = require('../elastic');
 
       // validate query before run
-      const {valid} = Elastic.indices.validateQuery({body: query});
+      const {valid} = Elastic.indices.validateQuery({body: {query}});
       if (valid) {
         const {elastic: {indexPrefix}, public: {env}} = Meteor.settings;
         // get index types from conditions
-        const types = conditions.map(c => c.group);
-        console.log(types);
-        const {hits: {total, hits}} = Elastic.search({
+        const types = _.uniq(conditions.map(c => c.group));
+
+        const {hits, aggregations} = Elastic.search({
           index: `${indexPrefix}_${env}_${country}`,
           type: "customer",
-          body: query
+          body: ESQuery
         });
-        if (hits) {
-          const vars = {};
-          // build message to send to workplace
-          variables.map(v => {
-            const {summaryType, field, name} = v;
-            if (field === 'total' && summaryType === 'count') {
-              vars[name] = total > 0 ? accounting.format(total) : 'no';
-            } else {
-              // handle orther type of result from aggregation
-              // not support yet
-              throw new Meteor.Error('CANT_HANDLE_SUMMARY', `${summaryType} of ${field} isn't supported yet.`)
-            }
-          });
-          const message = format(`${name}: ${messageTemplate}`, vars);
 
-          // send message to workplace
-          const wpRequest = new FbRequest();
-          const {personalId} = Meteor.settings.facebook;
-          wpRequest.post(personalId, workplace, message);
-          return {
-            check: true,
-            notify: true,
-          };
+        if(!_.isEmpty(aggregations)) {
+          // handle count total
+          if (!_.isEmpty(hits)) {
+            const vars = {};
+            // build message to send to workplace
+            variables.map(v => {
+              const {total} = hits;
+              const {summaryType, field, name} = v;
+              if (field === 'total' && summaryType === 'count') {
+                vars[name] = total > 0 ? accounting.format(total) : 'no';
+              } else {
+                // handle orther type of result from aggregation
+                const {ESField} = FieldsGroups['iCareMember'].fields[field]().props;
+                const {value} = aggregations[`agg_${summaryType}_${ESField}`];
+                vars[name] = accounting.formatNumber(value, 0);
+              }
+            });
+            const message = format(`${name}: ${messageTemplate}`, vars);
+
+            // send message to workplace
+            const wpRequest = new FbRequest();
+            const {personalId} = Meteor.settings.facebook;
+            wpRequest.post(personalId, workplace, message);
+            return {
+              check: true,
+              notify: true,
+            };
+          } else {
+            throw new Meteor.Error('NO_MATCHED_DOCUMENTS');
+          }
         } else {
-          throw new Meteor.Error('EXECUTE_ES_QUERY_FAILED');
+          throw new Meteor.Error('MESSAGE_VALUES_NOT_FOUND');
         }
       } else {
         throw new Meteor.Error('VALIDATE_ES_QUERY_FAIELD');

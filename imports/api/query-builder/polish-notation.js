@@ -132,14 +132,13 @@ const isQueryObject = (q) => {
     return false;
 };
 
+
 /**
- * Function build Elastic query from conditions with Polish Notation Algorithm
- * @param conditions
- * @return {string}
+ * Function validate the conditions
+ * @param expression
+ * @return {*}
  */
-const queryBuilder = (conditions) => {
-  /* validate conditions */
-  const expression = makeExpression(conditions);
+const validateConditions = (conditions, expression) => {
   // number of open parens have to equal to number of close parens
   const noOfOpenParens = expression.filter(e => e === '(').length;
   const noOfCloseParens = expression.filter(e => e === ')').length;
@@ -154,7 +153,31 @@ const queryBuilder = (conditions) => {
   if(noOfBitwise !== (conditions.length - 1))
     return {error: 'The number of bitwise unacceptable!!'};
 
+  return {};
+};
 
+/**
+ * Function validate the aggregations
+ * @param aggregations
+ * @return {{}}
+ */
+const validateAggregations = (aggregations) => {
+  return {};
+};
+
+/**
+ * Function build Elastic query from conditions with Polish Notation Algorithm
+ * @param conditions
+ * @return {string}
+ */
+const queryBuilder = (conditions) => {
+  /* get expression */
+  const expression = makeExpression(conditions);
+  /* validate conditions */
+  const {error: condErr} = validateConditions(conditions, expression);
+  if(condErr) return {error: condErr};
+
+  /* build elastic query */
   const polishNotation = infixToPostfix(expression);
   const stack = [];
   let query = {};
