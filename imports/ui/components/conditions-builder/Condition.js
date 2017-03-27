@@ -3,10 +3,14 @@ import React, {Component} from 'react';
 import {
   Checkbox,
   Selectbox,
+  SelectboxGrouped,
   Label,
   Button,
 } from '../elements';
-import {Fields} from '/imports/api/fields';
+import {
+  Fields,
+  FieldsGroups
+} from '/imports/api/fields';
 
 export class Condition extends Component {
 
@@ -16,16 +20,21 @@ export class Condition extends Component {
 
   _getFilters() {
     const
-      listFields = Object.keys(Fields)
+      listGroups = Object.keys(FieldsGroups)
       ;
 
-    const filters = listFields.map(field => {
-      const {id: name, name: label} = Fields[field]().props;
-      return {name, label};
+    const grpOptions = listGroups.map(groupName => {
+      const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
+      const listFields = Object.keys(fields);
+      const options = listFields.map(field => {
+        const {id: name, name: label} = fields[field]().props;
+        return {name, label};
+      });
+      options.splice(0, 0, {name: '', label: ''});
+      return {name, label, options};
     });
-    filters.splice(0, 0, {name: '', label: ''});
 
-    return filters;
+    return grpOptions;
   }
 
   render() {
@@ -33,7 +42,7 @@ export class Condition extends Component {
       {
         id,
         condition: {
-          not = false, openParens = '', filter = '', field = '',
+          not = false, openParens = '', group = '', filter = '', field = '',
           operator = '', values = [], closeParens = '', bitwise = ''
         },
         handlers: {
@@ -81,10 +90,10 @@ export class Condition extends Component {
         <td data-row={id}>
           {readonly
             ? filter
-            : (<Selectbox
+            : (<SelectboxGrouped
             className="form-control"
             value={filter}
-            options={filters}
+            grpOptions={filters}
             handleOnChange={value => handleFieldChange(id, 'filter', value)}
           />)
           }

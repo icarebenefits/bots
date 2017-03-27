@@ -12,19 +12,17 @@ const ListSLAs = (props) => {
   const {toolbar, list, handleChangeMode, handleActionSLA} = props;
 
   return (
-    <div className="row">
-      <div className="col-md-12">
-        <Toolbar
-          {...toolbar}
-          
-        />
+    <div className="col-md-12">
+      <Toolbar
+        {...toolbar}
 
-        {/*<ListHeader />*/}
-        <List
-          {...list}
-        />
-        {/*<ListFooter />*/}
-      </div>
+      />
+
+      {/*<ListHeader />*/}
+      <List
+        {...list}
+      />
+      {/*<ListFooter />*/}
     </div>
   );
 }

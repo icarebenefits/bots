@@ -28,32 +28,32 @@ Meteor.startup(function() {
   }
   
   // test bots
-  if(Meteor.settings.jobs.test) {
-    JobServer('kh').getJobs({name: 'bots'}, (err, res) => {
-      if(err) {
-        throw new Meteor.Error('GET_TEST_JOBS_FAILED', err.reason);
-      }
-      // console.log('GET JOBS', res);
-      if(res && _.isEmpty(res)) {
-        const params = {
-          name: 'bots',
-          priority: 'normal',
-          freqText: 'at 10:00 AM every weekday',
-          info: {
-            method: 'bots.test'
-          }
-        };
-        JobServer('kh').createJob(params, (err, res) => {
-          if(err) {
-            throw new Meteor.Error('CREATE_TEST_JOB_FAILED', err.reason);
-          }
-          if(res) {
-            console.log('CREATED_TEST_JOB', `job run with schedule: ${params.freqText}`);
-          }
-        });
-      } else {
-        console.log('TEST_JOB_EXISTS');
-      }
-    });
-  }
+  // if(Meteor.settings.jobs.test) {
+  //   JobServer('kh').getJobs({name: 'bots'}, (err, res) => {
+  //     if(err) {
+  //       throw new Meteor.Error('GET_TEST_JOBS_FAILED', err.reason);
+  //     }
+  //     // console.log('GET JOBS', res);
+  //     if(res && _.isEmpty(res)) {
+  //       const params = {
+  //         name: 'bots',
+  //         priority: 'normal',
+  //         freqText: 'at 3:00 AM every weekday',
+  //         info: {
+  //           method: 'bots.test'
+  //         }
+  //       };
+  //       JobServer('kh').createJob(params, (err, res) => {
+  //         if(err) {
+  //           throw new Meteor.Error('CREATE_TEST_JOB_FAILED', err.reason);
+  //         }
+  //         if(res) {
+  //           console.log('CREATED_TEST_JOB', `job run with schedule: ${params.freqText}`);
+  //         }
+  //       });
+  //     } else {
+  //       console.log('TEST_JOB_EXISTS');
+  //     }
+  //   });
+  // }
 });

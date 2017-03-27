@@ -1,161 +1,362 @@
 import moment from 'moment';
 import S from 'string';
+import bodybuilder from 'bodybuilder';
 
 /**
  * Composition Objects for all of operators
  */
 
-// generic
+// Elaistc time units
+export const timeUnits = {
+  years: 'y',
+  months: 'M',
+  weeks: 'w',
+  days: 'd',
+  hours: 'h',
+  minutes: 'm',
+  seconds: 's',
+};
 
+// generic
+const not = () => ({
+  props: {
+    id: 'not',
+    name: 'not',
+    type: 'not',
+    params: 1,
+  },
+  buildQuery: (query) => {
+    return bodybuilder()
+      .query("bool", {"must_not": [query]})
+      .build();
+  }
+});
 
 // bitwise
+const and = () => ({
+  props: {
+    id: 'and',
+    name: 'and',
+    type: 'and',
+    params: 2,
+  },
+  buildQuery: (query1, query2) => {
+    return bodybuilder()
+      .query("bool", {"must": [query1]})
+      .query("bool", {"must": [query2]})
+      .build();
+  }
+});
+const or = () => ({
+  props: {
+    id: 'or',
+    name: 'or',
+    type: 'or',
+    params: 2,
+  },
+  buildQuery: (query1, query2) => {
+    return bodybuilder()
+      .query("bool", {"should": [query1]})
+      .query("bool", {"should": [query2]})
+      .build();
+  }
+});
 
+// Boolean
+const bool = () => ({
+  props: {
+    id: 'bool',
+    name: 'is',
+    type: 'bool',
+    params: 2,
+  },
+  buildQuery: (field, values) => {
+    const bool = Boolean(values[0].value);
+    return bodybuilder()
+      .query('term', field, bool)
+      .build();
+  },
+});
+
+// Gender
+const gender = () => ({
+  props: {
+    id: 'gender',
+    name: 'is',
+    type: 'gender',
+    params: 2,
+  },
+  buildQuery: (field, values) => {
+    const str = values[0].value.toString();
+    return bodybuilder()
+      .query('term', field, str)
+      .build();
+  },
+});
+
+// Array
+const inArray = () => ({
+  props: {
+    id: 'inArray',
+    name: 'in',
+    type: 'array',
+  },
+  buildQuery: (field, values) => {
+    return bodybuilder()
+      .query('terms', field, values)
+      .build();
+  },
+});
 
 // string
-const is = (s1, s2) => ({
+const is = () => ({
   props: {
     id: 'is',
     name: 'is',
     type: 'string',
     params: 2,
   },
-  check: (s1, s2) => s1 === s2,
+  buildQuery: (field, values) => {
+    const str = values[0].value.toString();
+    return bodybuilder()
+      .query('term', `${field}.keyword`, str)
+      .build();
+  }
 });
-const contains = (s1, s2) => ({
+const contains = () => ({
   props: {
     id: 'contains',
     name: 'contains',
     type: 'string',
     params: 2,
   },
-  check: (s1, s2) => S(s1).contains(s2),
+  buildQuery: (field, values) => {
+    const str = values[0].value.toString();
+    return bodybuilder()
+      .query('wildcard', `${field}.keyword`, `*${str}*`)
+      .build();
+  }
 });
-const startsWith = (s1, s2) => ({
+const startsWith = () => ({
   props: {
     id: 'startsWith',
     name: 'starts with',
     type: 'string',
     params: 2,
   },
-  check: (s1, s2) => S(s1).startsWith(s2),
+  buildQuery: (field, values) => {
+    const str = values[0].value.toString();
+    return bodybuilder()
+      .query('prefix', `${field}.keyword`, str)
+      .build();
+  }
 });
 
 // date
-const on = (d1, d2) => ({
+const on = () => ({
   props: {
     id: 'on',
     name: 'on',
     type: 'date',
     params: 2,
   },
-  check: (d1, d2) => moment(d1).isSame(d2),
+  buildQuery: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return bodybuilder()
+      .query('term', field, date)
+      .build();
+  }
 });
-const before = (d1, d2) => ({
+const before = () => ({
   props: {
     id: 'before',
     name: 'before',
     type: 'date',
     params: 2,
   },
-  check: (d1, d2) => moment(d1).isBefore(d2),
+  buildQuery: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return bodybuilder()
+      .query('range', field, {gt: date})
+      .build();
+  }
 });
-const after = (d1, d2) => ({
+const after = () => ({
   props: {
     id: 'after',
     name: 'after',
     type: 'date',
     params: 2,
   },
-  check: (d1, d2) => moment(d1).isAfter(d2),
+  buildQuery: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return bodybuilder()
+      .query('range', field, {lt: date})
+      .build();
+  }
 });
-const onOrBefore = (d1, d2) => ({
+const onOrBefore = () => ({
   props: {
     id: 'onOrBefore',
     name: 'on or before',
     type: 'date',
     params: 2,
   },
-  check: (d1, d2) => moment(d1).isSameOrBefore(d2),
+  buildQuery: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return bodybuilder()
+      .query('range', field, {gte: date})
+      .build();
+  }
 });
-const onOrAfter = (d1, d2) => ({
+const onOrAfter = () => ({
   props: {
     id: 'onOrAfter',
     name: 'on or after',
     type: 'date',
     params: 2,
   },
-  check: (d1, d2) => moment(d1).isSameOrAfter(d2),
+  buildQuery: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return bodybuilder()
+      .query('range', field, {lte: date})
+      .build();
+  }
 });
-const within = (d1, d2) => ({
+const within = () => ({
   props: {
     id: 'within',
     name: 'within',
     type: 'date',
     params: 3,
   },
-  check: (d, d1, d2) => moment(d).isBetween(d1, d2)
+  buildQuery: (field, values) => {
+    const date1 = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    const date2 = moment(new Date(values[1].value)).format('YYYY-MM-DD');
+    return bodybuilder()
+      .query('range', field, {gte: date1, lte: date2})
+      .build();
+  }
+});
+const inLast = () => ({
+  props: {
+    id: 'inLast',
+    name: 'in last',
+    type: 'inLast',
+    params: 3,
+  },
+  buildQuery: (field, values) => {
+    const num = Number(values[0].value); // 3
+    const str = values[1].value.toString(); // in Elastic timeUnits (years, months, ...)
+    const tu = timeUnits[str];
+    return bodybuilder()
+      .query('range', field, {gte: `now-${num}${tu}`, lte: 'now'})
+      .build();
+  }
 });
 
 // number
-const equal = (n1, n2) => ({
+const equal = () => ({
   props: {
     id: 'equal',
     name: 'equal to',
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 === n2,
+  buildQuery: (field, values) => {
+    const num = Number(values[0].value);
+    return bodybuilder()
+      .query('term', field, num)
+      .build();
+  }
 });
-const lessThan = (n1, n2) => ({
+const lessThan = () => ({
   props: {
     id: 'lessThan',
     name: 'less than',
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 < n2,
+  buildQuery: (field, values) => {
+    const num = Number(values[0].value);
+    return bodybuilder()
+      .query('range', field, {lt: num})
+      .build();
+  }
 });
-const greaterThan = (n1, n2) => ({
+const greaterThan = () => ({
   props: {
     id: 'greaterThan',
     name: 'greater than',
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 > n2
+  buildQuery: (field, values) => {
+    const num = Number(values[0].value);
+    return bodybuilder()
+      .query('range', field, {gt: num})
+      .build();
+  }
 });
-const lessThanOrEqual = (n1, n2) => ({
+const lessThanOrEqual = () => ({
   props: {
     id: 'lessThanOrEqual',
     name: 'less than or equal to',
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 <= n2
+  buildQuery: (field, values) => {
+    const num = Number(values[0].value);
+    return bodybuilder()
+      .query('range', field, {lte: num})
+      .build();
+  }
 });
-const greaterThanOrEqual = (n1, n2) => ({
+const greaterThanOrEqual = () => ({
   props: {
     id: 'greaterThanOrEqual',
     name: 'greater than or equal to',
     type: 'number',
     params: 2,
   },
-  check: (n1, n2) => n1 >= n2
+  buildQuery: (field, values) => {
+    const num = Number(values[0].value);
+    return bodybuilder()
+      .query('range', field, {gte: num})
+      .build();
+  }
 });
-const between = (n, n1, n2) => ({
+const between = () => ({
   props: {
     id: 'between',
     name: 'between',
     type: 'number',
     params: 3,
   },
-  check: (n, n1, n2) => (n >= n1 && n <= n2)
+  buildQuery: (field, values) => {
+    const num1 = Number(values[0].value);
+    const num2 = Number(values[1].value);
+    return bodybuilder()
+      .query('range', field, {gte: num1, lte: num2})
+      .build();
+  }
 });
 
 // aggregation
 
 
 const Operators = {
+  //generic
+  not,
+  // bitwise
+  and,
+  or,
+  // boolean
+  bool,
+  // gender
+  gender,
+  // array
+  inArray,
   // string
   is,
   contains,
@@ -167,6 +368,7 @@ const Operators = {
   onOrBefore,
   onOrAfter,
   within,
+  inLast,
   // number
   equal,
   lessThan,

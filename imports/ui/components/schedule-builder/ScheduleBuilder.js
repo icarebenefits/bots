@@ -164,7 +164,7 @@ class ScheduleBuilder extends Component {
       },
       secondPart = {
         prepsOpts: [
-          {name: '', label: ''},
+          {name: '', label: 'daily'},
           {name: 'on', label: 'on'},
           {name: 'every', label: 'on every'},
         ],
@@ -192,7 +192,7 @@ class ScheduleBuilder extends Component {
     const {hasValidate} = this.props;
 
     return (
-      <div>
+      <div className="col-md-12">
         <Label
           className="col-md-12 bold uppercase pull-left"
           value={'Schedule Builder'}

@@ -22,7 +22,7 @@ class WorkplaceGroup extends Component {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-    console.log("name:" + name + " value:" + value);
+    // console.log("name:" + name + " value:" + value);
     this.setState({
       [name]: value
     });
@@ -46,7 +46,7 @@ class WorkplaceGroup extends Component {
         inputName.value = '';
       }
       else {
-        console.log('result', result.name);
+        // console.log('result', result.name);
         inputName.value = result.name;
       }
     });

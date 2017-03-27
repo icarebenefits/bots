@@ -3,7 +3,11 @@
  */
 import React, {Component, PropTypes} from 'react';
 
+// Fields
+import {Fields, FieldsGroups} from '/imports/api/fields';
+
 import {
+  Dialog,
   FormInput,
   Label,
   Button,
@@ -11,6 +15,7 @@ import {
 import {Variable} from './Variable';
 import * as Notify from '/imports/api/notifications';
 import template from "string-template";
+import _ from 'lodash';
 
 
 class MessageBuilder extends Component {
@@ -24,46 +29,53 @@ class MessageBuilder extends Component {
         field: '',
         name: '',
       }],
-      template = '',
+      messageTemplate = '',
     } = props.message;
 
     this.state = {
       variables,
-      template,
+      messageTemplate,
+      dialog: {}, // get field had been change, {row, groupId, fieldId}
     };
 
     // handlers
+    this.handleComboFieldChange = this.handleComboFieldChange.bind(this);
     this.handleFieldChange = this.handleFieldChange.bind(this);
     this.handleRemoveRow = this.handleRemoveRow.bind(this);
+
+    // dialog
+    this._renderDialog = this._renderDialog.bind(this);
+    this._saveDataDialog = this._saveDataDialog.bind(this);
+    this._closeDialog = this._closeDialog.bind(this);
   }
 
   handleCheck(e) {
     e.preventDefault();
 
-    console.log(this.state);
-    const {variables} = this.state;
-    const message = this.refs.template.getValue();
-    const countLeft = (message.match(/{/g) || []).length;
-    const countRight = (message.match(/}/g) || []).length;
+    // console.log(this.state);
+    const {variables, messageTemplate} = this.state;
+    const countLeft = (messageTemplate.match(/{/g) || []).length;
+    const countRight = (messageTemplate.match(/}/g) || []).length;
     if (countLeft === countRight && countLeft > 0) {
       const values = {};
       let numOfValues = 0;
-      let noVariable = false;
+      let hasInvalidVariable = false;
       variables.map((v) => {
-        if (message.indexOf('{' + v.name + '}') >= 0) {
-          values[v.name] = Math.floor(Math.random() * (1000 + 1) + 12);
+        const {summaryType, field, name} =v;
+        if (messageTemplate.indexOf('{' + name + '}') >= 0) {
+          values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
           numOfValues++;
         }
-        if (v.name === '')
-          noVariable = true;
+        if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
+          hasInvalidVariable = true;
       });
-      console.log(values);
-      if (noVariable) {
-        Notify.warning({title: 'Message invalid', message: 'There are NO variable'});
-      } else if (variables.length != numOfValues) {
+      // console.log(values);
+      if (hasInvalidVariable) {
+        Notify.warning({title: 'Message invalid', message: 'There are INVALID variable'});
+      } else if (variables.length != numOfValues || numOfValues != countLeft) {
         Notify.warning({title: 'Message invalid', message: 'Template DO NOT match with given variables'});
       } else {
-        const sample = template(message, values);
+        const sample = template(messageTemplate, values);
         Notify.success({title: 'Message Sample:', message: ` "${sample}"`});
       }
     } else {
@@ -102,6 +114,40 @@ class MessageBuilder extends Component {
   handleFieldChange(row, key, value) {
     const
       {variables} = this.state,
+      variable = variables[row]
+      ;
+    let newVar = {};
+
+    if (key === 'field') {
+      const {groupId, value: val} = value;
+      newVar = {...variable, [`${key}`]: val};
+    } else {
+      newVar = {...variable, [`${key}`]: value};
+    }
+
+    const newVariables = variables.map((c, i) => {
+      if (i === row) {
+        return newVar;
+      } else {
+        return c;
+      }
+    });
+
+    this.setState({
+      dialog: {
+        row,
+        fieldId: value
+      }
+    });
+    // console.log("newVariables", newVariables);
+    return this.setState({
+      variables: newVariables
+    });
+  }
+
+  handleComboFieldChange(row, key, value) {
+    const
+      {variables} = this.state,
       variable = variables[row];
     let newVar = {...variable, [`${key}`]: value};
     const newVariables = variables.map((c, i) => {
@@ -111,9 +157,10 @@ class MessageBuilder extends Component {
         return c;
       }
     });
-    // console.log("newVariables", newVariables);
+
     return this.setState({
-      variables: newVariables
+      variables: newVariables,
+      dialog: {}
     });
   }
 
@@ -134,74 +181,154 @@ class MessageBuilder extends Component {
     return this.state;
   }
 
+  _saveDataDialog(action) {
+    this.setState({
+      dialog: {}
+    });
+  }
+
+  _closeDialog(newConds) {
+    if (!_.isEmpty(newConds)) {
+      this.setState({
+        dialog: {},
+        variables: newConds
+      })
+    } else {
+      this.setState({
+        dialog: {}
+      });
+    }
+  }
+
+
+  _renderDialog() {
+    const {dialog} = this.state;
+
+    if (_.isEmpty(dialog)) {
+      return null;
+    }
+
+    const
+      {dialog: {row, fieldId}, variables, values} = this.state;
+
+    if (_.isEmpty(fieldId)) {
+      return null;
+    }
+    const FieldGroup = FieldsGroups[groupId],
+      {props, fields: FieldData} = FieldGroup,
+      {fields, operators, props: {name: header}} = FieldData[fieldId](),
+      {summaryType, field, name} = variables[row]
+      ;
+
+    if (fields) {
+      // Dialog field props
+      const options = Object.keys(fields)
+          .map(f => {
+            const {id: name, name: label} = fields[f].props;
+            return {name, label};
+          })
+        ;
+      options.splice(0, 0, {name: '', label: ''}); // default option
+
+      return (
+        <Dialog
+          modal={true}
+          header={header}
+          confirmLabel="Set"
+          hasCancel={true}
+          onAction={this._saveDataDialog}
+        >
+          <div className="form-body">
+            <div className="form-group">
+              <FormInput
+                ref="field"
+                type="select"
+                options={options}
+                handleOnChange={value => this.handleComboFieldChange(row, 'field', value)}
+              />
+            </div>
+          </div>
+        </Dialog>
+      );
+    }
+  }
+
   render() {
-    const {variables, template} = this.state;
+    const {variables, messageTemplate} = this.state;
     let {handlers, readonly} = this.props;
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();
     }
+
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="uppercase bold pull-left"
-            value="Message Builder"
-          />
-          {readonly
-            ? null
-            : <Button
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold uppercase pull-left"
+              value="Message: "
+            />
+            {readonly
+              ? null
+              : <Button
               className="btn-default pull-right"
               onClick={e => this._addRow(e)}
             ><span className="fa fa-plus"></span>{' Add'}</Button>
-          }
+            }
+          </div>
         </div>
         <div className="row">
-          <table className="table table-striped">
-            <thead>
-            <tr>
-              <th>summaryType</th>
-              <th>Field</th>
-              <th>Variable</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody
-            >
-            {variables.map((variable, idx) => {
-              console.log("var",variable);
-              return (
-                <Variable
-                  key={idx}
-                  id={idx}
-                  ref={`var-${idx}`}
-                  variable={variable}
-                  readonly={readonly}
-                  handlers={handlers}
-                />
-              );
-            })}
-            </tbody>
-          </table>
+          <div className="col-md-12">
+            <table className="table table-striped">
+              <thead>
+              <tr>
+                <th>Type</th>
+                <th>Field</th>
+                <th>Variable</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody
+              >
+              {variables.map((variable, idx) => {
+                return (
+                  <Variable
+                    key={idx}
+                    id={idx}
+                    ref={`var-${idx}`}
+                    variable={variable}
+                    readonly={readonly}
+                    handlers={handlers}
+                  />
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="row">
-          <Label
-            className="col-md-12 bold pull-left"
-            value="Template"
-          />
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold pull-left"
+              value="Template"
+            />
+          </div>
+        </div>
+        <div className="row">
           <div className="col-md-8">
             {readonly ?
               <Label
                 className="col-md-8 form-control pull-left"
-                value={template}
+                value={messageTemplate}
               /> :
               <FormInput
-                ref="template"
+                ref="messageTemplate"
                 multiline={true}
                 type="text"
-                value={template}
+                value={messageTemplate}
                 className="form-control"
-                placeholder="message template"
-                handleOnChange={value => this._handleFieldChange('template', value)}
+                placeholder="message messageTemplate"
+                handleOnChange={value => this._handleFieldChange('messageTemplate', value)}
               />
             }
             <div className="">
@@ -227,10 +354,7 @@ class MessageBuilder extends Component {
 
 MessageBuilder.propTypes = {
   message: PropTypes.shape({
-    summaryType: PropTypes.string,
-    field: PropTypes.string,
-    varName: PropTypes.string,
-    template: PropTypes.string,
+    messageTemplate: PropTypes.string,
   }).isRequired,
 };
 

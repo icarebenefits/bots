@@ -2,6 +2,7 @@ import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
 import ListItem from './ListItem';
+import {NoContent} from './common';
 
 const List = (props) => {
   const
@@ -13,6 +14,14 @@ const List = (props) => {
       readonly = true
     } = props;
 
+  if(_.isEmpty(data)) {
+    return (
+      <NoContent
+        message="There is no SLA."
+      />
+    );
+  }
+
   return (
     <table className="table table-hover">
       <thead>
@@ -20,7 +29,7 @@ const List = (props) => {
         {headers.map((header, idx) => (
           <th key={idx}>{header}</th>
         ))}
-        {!_.isEmpty(actions) && (<td>Actions</td>)}
+        {!_.isEmpty(actions) && (<th>Actions</th>)}
       </tr>
       </thead>
       <tbody
