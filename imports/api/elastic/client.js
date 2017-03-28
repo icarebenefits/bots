@@ -21,7 +21,7 @@ if (!config.clientFunctions) {
 }
 
 // ensure basic CRUD functions are there
-_.each(['index', 'update', 'search', 'scroll'], function (fnName) {
+_.each(['index', 'update', 'search', 'reindex', 'bulk'], function (fnName) {
   if (-1 === config.clientFunctions.indexOf(fnName)) {
     config.clientFunctions.push(fnName);
   }
