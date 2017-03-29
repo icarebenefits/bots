@@ -105,6 +105,8 @@ const executeElastic = (slaId) => {
           body: ESQuery
         });
 
+        console.log('es query', JSON.stringify(ESQuery));
+
         if (!_.isEmpty(aggregations)) {
           // handle count total
           if (!_.isEmpty(hits)) {

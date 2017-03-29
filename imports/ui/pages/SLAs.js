@@ -664,7 +664,7 @@ class SLAs extends Component {
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
-      {id: 'lastExecution', type: 'input', value: s.lastExecutedAt.toISOString()},
+      {id: 'lastExecution', type: 'input', value: _.isEmpty(s.lastExecutedAt) ? '' : s.lastExecutedAt.toString()},
       {id: 'status', type: 'input', value: s.status},
     ]));
 
