@@ -133,6 +133,9 @@ SLAs.schema = new SimpleSchema({
   },
   updatedAt: {
     type: Date,
+  },
+  lastExecutedAt: {
+    type: Date,
   }
 });
 

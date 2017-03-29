@@ -604,7 +604,7 @@ class SLAs extends Component {
           buttons: [
             {
               id: 'add',
-              className: 'sbold green',
+              className: 'bold green',
               icon: 'fa fa-plus',
               label: 'Add',
               handleOnClick: this.handleChangeMode
@@ -613,19 +613,19 @@ class SLAs extends Component {
           tools: []
         },
         list: {
-          headers: ['Name', 'Workplace', 'Frequency', 'Status'],
+          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn (UTC)'],
           data: [[]],
           readonly: true,
           actions: [
             {
-              id: 'view', label: 'View details',
+              id: 'edit', label: 'Edit',
               icon: 'fa fa-pencil', className: 'btn-primary',
               handleAction: this.handleChangeMode
             },
-            {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
-            {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
-            {id: 'pause', label: 'Pause', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'resume', label: 'Resume', handleAction: this.handleActionSLA},
+            // {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
+            // {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
+            {id: 'pause', label: 'Inactive', className: 'yellow', handleAction: this.handleActionSLA},
+            {id: 'resume', label: 'Active', className: 'green', handleAction: this.handleActionSLA},
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
@@ -642,6 +642,7 @@ class SLAs extends Component {
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
+      {id: 'lastExecution', type: 'input', value: s.lastExecutedAt.toISOString()},
       {id: 'status', type: 'input', value: s.status},
     ]));
 
