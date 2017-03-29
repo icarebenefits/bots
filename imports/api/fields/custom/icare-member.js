@@ -356,7 +356,7 @@ const iCareMember = {
     id: 'iCareMember',
     name: 'iCare Member',
     type: 'group',
-    ESType: 'customer',
+    ESType: 'icare_members',
   },
   fields: {
     hasPurchased, lastPurchasedDate,

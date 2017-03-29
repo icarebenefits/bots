@@ -87,7 +87,6 @@ const executeElastic = (slaId) => {
         aggs,
         size: 0 // just need the result of total and aggregation, no need to fetch ES documents
       };
-      console.log('query', JSON.stringify(ESQuery, null, 2));
 
       const {Elastic} = require('../elastic');
 
@@ -97,11 +96,12 @@ const executeElastic = (slaId) => {
         const {elastic: {indexPrefix}, public: {env}} = Meteor.settings;
         // get index types from conditions
         const types = _.uniq(conditions.map(c => c.group));
-        const esType = types.indexOf(FieldsGroups.Customer.props.id) > -1 ? FieldsGroups.Customer.props.ESType : FieldsGroups.iCareMember.props.ESType;
+//         const esType = types.indexOf(FieldsGroups.Customer.props.id) > -1 ? FieldsGroups.Customer.props.ESType : FieldsGroups.iCareMember.props.ESType;
         // console.log(esType);
         const {hits, aggregations} = Elastic.search({
-          index: `${indexPrefix}_${env}_${country}`,
-          type: esType,
+          index: `${indexPrefix}_${country}_${env}`,
+          type: types.join(),
+//           type: esType,
           body: ESQuery
         });
 

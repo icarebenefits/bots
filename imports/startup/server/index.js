@@ -19,41 +19,53 @@ import _ from 'lodash';
 import {later} from 'meteor/mrt:later';
 import {Countries} from '/imports/api/collections/countries';
 import JobServer from '/imports/api/jobs';
+import {Logger} from '/imports/api/logger';
 
-Meteor.startup(function() {
-  if(Countries.find().count() === 0) {
+Meteor.startup(function () {
+  if (Countries.find().count() === 0) {
     Countries.insert({code: 'vn', name: 'Vietnam', status: 'active'});
     Countries.insert({code: 'kh', name: 'Cambodia', status: 'active'});
     Countries.insert({code: 'la', name: 'Laos', status: 'active'});
+  } else {
+    /* Create migration data job for every country */
+    if(Meteor.settings.elastic.migration.enable) {
+      const
+        countries = Countries.find()
+          .fetch()
+          .map(c => c.code),
+        {frequency} = Meteor.settings.elastic.migration
+        ;
+
+      countries.map(country => {
+        JobServer(country).getJobs({name: 'migration'}, (err, res) => {
+          if (err) {
+            Logger.error({name: 'GET_MIGRATION_JOBS', message: {error: err.reason}});
+            throw new Meteor.Error('GET_MIGRATION_JOBS_FAILED', err.reason);
+          }
+          if (res && _.isEmpty(res)) {
+            const params = {
+              name: 'migration',
+              priority: 'high',
+              freqText: frequency[country],
+              info: {
+                method: 'bots.migrateIcareMembers',
+                country,
+              }
+            };
+            JobServer(country).createJob(params, (err, res) => {
+              if (err) {
+                Logger.error({name: 'CREATE_MIGRATION_JOBS', message: {error: err.reason}});
+                throw new Meteor.Error('CREATE_TEST_JOB_FAILED', err.reason);
+              }
+              if (res) {
+                Logger.info({name: 'CREATE_MIGRATION_JOBS', message: `job run with schedule: ${params.freqText}`});
+              }
+            });
+          } else {
+            Logger.info({name: 'MIGRATION_JOBS', message: 'EXISTS'});
+          }
+        });
+      });
+    }
   }
-  
-  // test bots
-  // if(Meteor.settings.jobs.test) {
-  //   JobServer('kh').getJobs({name: 'bots'}, (err, res) => {
-  //     if(err) {
-  //       throw new Meteor.Error('GET_TEST_JOBS_FAILED', err.reason);
-  //     }
-  //     // console.log('GET JOBS', res);
-  //     if(res && _.isEmpty(res)) {
-  //       const params = {
-  //         name: 'bots',
-  //         priority: 'normal',
-  //         freqText: 'at 3:00 AM every weekday',
-  //         info: {
-  //           method: 'bots.test'
-  //         }
-  //       };
-  //       JobServer('kh').createJob(params, (err, res) => {
-  //         if(err) {
-  //           throw new Meteor.Error('CREATE_TEST_JOB_FAILED', err.reason);
-  //         }
-  //         if(res) {
-  //           console.log('CREATED_TEST_JOB', `job run with schedule: ${params.freqText}`);
-  //         }
-  //       });
-  //     } else {
-  //       console.log('TEST_JOB_EXISTS');
-  //     }
-  //   });
-  // }
 });

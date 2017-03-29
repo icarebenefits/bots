@@ -210,7 +210,7 @@ class SLAs extends Component {
                 JobServer(country).createJob({
                   name,
                   freqText: this.getScheduleText(frequency),
-                  info: {slaId}
+                  info: {method: 'bots.elastic', slaId}
                 }, (err, res) => {
                   if (err) {
                     Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
@@ -273,7 +273,7 @@ class SLAs extends Component {
           }
           else {
             if (!this._isSameFreq(oldFreq, frequency)) {
-              JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {slaId: _id}},
+              JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {method: 'bots.elastic', slaId: _id}},
                 (err, res) => {
                   if (err) {
                     Notify.error({title: 'Edit SLA', message: err.reason});
@@ -389,7 +389,7 @@ class SLAs extends Component {
       {country} = this.props;
     let message = '';
     try {
-      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {slaId}}, (err, res) => {
+      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {method: 'bots.elastic', slaId}}, (err, res) => {
         if (err) {
           Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
           return Methods.setStatus.call({_id: slaId, status: 'draft'});
