@@ -7,6 +7,11 @@ export class SelectboxGrouped extends Component {
     return this.refs.select.value;
   }
 
+  _getGroupId(e) {
+    const index = e.selectedIndex;
+    return e.options[index].parentNode.id;
+  }
+
   render() {
     const {value, defaultValue, className, handleOnChange, grpOptions} = this.props;
 
@@ -16,7 +21,7 @@ export class SelectboxGrouped extends Component {
         value={value}
         defaultValue={defaultValue}
         className={classNames('select2', className)}
-        onChange={e => handleOnChange({value: e.target.value, groupId: this.refs.optgroup.id})}
+        onChange={e => handleOnChange({value: e.target.value, groupId: this._getGroupId(this.refs.select)})}
       >
         {grpOptions.map(group => {
           const {name, label, options} = group;

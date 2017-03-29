@@ -194,8 +194,6 @@ class ScheduleBuilder extends Component {
     const {hasValidate} = this.props;
     const userTZ = `GMT ${momentTZ().tz(momentTZ.tz.guess()).format('Z')}`;
 
-    console.log('timezone', momentTZ.tz.guess())
-
     return (
       <div className="col-md-12">
         <div className="row">
