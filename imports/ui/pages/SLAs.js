@@ -354,6 +354,28 @@ class SLAs extends Component {
 
   }
 
+  _cancelSLA(id) {
+    const
+      {_id, name, status} = this.props.SLAsList[id],
+      {country} = this.props;
+    let message = '';
+    JobServer(country).cancelJob({name}, (err, res) => {
+      if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
+      else {
+        Methods.setStatus.call({_id, status: 'inactive'}, (error, result) => {
+          if (error) {
+            Notify.error({title: 'Inactivate SLA', message: error.reason});
+          }
+          else {
+            Notify.info({title: 'Inactivate SLA', message: 'success'});
+          }
+        });
+      }
+    });
+    return this.setState({mode: 'list', action: null});
+
+  }
+
   /**
    * Start SLA
    * * Used when an SLA had been save as draft (job in job server had been canceled)
@@ -525,7 +547,7 @@ class SLAs extends Component {
       }
       case 'cancel':
       {
-        return this.setState({mode: 'list', action: null});
+        return this._cancelSLA(row);
       }
       case 'remove':
       {
@@ -624,8 +646,8 @@ class SLAs extends Component {
             },
             // {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
             // {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
-            {id: 'pause', label: 'Inactive', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'resume', label: 'Active', className: 'green', handleAction: this.handleActionSLA},
+            {id: 'cancel', label: 'Inactivate', className: 'yellow', handleAction: this.handleActionSLA},
+            {id: 'start', label: 'Activate', className: 'green', handleAction: this.handleActionSLA},
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',

@@ -13,8 +13,8 @@ const ListItem = (props) => {
     hasActions = !_.isEmpty(actions)
     ;
   const status = rowData.pop().value;
-  const skipButton = (status==='paused'||status=='draft')?'Inactive':'Active';
-  console.log(skipButton);
+  const skipButton = (status === 'inactive' || status == 'draft') ? 'Inactivate' : 'Activate';
+  // console.log(skipButton);
   if (readonly) {
     return (
       <tr className="odd gradeX">
