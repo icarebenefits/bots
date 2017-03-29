@@ -9,6 +9,7 @@ import {FieldsGroups} from '/imports/api/fields';
 import {FbRequest} from '../facebook';
 import {queryBuilder, aggsBuilder} from '../query-builder';
 import format from 'string-template';
+import Methods from '../collections/slas/methods';
 
 /**
  * Function for checking operation of bot
@@ -62,14 +63,14 @@ const fistSLACheck = () => {
 const executeElastic = (slaId) => {
   const sla = SLAs.findOne({_id: slaId});
 
-  if(!_.isEmpty(sla)) {
+  if (!_.isEmpty(sla)) {
     const {name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
 
     /* validate conditions and message */
-    if(_.isEmpty(conditions)) {
+    if (_.isEmpty(conditions)) {
       throw new Meteor.Error('CONDITIONS_EMPTY');
     }
-    if(_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+    if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
       throw new Meteor.Error('MESSAGE_EMPTY');
     }
 
@@ -86,7 +87,7 @@ const executeElastic = (slaId) => {
         aggs,
         size: 0 // just need the result of total and aggregation, no need to fetch ES documents
       };
-      console.log('query', JSON.stringify(ESQuery, null, 2))
+      console.log('query', JSON.stringify(ESQuery, null, 2));
 
       const {Elastic} = require('../elastic');
 
@@ -96,14 +97,15 @@ const executeElastic = (slaId) => {
         const {elastic: {indexPrefix}, public: {env}} = Meteor.settings;
         // get index types from conditions
         const types = _.uniq(conditions.map(c => c.group));
-
+        const esType = types.indexOf(FieldsGroups.Customer.props.id) > -1 ? FieldsGroups.Customer.props.ESType : FieldsGroups.iCareMember.props.ESType;
+        // console.log(esType);
         const {hits, aggregations} = Elastic.search({
           index: `${indexPrefix}_${env}_${country}`,
-          type: "customer",
+          type: esType,
           body: ESQuery
         });
 
-        if(!_.isEmpty(aggregations)) {
+        if (!_.isEmpty(aggregations)) {
           // handle count total
           if (!_.isEmpty(hits)) {
             const vars = {};
@@ -126,6 +128,8 @@ const executeElastic = (slaId) => {
             const wpRequest = new FbRequest();
             const {personalId} = Meteor.settings.facebook;
             wpRequest.post(personalId, workplace, message);
+            Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
+
             return {
               check: true,
               notify: true,

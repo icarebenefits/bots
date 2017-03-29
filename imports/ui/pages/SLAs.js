@@ -354,6 +354,28 @@ class SLAs extends Component {
 
   }
 
+  _cancelSLA(id) {
+    const
+      {_id, name, status} = this.props.SLAsList[id],
+      {country} = this.props;
+    let message = '';
+    JobServer(country).cancelJob({name}, (err, res) => {
+      if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
+      else {
+        Methods.setStatus.call({_id, status: 'inactive'}, (error, result) => {
+          if (error) {
+            Notify.error({title: 'Inactivate SLA', message: error.reason});
+          }
+          else {
+            Notify.info({title: 'Inactivate SLA', message: 'success'});
+          }
+        });
+      }
+    });
+    return this.setState({mode: 'list', action: null});
+
+  }
+
   /**
    * Start SLA
    * * Used when an SLA had been save as draft (job in job server had been canceled)
@@ -525,7 +547,7 @@ class SLAs extends Component {
       }
       case 'cancel':
       {
-        return this.setState({mode: 'list', action: null});
+        return this._cancelSLA(row);
       }
       case 'remove':
       {
@@ -604,7 +626,7 @@ class SLAs extends Component {
           buttons: [
             {
               id: 'add',
-              className: 'sbold green',
+              className: 'bold green',
               icon: 'fa fa-plus',
               label: 'Add',
               handleOnClick: this.handleChangeMode
@@ -613,19 +635,19 @@ class SLAs extends Component {
           tools: []
         },
         list: {
-          headers: ['Name', 'Workplace', 'Frequency', 'Status'],
+          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn (UTC)'],
           data: [[]],
           readonly: true,
           actions: [
             {
-              id: 'view', label: 'View details',
+              id: 'edit', label: 'Edit',
               icon: 'fa fa-pencil', className: 'btn-primary',
               handleAction: this.handleChangeMode
             },
-            {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
-            {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
-            {id: 'pause', label: 'Pause', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'resume', label: 'Resume', handleAction: this.handleActionSLA},
+            // {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
+            // {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
+            {id: 'cancel', label: 'Inactivate', className: 'yellow', handleAction: this.handleActionSLA},
+            {id: 'start', label: 'Activate', className: 'green', handleAction: this.handleActionSLA},
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
@@ -642,6 +664,7 @@ class SLAs extends Component {
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
+      {id: 'lastExecution', type: 'input', value: s.lastExecutedAt.toISOString()},
       {id: 'status', type: 'input', value: s.status},
     ]));
 

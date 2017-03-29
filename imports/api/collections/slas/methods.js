@@ -49,6 +49,30 @@ Methods.setStatus = new ValidatedMethod({
   }
 });
 
+
+/**
+* Method set last execution of a SLA
+* @param {} name - description
+* @return {}
+*/
+Methods.setLastExecutedAt = new ValidatedMethod({
+  name: 'slas.setLastExecutedAt',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    lastExecutedAt: {
+      type: Date,
+    }
+  }).validator(),
+  run({_id, lastExecutedAt}) {
+    const
+      selector = {_id},
+      modifier = {lastExecutedAt}
+      ;
+
+    return SLAs.update(selector, {$set: modifier});
+  }
+});
+
 /**
  * Method edit a SLA
  * @param {String} _id - description

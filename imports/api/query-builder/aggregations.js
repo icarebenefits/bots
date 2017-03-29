@@ -23,7 +23,8 @@ const aggsBuilder = (aggs) => {
     }
 
     if(summaryType === 'count' && field === 'total') {
-      return {};
+      aggsQuery = aggsQuery.aggregation('stats', 'id');
+      return aggsQuery.build();
     }
 
     const {ESField} = FieldsGroups['iCareMember'].fields[field]().props;
