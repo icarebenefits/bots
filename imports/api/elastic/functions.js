@@ -5,46 +5,35 @@ import bodybuilder from 'bodybuilder';
 // elastic
 import {Elastic} from './';
 
+/**
+ * Function
+ * @param country
+ */
 const migrateICareMembers = (country = 'kh') => {
-  const
-    runDate = new Date(),
-    prefix = 'bots',
-    {env} = Meteor.settings.public,
-    suffix = moment(runDate).format('YYYY.MM.DD-HH.mm')
-    ;
+  if(Meteor.isServer) {
+    const
+      runDate = new Date(),
+      prefix = 'bots',
+      {env} = Meteor.settings.public,
+      suffix = moment(runDate).format('YYYY.MM.DD-HH.mm'),
+      {Logger} = require('/imports/api/logger')
+      ;
 
-  /* Reindex iCare members*/
-  const
-    source = {
-      index: `icare_${env}_${country}`,
-      // index: `bots_kh_stage`,
-      type: 'customer',
-    },
-    dest = {
-      index: `${prefix}-${country}-${env}-${suffix}`,
-      type: 'icare_members',
-    }
-    ;
-  try {
-    const reindex = Elastic.reindex({
-      waitForCompletion: true,
-      body: {
-        source,
-        dest,
+    /* Reindex iCare members*/
+    const
+      alias = `${prefix}_${country}_${env}`,
+      source = {
+        index: `icare_${env}_${country}`,
+        // index: `bots_kh_stage`,
+        type: 'customer',
+      },
+      dest = {
+        index: `${prefix}_${country}_${env}-${suffix}`,
+        type: 'icare_members',
       }
-    });
-
-    // reindexing success
-    // send result to slack
-    // console.log('reindex iCM success', reindex);
-    // console.log('new index', dest.index);
-
-    /* Reindex customers */
-    source.type = 'b2b_customer';
-    dest.type = 'customers';
+      ;
     try {
       const reindex = Elastic.reindex({
-        refresh: true,
         waitForCompletion: true,
         body: {
           source,
@@ -52,147 +41,182 @@ const migrateICareMembers = (country = 'kh') => {
         }
       });
 
-      // reindexing success
-      // send result to slack
-      // console.log('reindex iCM success', reindex);
-      // console.log('new index', dest.index);
-
-      /* get all clients to add into field loans of icare_members */
-      const batch = 100; // should configurable in settings
-      const
-        {index} = source,
-        type = 'm_client',
-        body = {
-          query: {
-            match_all: {}
-          },
-          size: 0
-        }
-        ;
+      /* Reindex customers */
+      source.type = 'b2b_customer';
+      dest.type = 'customers';
       try {
-        const clients = Elastic.search({
-          index,
-          type,
-          body,
+        const reindex = Elastic.reindex({
+          refresh: true,
+          waitForCompletion: true,
+          body: {
+            source,
+            dest,
+          }
         });
-        // console.log('clients', JSON.stringify(clients, null, 2));
 
-        const {hits: {total}} = clients;
-        if (total > 0) {
-          // get list of _id
-          for (let i = 0; i < total; i += batch) {
-            // body._source = false;
-            body.from = i;
-            body.size = batch;
+        /* get all clients to add into field loans of icare_members */
+        const batch = 100; // should configurable in settings
+        const
+          {index} = source,
+          type = 'm_client',
+          body = {
+            query: {
+              match_all: {}
+            },
+            size: 0
+          }
+          ;
+        try {
+          const clients = Elastic.search({
+            index,
+            type,
+            body,
+          });
 
-            // console.log('get clients', JSON.stringify(body, null, 2));
-            try {
-              const clients = Elastic.search({
-                index,
-                type,
-                body,
-              });
+          const {hits: {total}} = clients;
+          if (total > 0) {
+            /* migrate index */
+            for (let i = 0; i < total; i += batch) {
+              // body._source = false;
+              body.from = i;
+              body.size = batch;
 
-              const {hits: {hits}} = clients;
-              if (!_.isEmpty(hits)) {
-                const bulk = [];
-                hits.map(hit => {
-                  const
-                    {_id, _source} = hit,
-                    {customerId} = _source
-                    ;
-                  try {
-                    const addLoans = Elastic.update({
-                      index: dest.index,
-                      type: 'icare_members',
-                      id: customerId,
-                      body: {
-                        doc: {
-                          loans: _source
-                        }
-                      }
-                    });
-                  } catch (e) {
-                    console.log('ADD_LOANS_FAILED', {customerId, error: JSON.stringify(e, null, 2)});
-                    /* Failed */
-                    // send to slack: `${new Date()} - FAILED - NO_CLIENTS_FOUND - INDEX: ${dest.index}`
-                  }
+              try {
+                const clients = Elastic.search({
+                  index,
+                  type,
+                  body,
                 });
 
-              } else {
-                console.log('NO_CLIENTS_FETCHED', JSON.stringify(e, null, 2));
+                const {hits: {hits}} = clients;
+                if (!_.isEmpty(hits)) {
+                  hits.map(hit => {
+                    const
+                      {_id, _source} = hit,
+                      {customerId} = _source
+                      ;
+                    try {
+                      const addClient = Elastic.update({
+                        index: dest.index,
+                        type: 'icare_members',
+                        id: customerId,
+                        body: {
+                          doc: {
+                            mifos_client: _source
+                          }
+                        }
+                      });
+                    } catch (e) {
+                      /* Failed */
+                      Logger.error({name: "ADD_CLIENT", message: {customerId, error: JSON.stringify(e)}});
+                      return {error: 'ADD_CLIENT_FAILED', message: {customerId, error: JSON.stringify(e)}};
+                    }
+                  });
+
+                } else {
+                  /* Failed */
+                  Logger.error({name: "FETCH_CLIENTS", message: {error: JSON.stringify(e)}});
+                  return {error: 'FETCH_CLIENTS_FAILED', message: {error: JSON.stringify(e)}};
+                }
+              } catch (e) {
                 /* Failed */
-                // send to slack: `${new Date()} - FAILED - NO_CLIENTS_FOUND - INDEX: ${dest.index}`
+                Logger.error({name: "GET_CLIENTS", message: {error: JSON.stringify(e)}});
+                return {error: 'GET_CLIENTS_FAILED', message: {error: JSON.stringify(e)}};
               }
-            } catch (e) {
-              console.log('GET_CLIENTS_FAILED', JSON.stringify(e, null, 2));
-              /* Failed */
-              // send to slack: `${new Date()} - FAILED - NO_CLIENTS_FOUND - INDEX: ${dest.index}`
             }
+          } else {
+            /* Failed */
+            Logger.error({name: "NO_CLIENTS_FOUND", message: {error: JSON.stringify(e)}});
+            return {error: 'NO_CLIENTS_FOUND', message: {error: JSON.stringify(e)}};
           }
-        } else {
-          console.log('NO_CLIENTS_FOUND', JSON.stringify(e, null, 2));
+
+        } catch (e) {
           /* Failed */
-          // send to slack: `${new Date()} - FAILED - NO_CLIENTS_FOUND - INDEX: ${dest.index}`
+          Logger.error({name: "COUNT_CLIENTS", message: {error: JSON.stringify(e)}});
+          return {error: 'COUNT_CLIENTS_FAILED', message: {error: JSON.stringify(e)}};
+        }
+
+        /* get all of customers to add into field customer_info of icare_members */
+        /* for every batch, create a bulk update query to update the icare_members */
+        // action description
+        // { update: { _index: 'myindex', _type: 'mytype', _id: 2 } },
+        // the document to update
+        // { doc: { title: 'foo' } },
+        // try {
+        //   // execute the bulk update
+        //   // todo
+        //
+        // } catch (e) {
+        //   console.log('BULK_UPDATE_CUSTOMER_FAILED', JSON.stringify(e, null, 2));
+        //   /* Failed */
+        //   // send to slack: `${new Date()} - FAILED - BULK_UPDATE_CUSTOMER_FAILED - INDEX: ${dest.index}`
+        // }
+
+        /* Apply new index */
+        try {
+          const currentAlias = Elastic.indices.getAlias({
+            ignoreUnavailable: true,
+            name: alias,
+          });
+
+          const
+            preIndex = Object.keys(currentAlias)[0],
+            newIndex = dest.index
+            ;
+
+          try {
+            const updateAlias = Elastic.indices.updateAliases({
+              body: {
+                actions: [
+                  {add: {index: newIndex, alias}},
+                  {remove: {index: preIndex, alias}},
+                ]
+              }
+            });
+
+            /* Success */
+            Logger.info({name: "MIGRATE_ICARE_MEMBERS", message: {index: dest.index, updateAlias}});
+            return {error: 'MIGRATE_ICARE_MEMBERS_SUCCESS', message: {index: dest.index, updateAlias}};
+          } catch (e) {
+            /* Failed */
+            Logger.error({name: "UPDATE_ALIAS", message: {error: JSON.stringify(e)}});
+            return {error: 'UPDATE_ALIAS_FAILED', message: {error: JSON.stringify(e)}};
+          }
+        } catch (e) {
+          if (!_.isEmpty(dest.index) && !_.isEmpty(alias)) {
+            Logger.info({name: "CREATE_NEW_ALIAS", message: {index: dest.index, alias}});
+            try {
+              const createAlias = Elastic.indices.putAlias({
+                index: dest.index,
+                name: alias
+              });
+
+              /* Success */
+              Logger.info({name: "MIGRATE_ICARE_MEMBERS", message: {index: dest.index, createAlias}});
+              return {error: 'MIGRATE_ICARE_MEMBERS_SUCCESS', message: {index: dest.index, createAlias}};
+            } catch (e) {
+              /* Failed */
+              Logger.error({name: "CREATE_NEW_ALIAS", message: {index: dest.index, error: JSON.stringify(e)}});
+              return {error: 'CREATE_NEW_ALIAS_FAILED', message: {index: dest.index, error: JSON.stringify(e)}};
+            }
+          } else {
+            /* Failed */
+            Logger.error({name: "MIGRATE_ICARE_MEMBERS", message: {error: JSON.stringify(e)}});
+            return {error: 'MIGRATE_ICARE_MEMBERS_FAILED', message: {error: JSON.stringify(e)}};
+          }
         }
 
       } catch (e) {
-        console.log('GET_CLIENTS_FAILED', JSON.stringify(e, null, 2));
         /* Failed */
-        // send to slack: `${new Date()} - FAILED - GET_CLIENTS_FAILED - INDEX: ${dest.index}`
+        Logger.error({name: "REINDEX_CUSTOMERS", message: {error: JSON.stringify(e)}});
+        return {error: 'REINDEX_CUSTOMERS_FAILED', message: {error: JSON.stringify(e)}};
       }
-
-      /* for every batch, create a bulk update query to update the icare_members */
-      // action description
-      // { update: { _index: 'myindex', _type: 'mytype', _id: 2 } },
-      // the document to update
-      // { doc: { title: 'foo' } },
-      try {
-        // execute the bulk update
-        // todo
-
-      } catch (e) {
-        console.log('BULK_UPDATE_LOANS_FAILED', JSON.stringify(e, null, 2));
-        /* Failed */
-        // send to slack: `${new Date()} - FAILED - BULK_UPDATE_LOANS_FAILED - INDEX: ${dest.index}`
-      }
-
-
-      /* get all of customers to add into field customer_info of icare_members */
-
-      /* for every batch, create a bulk update query to update the icare_members */
-      // action description
-      // { update: { _index: 'myindex', _type: 'mytype', _id: 2 } },
-      // the document to update
-      // { doc: { title: 'foo' } },
-      try {
-        // execute the bulk update
-        // todo
-
-      } catch (e) {
-        console.log('BULK_UPDATE_CUSTOMER_FAILED', JSON.stringify(e, null, 2));
-        /* Failed */
-        // send to slack: `${new Date()} - FAILED - BULK_UPDATE_CUSTOMER_FAILED - INDEX: ${dest.index}`
-      }
-
-
-      /* Success */
-      // send to slack: `${new Date()} - SUCCESS - MIGRATE_ICARE_MEMBERS - INDEX: ${dest.index}`
-
-      /* Failed */
-      // send to slack: `${new Date()} - FAILED - MIGRATE_ICARE_MEMBERS - INDEX: ${dest.index}`
-
     } catch (e) {
-      console.log('REINDEX_CUSTOMERS_FAILED', JSON.stringify(e, null, 2));
       /* Failed */
-      // send to slack: `${new Date()} - FAILED - REINDEX_CUSTOMERS_FAILED - INDEX: ${dest.index}`
+      Logger.error({name: "REINDEX_ICARE_MEMBERS", message: {error: JSON.stringify(e)}});
+      return {error: 'REINDEX_ICARE_MEMBERS_FAILED', message: {error: JSON.stringify(e)}};
     }
-  } catch (e) {
-    console.log('REINDEX_iCMs_FAILED', JSON.stringify(e, null, 2));
-    /* Failed */
-    // send to slack: `${new Date()} - FAILED - REINDEX_iCMs_FAILED - INDEX: ${dest.index}`
   }
-
 };
 
 const Functions = {

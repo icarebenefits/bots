@@ -32,6 +32,10 @@ const Elastic = Async.wrap(ClientRaw, config.clientFunctions);
 // wrap the inner functions from Elastic client
 // Ex: indices.validateQuery or indices.open, ....
 Elastic.indices = {
+  getAlias: Meteor.wrapAsync(ClientRaw.indices.getAlias, ClientRaw),
+  putAlias: Meteor.wrapAsync(ClientRaw.indices.putAlias, ClientRaw),
+  updateAliases: Meteor.wrapAsync(ClientRaw.indices.updateAliases, ClientRaw),
+  refresh: Meteor.wrapAsync(ClientRaw.indices.refresh, ClientRaw),
   validateQuery: Meteor.wrapAsync(ClientRaw.indices.validateQuery, ClientRaw),
   open: Meteor.wrapAsync(ClientRaw.indices.open, ClientRaw)
 };

@@ -86,7 +86,6 @@ const executeElastic = (slaId) => {
         aggs,
         size: 0 // just need the result of total and aggregation, no need to fetch ES documents
       };
-      console.log('query', JSON.stringify(ESQuery, null, 2))
 
       const {Elastic} = require('../elastic');
 
@@ -98,8 +97,8 @@ const executeElastic = (slaId) => {
         const types = _.uniq(conditions.map(c => c.group));
 
         const {hits, aggregations} = Elastic.search({
-          index: `${indexPrefix}_${env}_${country}`,
-          type: "customer",
+          index: `${indexPrefix}_${country}_${env}`,
+          type: types.join(),
           body: ESQuery
         });
 
