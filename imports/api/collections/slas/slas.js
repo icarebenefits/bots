@@ -110,6 +110,9 @@ SLAs.schema = new SimpleSchema({
   "message.summaryType": {
     type: String,
   },
+  "message.group": {
+    type: String,
+  },
   "message.field": {
     type: String,
   },

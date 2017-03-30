@@ -661,7 +661,7 @@ class SLAs extends Component {
           tools: []
         },
         list: {
-          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn (UTC)'],
+          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn (GMT)'],
           data: [[]],
           readonly: true,
           actions: [
@@ -690,7 +690,7 @@ class SLAs extends Component {
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
-      {id: 'lastExecution', type: 'input', value: _.isEmpty(s.lastExecutedAt) ? '' : s.lastExecutedAt.toString()},
+      {id: 'lastExecution', type: 'input', value: _.isEmpty(s.lastExecutedAt) ? 'waiting for activation' : s.lastExecutedAt.toString()},
       {id: 'status', type: 'input', value: s.status},
     ]));
 

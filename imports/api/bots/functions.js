@@ -95,9 +95,7 @@ const executeElastic = (slaId) => {
       if (valid) {
         const {elastic: {indexPrefix}, public: {env}} = Meteor.settings;
         // get index types from conditions
-        const types = _.uniq(conditions.map(c => c.group));
-//         const esType = types.indexOf(FieldsGroups.Customer.props.id) > -1 ? FieldsGroups.Customer.props.ESType : FieldsGroups.iCareMember.props.ESType;
-        // console.log(esType);
+        const types = _.uniq(conditions.map(c => FieldsGroups[c.group].props.ESType));
         const {hits, aggregations} = Elastic.search({
           index: `${indexPrefix}_${country}_${env}`,
           type: types.join(),
@@ -105,8 +103,9 @@ const executeElastic = (slaId) => {
           body: ESQuery
         });
 
-        console.log('es query', JSON.stringify(ESQuery));
-
+        // console.log('es query', {index: `${indexPrefix}_${country}_${env}`, type: types.join(), body: JSON.stringify(ESQuery)});
+        //
+        // console.log(aggregations)
         if (!_.isEmpty(aggregations)) {
           // handle count total
           if (!_.isEmpty(hits)) {
@@ -114,15 +113,20 @@ const executeElastic = (slaId) => {
             // build message to send to workplace
             variables.map(v => {
               const {total} = hits;
-              const {summaryType, field, name} = v;
-              if (field === 'total' && summaryType === 'count') {
-                vars[name] = total > 0 ? accounting.format(total) : 'no';
+              const {summaryType, group, field, name} = v;
+
+              let
+                type = summaryType,
+                ESField = ''
+                ;
+              if (field === 'total') {
+                ESField = 'id';
               } else {
-                // handle orther type of result from aggregation
-                const {ESField} = FieldsGroups['iCareMember'].fields[field]().props;
-                const {value} = aggregations[`agg_${summaryType}_${ESField}`];
-                vars[name] = accounting.formatNumber(value, 0);
+                ESField = FieldsGroups[group].fields[field]().props.ESField;
               }
+
+              const {value} = aggregations[`agg_${type}_${ESField}`];
+              vars[name] = accounting.formatNumber(value, 0);
             });
             const message = format(`${name}: ${messageTemplate}`, vars);
 
