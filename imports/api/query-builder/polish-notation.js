@@ -15,7 +15,7 @@ operators.push(')');
  * @param conditions
  * @return {Array}
  */
-const makeExpression = (conditions) => {
+export const makeExpression = (conditions) => {
   const stack = [];
   conditions.map((condition, idx) => {
     const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
@@ -138,7 +138,7 @@ const isQueryObject = (q) => {
  * @param expression
  * @return {*}
  */
-const validateConditions = (conditions, expression) => {
+export const validateConditions = (conditions, expression) => {
   // number of open parens have to equal to number of close parens
   const noOfOpenParens = expression.filter(e => e === '(').length;
   const noOfCloseParens = expression.filter(e => e === ')').length;
