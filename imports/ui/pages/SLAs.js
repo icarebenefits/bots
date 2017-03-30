@@ -1,7 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
-import classNames from 'classnames';
+import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
 // collections
@@ -13,6 +13,8 @@ import * as Notify from '/imports/api/notifications';
 import JobServer from '/imports/api/jobs/index';
 // methods
 import Methods from '/imports/api/collections/slas/methods';
+// functions
+import {makeExpression, validateConditions} from '/imports/api/query-builder';
 // components
 import {
   ListSLAs,
@@ -43,9 +45,6 @@ class SLAs extends Component {
     // helpers
     this._addSLA = this._addSLA.bind(this);
     this._editSLA = this._editSLA.bind(this);
-    this._startSLA = this._startSLA.bind(this);
-    this._pauseSLA = this._pauseSLA.bind(this);
-    this._resumeSLA = this._resumeSLA.bind(this);
     this._removeSLA = this._removeSLA.bind(this);
     this._validateAndPreview = this._validateAndPreview.bind(this);
 
@@ -120,35 +119,59 @@ class SLAs extends Component {
                     const values = {};
                     let numOfValues = 0;
                     let hasInvalidVariable = false;
+                    let isUnused = false;
+                    let isDuplicated = false;
+                    let errMsg = '';
                     variables.map((v) => {
                       const {summaryType, field, name} =v;
                       if (messageTemplate.indexOf('{' + name + '}') >= 0) {
-                        values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
-                        numOfValues++;
+                        if (values[name] === undefined) {
+                          values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+                          numOfValues++;
+                        }
+                        else {
+                          // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
+                          errMsg = `Variable "${name}" is duplicated.`;
+                          isDuplicated = true;
+                        }
+                      }
+                      else {
+                        // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
+                        errMsg = `Variable "${name}" is not used.`;
+                        isUnused = true;
                       }
                       if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
                         hasInvalidVariable = true;
                     });
-                    if (hasInvalidVariable) {
+
+                    if (isUnused || isDuplicated) {
+                      callback({error: errMsg});
+                    } else if (hasInvalidVariable) {
                       callback({error: `Message has INVALID variable`});
                     } else if (variables.length != numOfValues || numOfValues != countLeft) {
                       callback({error: `Message template DO NOT match with given variables`});
                     } else {
-                      if (mode === 'add') {
-                        Methods.validateName.call({name, country}, (error, result) => {
-                          if (error) {
-                            callback({error: error.reason});
-                          } else {
-                            const {error} = result;
-                            if (error) {
-                              callback({error});
-                            } else {
-                              callback({});
-                            }
-                          }
-                        });
+                      // validate conditions
+                      const {error} = validateConditions(conditions, makeExpression(conditions));
+                      if (error) {
+                        callback({error});
                       } else {
-                        callback({});
+                        if (mode === 'add') {
+                          Methods.validateName.call({name, country}, (error, result) => {
+                            if (error) {
+                              callback({error: error.reason});
+                            } else {
+                              const {error} = result;
+                              if (error) {
+                                callback({error});
+                              } else {
+                                callback({});
+                              }
+                            }
+                          });
+                        } else {
+                          callback({});
+                        }
                       }
                     }
                   }
@@ -196,46 +219,50 @@ class SLAs extends Component {
     // validate SLA data
     this._validateData({SLA, mode: 'add'}, ({error}) => {
       if (error) {
-        Notify.error({title: 'Add SLA', message: error});
-        return this.setState({action: null});
-      } else {
-        Methods.create.call(SLA, (error, slaId) => {
-          if (error) {
-            Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
-            return this.setState({action: null});
-          }
-          else {
-            if (action !== 'draft') {
-              try {
-                JobServer(country).createJob({
-                  name,
-                  freqText: this.getScheduleText(frequency),
-                  info: {slaId}
-                }, (err, res) => {
-                  if (err) {
-                    Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
-                    Methods.setStatus.call({_id: slaId, status: 'draft'});
-                  }
+        if (action === 'draft') {
+          Notify.warning({title: 'Add SLA', message: error});
+        } else {
+          Notify.error({title: 'Add SLA', message: error});
+          return this.setState({action: null});
+        }
+      }
 
-                  if (action === 'execute') {
-                    // execute the SLA immediately
-                    Notify.warning({title: 'Add SLA', message: `executing SLA: ${slaId}`});
-                  }
-                  Notify.info({title: 'Add SLA', message: 'success'});
-                  return this.setState({mode: 'list', action: null});
-                });
-              } catch (e) {
-                Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
-                Methods.setStatus.call({_id: slaId, status: 'draft'});
+      Methods.create.call(SLA, (error, slaId) => {
+        if (error) {
+          Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
+          return this.setState({action: null});
+        }
+        else {
+          if (action !== 'draft') {
+            try {
+              JobServer(country).createJob({
+                name,
+                freqText: this.getScheduleText(frequency),
+                info: {method: 'bots.elastic', slaId}
+              }, (err, res) => {
+                if (err) {
+                  Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
+                  Methods.setStatus.call({_id: slaId, status: 'draft'});
+                }
+
+                if (action === 'execute') {
+                  // execute the SLA immediately
+                  Notify.warning({title: 'Add SLA', message: `executing SLA: ${slaId}`});
+                }
+                Notify.info({title: 'Add SLA', message: 'success'});
                 return this.setState({mode: 'list', action: null});
-              }
-            } else {
-              Notify.info({title: 'Add SLA', message: 'success'});
+              });
+            } catch (e) {
+              Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
+              Methods.setStatus.call({_id: slaId, status: 'draft'});
               return this.setState({mode: 'list', action: null});
             }
+          } else {
+            Notify.info({title: 'Add SLA', message: 'success'});
+            return this.setState({mode: 'list', action: null});
           }
-        });
-      }
+        }
+      });
     });
   }
 
@@ -253,7 +280,7 @@ class SLAs extends Component {
       ;
 
     const
-      status = (action === 'draft') ? action : null;
+      status = (action === 'draft') ? action : 'active';
     const
       newSLA = {_id, name, description, frequency, conditions, message, workplace, status, country}
       ;
@@ -263,39 +290,57 @@ class SLAs extends Component {
     this._validateData({SLA: newSLA, mode: 'edit'}, ({error}) => {
 
       if (error) {
-        Notify.error({title: 'Edit SLA', message: error});
-        return this.setState({action: null});
-      } else {
-        Methods.edit.call(newSLA, (error, result) => {
-          if (error) {
-            Notify.error({title: 'Edit SLA', message: error.reason});
-            return this.setState({action: null});
-          }
-          else {
-            if (!this._isSameFreq(oldFreq, frequency)) {
-              JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {slaId: _id}},
-                (err, res) => {
-                  if (err) {
-                    Notify.error({title: 'Edit SLA', message: err.reason});
-                    return this.setState({action: null});
-                  }
-                });
-            }
-            if (action === 'draft') {
-              // cancel all Jobs
-              JobServer(country).cancelJob({name},
-                (err, res) => {
-                  if (err) {
-                    Notify.error({title: 'Edit SLA', message: err.reason});
-                    return this.setState({action: null});
-                  }
-                });
-            }
-            Notify.info({title: 'Edit SLA', message: 'saved'});
-            return this.setState({mode: 'list', action: null});
-          }
-        });
+        if (action === 'draft') {
+          Notify.warning({title: 'Edit SLA', message: error});
+        } else {
+          Notify.error({title: 'Edit SLA', message: error});
+          return this.setState({action: null});
+        }
       }
+      Methods.edit.call(newSLA, (error, result) => {
+        if (error) {
+          Notify.error({title: 'Edit SLA', message: error.reason});
+          return this.setState({action: null});
+        }
+        else {
+          if (!this._isSameFreq(oldFreq, frequency)) {
+            JobServer(country).editJob({
+                name,
+                freqText: this.getScheduleText(frequency),
+                info: {method: 'bots.elastic', slaId: _id}
+              },
+              (err, res) => {
+                if (err) {
+                  Notify.error({title: 'Edit SLA', message: err.reason});
+                  return this.setState({action: null});
+                }
+              });
+          }
+          if (action === 'draft') {
+            // cancel all Jobs
+            JobServer(country).cancelJob({name},
+              (err, res) => {
+                if (err) {
+                  Notify.error({title: 'Edit SLA', message: err.reason});
+                  return this.setState({action: null});
+                }
+              });
+          } else {
+            JobServer(country).startJob({
+              name,
+              freqText: this.getScheduleText(frequency),
+              info: {method: 'bots.elastic', slaId: _id}
+            }, (err, res) => {
+              if (err) Notify.error({title: 'Start SLA', message: err.reason});
+              else {
+                Notify.info({title: 'Start SLA', message: 'success'});
+              }
+            });
+          }
+          Notify.info({title: 'Edit SLA', message: 'saved'});
+          return this.setState({mode: 'list', action: null});
+        }
+      });
     });
   }
 
@@ -304,133 +349,72 @@ class SLAs extends Component {
       {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
       {country, Workplaces} = this.props
       ;
-
     // validate SLA data
     this._validateData({SLA: {name, workplace, conditions, frequency, country, message}, mode: 'edit'}, ({error}) => {
       if (error) {
         Notify.error({title: 'Validate SLA', message: error});
         return this.setState({action: null});
-      } else {
-        Methods.validateConditions.call({conditions}, (err, res) => {
-          if (err) {
-            Notify.error({title: 'Validate conditions', message: 'Invalid.'});
-          } else if (res) {
-            Notify.info({title: 'Validate conditions', message: 'Good.'});
-          } else {
-            Notify.warning({title: 'Validate conditions', message: 'Invalid.'});
-          }
-          return this.setState({action: null});
-        });
       }
-    });
-  }
-
-  /**
-   * Pause the SLA
-   * * Update status of SLA
-   * * Send pause signal to job server to pause the job
-   * @param id
-   * @private
-   */
-  _pauseSLA(id) {
-    const
-      {_id, name, status} = this.props.SLAsList[id],
-      {country} = this.props;
-    let message = '';
-    JobServer(country).pauseJob({name}, (err, res) => {
-      if (err) Notify.error({title: 'Pause SLA', message: err.reason});
-      else {
-        Methods.setStatus.call({_id, status: 'paused'}, (error, result) => {
-          if (error) {
-            Notify.error({title: 'Pause SLA', message: error.reason});
-          }
-          else {
-            Notify.info({title: 'Pause SLA', message: 'success'});
-          }
-        });
-      }
-    });
-    return this.setState({mode: 'list', action: null});
-
-  }
-
-  /**
-   * Start SLA
-   * * Used when an SLA had been save as draft (job in job server had been canceled)
-   * * Send restart signal to job server to restart the job
-   * @param id
-   * @private
-   */
-  _startSLA(id) {
-    const
-      {_id: slaId, name, status, frequency} = this.props.SLAsList[id],
-      {country} = this.props;
-    let message = '';
-    try {
-      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {slaId}}, (err, res) => {
+      Methods.validateConditions.call({conditions}, (err, res) => {
         if (err) {
-          Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
-          return Methods.setStatus.call({_id: slaId, status: 'draft'});
+          Notify.error({title: 'Validate conditions', message: 'Invalid.'});
+        } else if (res) {
+          Notify.info({title: 'Validate conditions', message: 'Good.'});
+        } else {
+          Notify.warning({title: 'Validate conditions', message: 'Invalid.'});
         }
-        Methods.setStatus.call({_id: slaId, status: 'started'});
-        Notify.info({title: 'Start SLA', message: 'success'});
-        return this.setState({mode: 'list', action: null});
+        return this.setState({action: null});
       });
-    } catch (e) {
-      Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
-      Methods.setStatus.call({_id: slaId, status: 'draft'});
-      return this.setState({mode: 'list', action: null});
-    }
+    });
   }
 
-  /**
-   * Restart SLA
-   * * Used when an SLA had been save as draft (job in job server had been canceled)
-   * * Send restart signal to job server to restart the job
-   * @param id
-   * @private
-   */
-  _restartSLA(id) {
+  _activateSLA(id) {
+    const
+      {_id: slaId, name, frequency} = this.props.SLAsList[id],
+      {country} = this.props;
+    let message = '';
+
+    this._validateData({SLA: this.props.SLAsList[id], mode: 'list'}, ({error}) => {
+      if (error) {
+        Notify.error({title: 'Activate SLA', message: error});
+        return this.setState({action: null});
+      }
+      try {
+        JobServer(country).startJob({
+          name,
+          freqText: this.getScheduleText(frequency),
+          info: {method: 'bots.elastic', slaId}
+        }, (err, res) => {
+          if (err) {
+            Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
+            return Methods.setStatus.call({_id: slaId, status: 'draft'});
+          }
+          Methods.setStatus.call({_id: slaId, status: 'active'});
+          Notify.info({title: 'Activate SLA', message: 'success'});
+          return this.setState({mode: 'list', action: null});
+        });
+      } catch (e) {
+        Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
+        Methods.setStatus.call({_id: slaId, status: 'draft'});
+        return this.setState({mode: 'list', action: null});
+      }
+    });
+  }
+
+  _inactivateSLA(id) {
     const
       {_id, name, status} = this.props.SLAsList[id],
       {country} = this.props;
     let message = '';
-    JobServer(country).restartJob({name}, (err, res) => {
-      if (err) Notify.error({title: 'Restart SLA', message: err.reason});
+    JobServer(country).cancelJob({name}, (err, res) => {
+      if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
       else {
-        Methods.setStatus.call({_id, status: 'restarted'}, (error, result) => {
+        Methods.setStatus.call({_id, status: 'inactive'}, (error, result) => {
           if (error) {
-            Notify.error({title: 'Restart SLA', message: error.reason});
+            Notify.error({title: 'Inactivate SLA', message: error.reason});
           }
           else {
-            Notify.info({title: 'Restart SLA', message: 'success'});
-          }
-        });
-      }
-    });
-    return this.setState({mode: 'list', action: null});
-  }
-
-  /**
-   * Resume SLA
-   * * Edit status of SLA
-   * * Send resume signal to job server to resume the paused job
-   * @param id
-   * @private
-   */
-  _resumeSLA(id) {
-    const {_id, name, status} = this.props.SLAsList[id],
-      {country} = this.props;
-    let message = '';
-    JobServer(country).resumeJob({name}, (err, res) => {
-      if (err) Notify.error({title: 'Resume SLA', message: err.reason});
-      else {
-        Methods.setStatus.call({_id, status: 'resumed'}, (error, result) => {
-          if (error) {
-            Notify.error({title: 'Resume SLA', message: error.reason});
-          }
-          else {
-            Notify.info({title: 'Resume SLA', message: 'success'});
+            Notify.info({title: 'Inactivate SLA', message: 'success'});
           }
         });
       }
@@ -531,6 +515,14 @@ class SLAs extends Component {
       {
         return this._removeSLA(row);
       }
+      case 'activate':
+      {
+        return this._activateSLA(row);
+      }
+      case 'inactivate':
+      {
+        return this._inactivateSLA(row);
+      }
       case 'start':
       {
         return this._startSLA(row);
@@ -604,7 +596,7 @@ class SLAs extends Component {
           buttons: [
             {
               id: 'add',
-              className: 'sbold green',
+              className: 'bold green',
               icon: 'fa fa-plus',
               label: 'Add',
               handleOnClick: this.handleChangeMode
@@ -613,19 +605,19 @@ class SLAs extends Component {
           tools: []
         },
         list: {
-          headers: ['Name', 'Workplace', 'Frequency', 'Status'],
+          headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
           data: [[]],
           readonly: true,
           actions: [
             {
-              id: 'view', label: 'View details',
+              id: 'edit', label: 'Edit',
               icon: 'fa fa-pencil', className: 'btn-primary',
               handleAction: this.handleChangeMode
             },
-            {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
-            {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
-            {id: 'pause', label: 'Pause', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'resume', label: 'Resume', handleAction: this.handleActionSLA},
+            // {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
+            // {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
+            {id: 'inactivate', label: 'Inactivate', className: 'yellow', handleAction: this.handleActionSLA},
+            {id: 'activate', label: 'Activate', className: 'green', handleAction: this.handleActionSLA},
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
@@ -640,8 +632,15 @@ class SLAs extends Component {
 
     const dataList = SLAsList.map(s => ([
       {id: 'name', type: 'input', value: s.name},
-      {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
+      {id: 'workplace', type: 'input', value: s.workplace ? Workplaces.filter(w => w.id === s.workplace)[0].name : ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
+      {
+        id: 'lastExecution',
+        type: 'input',
+        value: s.lastExecutedAt
+          ? moment(new Date(s.lastExecutedAt)).format('LLL')
+          : (s.status === 'draft' ? 'pending' : 'waiting')
+      },
       {id: 'status', type: 'input', value: s.status},
     ]));
 
@@ -678,7 +677,7 @@ class SLAs extends Component {
       {
         actions.buttons = [
           {
-            id: 'validate', label: 'Validate & Preview',
+            id: 'validate', label: 'Validate',
             className: 'btn-info', type: 'button', handleOnClick: this.handleActionSLA
           },
           {

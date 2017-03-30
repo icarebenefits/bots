@@ -124,6 +124,7 @@ const Customer = {
     id: 'Customer',
     name: 'Customer',
     type: 'group',
+    ESType: 'customers',
   },
   fields: {
     name,

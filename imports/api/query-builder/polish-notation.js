@@ -15,7 +15,7 @@ operators.push(')');
  * @param conditions
  * @return {Array}
  */
-const makeExpression = (conditions) => {
+export const makeExpression = (conditions) => {
   const stack = [];
   conditions.map((condition, idx) => {
     const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
@@ -138,7 +138,7 @@ const isQueryObject = (q) => {
  * @param expression
  * @return {*}
  */
-const validateConditions = (conditions, expression) => {
+export const validateConditions = (conditions, expression) => {
   // number of open parens have to equal to number of close parens
   const noOfOpenParens = expression.filter(e => e === '(').length;
   const noOfCloseParens = expression.filter(e => e === ')').length;
@@ -147,11 +147,11 @@ const validateConditions = (conditions, expression) => {
   // the last condition can't have bitwise
   const e = expression[expression.length - 1];
   if(['and', 'or'].indexOf(e) > -1)
-    return {error: 'The last condition can not have bitwise operator!!'};
+    return {error: 'The last condition can not have And/Or operator!!'};
   // the number of bitwise have to be the number of conditions - 1
   const noOfBitwise = expression.filter(e => (e === 'and' || e === 'or')).length;
   if(noOfBitwise !== (conditions.length - 1))
-    return {error: 'The number of bitwise unacceptable!!'};
+    return {error: 'The number of And/Or is unacceptable!!'};
 
   return {};
 };

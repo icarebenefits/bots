@@ -26,6 +26,7 @@ class MessageBuilder extends Component {
     const {
       variables = [{
         summaryType: '',
+        group: '',
         field: '',
         name: '',
       }],
@@ -39,14 +40,9 @@ class MessageBuilder extends Component {
     };
 
     // handlers
-    this.handleComboFieldChange = this.handleComboFieldChange.bind(this);
     this.handleFieldChange = this.handleFieldChange.bind(this);
     this.handleRemoveRow = this.handleRemoveRow.bind(this);
 
-    // dialog
-    this._renderDialog = this._renderDialog.bind(this);
-    this._saveDataDialog = this._saveDataDialog.bind(this);
-    this._closeDialog = this._closeDialog.bind(this);
   }
 
   handleCheck(e) {
@@ -60,17 +56,31 @@ class MessageBuilder extends Component {
       const values = {};
       let numOfValues = 0;
       let hasInvalidVariable = false;
+      let isUnused = false;
+      let isDuplicated = false;
       variables.map((v) => {
         const {summaryType, field, name} =v;
         if (messageTemplate.indexOf('{' + name + '}') >= 0) {
-          values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
-          numOfValues++;
+          if (values[name] === undefined) {
+            values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+            numOfValues++;
+          }
+          else {
+            Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
+            isDuplicated = true;
+          }
+        }
+        else {
+          Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
+          isUnused = true;
         }
         if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
           hasInvalidVariable = true;
       });
       // console.log(values);
-      if (hasInvalidVariable) {
+      if (isUnused || isDuplicated) {
+        return;
+      } else if (hasInvalidVariable) {
         Notify.warning({title: 'Message invalid', message: 'There are INVALID variable'});
       } else if (variables.length != numOfValues || numOfValues != countLeft) {
         Notify.warning({title: 'Message invalid', message: 'Template DO NOT match with given variables'});
@@ -86,6 +96,7 @@ class MessageBuilder extends Component {
   _getDefaultVariable() {
     return {
       summaryType: '',
+      group: '',
       field: '',
       name: '',
     }
@@ -120,7 +131,12 @@ class MessageBuilder extends Component {
 
     if (key === 'field') {
       const {groupId, value: val} = value;
-      newVar = {...variable, [`${key}`]: val};
+      newVar = {...variable, [`${key}`]: val, group: groupId};
+      if (val === 'total') {
+        this.setState({disableAdd: true});
+      } else {
+        this.setState({disableAdd: false});
+      }
     } else {
       newVar = {...variable, [`${key}`]: value};
     }
@@ -133,34 +149,12 @@ class MessageBuilder extends Component {
       }
     });
 
-    this.setState({
+    return this.setState({
+      variables: newVariables,
       dialog: {
         row,
         fieldId: value
       }
-    });
-    // console.log("newVariables", newVariables);
-    return this.setState({
-      variables: newVariables
-    });
-  }
-
-  handleComboFieldChange(row, key, value) {
-    const
-      {variables} = this.state,
-      variable = variables[row];
-    let newVar = {...variable, [`${key}`]: value};
-    const newVariables = variables.map((c, i) => {
-      if (i === row) {
-        return newVar;
-      } else {
-        return c;
-      }
-    });
-
-    return this.setState({
-      variables: newVariables,
-      dialog: {}
     });
   }
 
@@ -178,83 +172,12 @@ class MessageBuilder extends Component {
   }
 
   getData() {
-    return this.state;
-  }
-
-  _saveDataDialog(action) {
-    this.setState({
-      dialog: {}
-    });
-  }
-
-  _closeDialog(newConds) {
-    if (!_.isEmpty(newConds)) {
-      this.setState({
-        dialog: {},
-        variables: newConds
-      })
-    } else {
-      this.setState({
-        dialog: {}
-      });
-    }
-  }
-
-
-  _renderDialog() {
-    const {dialog} = this.state;
-
-    if (_.isEmpty(dialog)) {
-      return null;
-    }
-
-    const
-      {dialog: {row, fieldId}, variables, values} = this.state;
-
-    if (_.isEmpty(fieldId)) {
-      return null;
-    }
-    const FieldGroup = FieldsGroups[groupId],
-      {props, fields: FieldData} = FieldGroup,
-      {fields, operators, props: {name: header}} = FieldData[fieldId](),
-      {summaryType, field, name} = variables[row]
-      ;
-
-    if (fields) {
-      // Dialog field props
-      const options = Object.keys(fields)
-          .map(f => {
-            const {id: name, name: label} = fields[f].props;
-            return {name, label};
-          })
-        ;
-      options.splice(0, 0, {name: '', label: ''}); // default option
-
-      return (
-        <Dialog
-          modal={true}
-          header={header}
-          confirmLabel="Set"
-          hasCancel={true}
-          onAction={this._saveDataDialog}
-        >
-          <div className="form-body">
-            <div className="form-group">
-              <FormInput
-                ref="field"
-                type="select"
-                options={options}
-                handleOnChange={value => this.handleComboFieldChange(row, 'field', value)}
-              />
-            </div>
-          </div>
-        </Dialog>
-      );
-    }
+    const {variables, messageTemplate,} = this.state;
+    return {variables, messageTemplate,};
   }
 
   render() {
-    const {variables, messageTemplate} = this.state;
+    const {variables, messageTemplate, disableAdd} = this.state;
     let {handlers, readonly} = this.props;
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();
@@ -268,12 +191,12 @@ class MessageBuilder extends Component {
               className="col-md-4 bold uppercase pull-left"
               value="Message: "
             />
-            {readonly
+            {(readonly)
               ? null
               : <Button
-              className="btn-default pull-right"
-              onClick={e => this._addRow(e)}
-            ><span className="fa fa-plus"></span>{' Add'}</Button>
+                className="btn-default pull-right"
+                onClick={e => this._addRow(e)}
+              ><span className="fa fa-plus"></span>{' Add'}</Button>
             }
           </div>
         </div>

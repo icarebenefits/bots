@@ -1,11 +1,13 @@
 import React, {Component, PropTypes} from 'react';
 import {later} from 'meteor/mrt:later';
+import momentTZ from 'moment-timezone';
 
 import {
   FormInput,
   Label,
   Button,
 } from '../elements';
+import Clock from '../Clock';
 import * as Notify from '/imports/api/notifications';
 
 class ScheduleBuilder extends Component {
@@ -64,7 +66,7 @@ class ScheduleBuilder extends Component {
     const
       text = this._getScheduleText(),
       {error} = later.parse.text(text);
-    if(error === -1) {
+    if (error === -1) {
       Notify.success({title: 'Schedule builder', message: `Schedule good: ${text}`});
     }
     else {
@@ -190,14 +192,27 @@ class ScheduleBuilder extends Component {
 
     const {preps, range, unit, preps2, range2} = this.state;
     const {hasValidate} = this.props;
+    const userTZ = `GMT ${momentTZ().tz(momentTZ.tz.guess()).format('Z')}`;
 
     return (
       <div className="col-md-12">
-        <Label
-          className="col-md-12 bold uppercase pull-left"
-          value={'Schedule Builder'}
-        />
-        {/* First part */}
+        <div className="row">
+          <Label
+            className="col-md-12 bold uppercase pull-left"
+            value={'Schedule Builder'}
+          />
+        </div>
+        {/* Note */}
+        <div className="row">
+          <div className="col-md-12">
+            <div className="note note-info">
+              <h4 className="block">All time for the schedule should be in GMT+0.</h4>
+              <h5 className="block">{`You are in ${userTZ}. Your current time is: `} <Button
+                className="green"><Clock /></Button></h5>
+            </div>
+          </div>
+        </div>
+        {/* Schedule */}
         <div className="row">
           <div className="col-md-2">
             <FormInput
@@ -271,6 +286,7 @@ class ScheduleBuilder extends Component {
             </div>
           )}
         </div>
+
       </div>
     );
   }

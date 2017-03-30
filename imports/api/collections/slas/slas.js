@@ -110,6 +110,9 @@ SLAs.schema = new SimpleSchema({
   "message.summaryType": {
     type: String,
   },
+  "message.group": {
+    type: String,
+  },
   "message.field": {
     type: String,
   },
@@ -133,6 +136,10 @@ SLAs.schema = new SimpleSchema({
   },
   updatedAt: {
     type: Date,
+  },
+  lastExecutedAt: {
+    type: Date,
+    optional: true
   }
 });
 

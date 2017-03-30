@@ -31,6 +31,7 @@ class SingleSLA extends Component {
       name: w.id,
       label: w.name,
     }));
+    wpOptions.splice(0, 0, {name: '', label: ''});
 
 
     if (mode === 'view') {

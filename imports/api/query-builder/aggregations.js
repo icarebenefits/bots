@@ -14,19 +14,20 @@ const aggsBuilder = (aggs) => {
   let aggsQuery = bodybuilder();
 
   aggs.map(agg => {
-    const {summaryType, field} = agg;
+    const {summaryType, group, field} = agg;
 
     /* validate aggs params */
     // summaryType
-    if(['count', 'sum', 'avg', 'max', 'min'].indexOf(summaryType) === -1) {
+    if (['value_count', 'sum', 'avg', 'max', 'min'].indexOf(summaryType) === -1) {
       return {error: `${summaryType} unsupported.`};
     }
+    let ESField = '';
 
-    if(summaryType === 'count' && field === 'total') {
-      return {};
+    if (field === 'total') {
+      ESField = 'id';
+    } else {
+      ESField = FieldsGroups[group].fields[field]().props.ESField;
     }
-
-    const {ESField} = FieldsGroups['iCareMember'].fields[field]().props;
     aggsQuery = aggsQuery.aggregation(summaryType, ESField);
   });
 

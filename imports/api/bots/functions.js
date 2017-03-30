@@ -9,6 +9,7 @@ import {FieldsGroups} from '/imports/api/fields';
 import {FbRequest} from '../facebook';
 import {queryBuilder, aggsBuilder} from '../query-builder';
 import format from 'string-template';
+import Methods from '../collections/slas/methods';
 
 /**
  * Function for checking operation of bot
@@ -62,14 +63,14 @@ const fistSLACheck = () => {
 const executeElastic = (slaId) => {
   const sla = SLAs.findOne({_id: slaId});
 
-  if(!_.isEmpty(sla)) {
+  if (!_.isEmpty(sla)) {
     const {name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
 
     /* validate conditions and message */
-    if(_.isEmpty(conditions)) {
+    if (_.isEmpty(conditions)) {
       throw new Meteor.Error('CONDITIONS_EMPTY');
     }
-    if(_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+    if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
       throw new Meteor.Error('MESSAGE_EMPTY');
     }
 
@@ -86,7 +87,6 @@ const executeElastic = (slaId) => {
         aggs,
         size: 0 // just need the result of total and aggregation, no need to fetch ES documents
       };
-      console.log('query', JSON.stringify(ESQuery, null, 2))
 
       const {Elastic} = require('../elastic');
 
@@ -95,30 +95,38 @@ const executeElastic = (slaId) => {
       if (valid) {
         const {elastic: {indexPrefix}, public: {env}} = Meteor.settings;
         // get index types from conditions
-        const types = _.uniq(conditions.map(c => c.group));
-
+        const types = _.uniq(conditions.map(c => FieldsGroups[c.group].props.ESType));
         const {hits, aggregations} = Elastic.search({
-          index: `${indexPrefix}_${env}_${country}`,
-          type: "customer",
+          index: `${indexPrefix}_${country}_${env}`,
+          type: types.join(),
+//           type: esType,
           body: ESQuery
         });
 
-        if(!_.isEmpty(aggregations)) {
+        // console.log('es query', {index: `${indexPrefix}_${country}_${env}`, type: types.join(), body: JSON.stringify(ESQuery)});
+        //
+        // console.log(aggregations)
+        if (!_.isEmpty(aggregations)) {
           // handle count total
           if (!_.isEmpty(hits)) {
             const vars = {};
             // build message to send to workplace
             variables.map(v => {
               const {total} = hits;
-              const {summaryType, field, name} = v;
-              if (field === 'total' && summaryType === 'count') {
-                vars[name] = total > 0 ? accounting.format(total) : 'no';
+              const {summaryType, group, field, name} = v;
+
+              let
+                type = summaryType,
+                ESField = ''
+                ;
+              if (field === 'total') {
+                ESField = 'id';
               } else {
-                // handle orther type of result from aggregation
-                const {ESField} = FieldsGroups['iCareMember'].fields[field]().props;
-                const {value} = aggregations[`agg_${summaryType}_${ESField}`];
-                vars[name] = accounting.formatNumber(value, 0);
+                ESField = FieldsGroups[group].fields[field]().props.ESField;
               }
+
+              const {value} = aggregations[`agg_${type}_${ESField}`];
+              vars[name] = Number(value) === 0 ? 'no' : accounting.formatNumber(value, 0);
             });
             const message = format(`${name}: ${messageTemplate}`, vars);
 
@@ -126,6 +134,8 @@ const executeElastic = (slaId) => {
             const wpRequest = new FbRequest();
             const {personalId} = Meteor.settings.facebook;
             wpRequest.post(personalId, workplace, message);
+            Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
+
             return {
               check: true,
               notify: true,
