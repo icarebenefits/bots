@@ -692,7 +692,7 @@ class SLAs extends Component {
           tools: []
         },
         list: {
-          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn'],
+          headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
           data: [[]],
           readonly: true,
           actions: [
