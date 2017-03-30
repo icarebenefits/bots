@@ -253,7 +253,7 @@ class SLAs extends Component {
       ;
 
     const
-      status = (action === 'draft') ? action : null;
+      status = (action === 'draft') ? action : 'active';
     const
       newSLA = {_id, name, description, frequency, conditions, message, workplace, status, country}
       ;
@@ -290,6 +290,17 @@ class SLAs extends Component {
                     return this.setState({action: null});
                   }
                 });
+            } else {
+              JobServer(country).startJob({
+                name,
+                freqText: this.getScheduleText(frequency),
+                info: {slaId: _id}
+              }, (err, res) => {
+                if (err) Notify.error({title: 'Start SLA', message: err.reason});
+                else {
+                  Notify.info({title: 'Start SLA', message: 'success'});
+                }
+              });
             }
             Notify.info({title: 'Edit SLA', message: 'saved'});
             return this.setState({mode: 'list', action: null});
@@ -354,7 +365,29 @@ class SLAs extends Component {
 
   }
 
-  _cancelSLA(id) {
+  _activeSLA(id) {
+    const
+      {_id: slaId, name, status, frequency} = this.props.SLAsList[id],
+      {country} = this.props;
+    let message = '';
+    try {
+      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {slaId}}, (err, res) => {
+        if (err) {
+          Notify.error({title: 'Active SLA', message: 'Setup frequency failed.'});
+          return Methods.setStatus.call({_id: slaId, status: 'draft'});
+        }
+        Methods.setStatus.call({_id: slaId, status: 'active'});
+        Notify.info({title: 'Active SLA', message: 'success'});
+        return this.setState({mode: 'list', action: null});
+      });
+    } catch (e) {
+      Notify.error({title: 'Active SLA', message: 'Setup frequency failed.'});
+      Methods.setStatus.call({_id: slaId, status: 'draft'});
+      return this.setState({mode: 'list', action: null});
+    }
+  }
+
+  _inactivateSLA(id) {
     const
       {_id, name, status} = this.props.SLAsList[id],
       {country} = this.props;
@@ -542,41 +575,38 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back':
-      {
+      case 'back': {
       }
-      case 'cancel':
-      {
-        return this._cancelSLA(row);
+      case 'cancel': {
+        return this.setState({mode: 'list', action: null});
       }
-      case 'remove':
-      {
+      case 'remove': {
         return this._removeSLA(row);
       }
-      case 'start':
-      {
+      case 'activate': {
+        return this._activeSLA(row);
+      }
+      case 'inactivate': {
+        return this._inactivateSLA(row);
+      }
+      case 'start': {
         return this._startSLA(row);
       }
-      case 'pause':
-      {
+      case 'pause': {
         return this._pauseSLA(row);
       }
-      case 'resume':
-      {
+      case 'resume': {
         return this._resumeSLA(row);
       }
-      case 'restart':
-      {
+      case 'restart': {
         return this._restartSLA(row);
       }
-      case 'validate':
-      {
+      case 'validate': {
         // Notify.info({title: 'Validate conditions', message: 'looks great.'});
         this._validateAndPreview();
         return this.setState({action});
       }
-      case 'draft':
-      {
+      case 'draft': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -584,8 +614,7 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'save':
-      {
+      case 'save': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -593,8 +622,7 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'execute':
-      {
+      case 'execute': {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -602,12 +630,10 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'edit':
-      {
+      case 'edit': {
         return this.setState({mode: action, action});
       }
-      default:
-      {
+      default: {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -646,8 +672,8 @@ class SLAs extends Component {
             },
             // {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
             // {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
-            {id: 'cancel', label: 'Inactivate', className: 'yellow', handleAction: this.handleActionSLA},
-            {id: 'start', label: 'Activate', className: 'green', handleAction: this.handleActionSLA},
+            {id: 'inactivate', label: 'Inactivate', className: 'yellow', handleAction: this.handleActionSLA},
+            {id: 'activate', label: 'Activate', className: 'green', handleAction: this.handleActionSLA},
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
@@ -694,11 +720,9 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add':
-      {
+      case 'add': {
       }
-      case 'edit':
-      {
+      case 'edit': {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
@@ -723,8 +747,7 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view':
-      {
+      case 'view': {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -737,8 +760,7 @@ class SLAs extends Component {
         ]
         break;
       }
-      default:
-      {
+      default: {
         alert(`Unknown action: ${mode}`);
       }
     }
