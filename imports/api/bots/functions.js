@@ -126,7 +126,7 @@ const executeElastic = (slaId) => {
               }
 
               const {value} = aggregations[`agg_${type}_${ESField}`];
-              vars[name] = accounting.formatNumber(value, 0);
+              vars[name] = Number(value) === 0 ? 'no' : accounting.formatNumber(value, 0);
             });
             const message = format(`${name}: ${messageTemplate}`, vars);
 

@@ -1,7 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
-import classNames from 'classnames';
+import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
 // collections
@@ -13,6 +13,8 @@ import * as Notify from '/imports/api/notifications';
 import JobServer from '/imports/api/jobs/index';
 // methods
 import Methods from '/imports/api/collections/slas/methods';
+// functions
+import {makeExpression, validateConditions} from '/imports/api/query-builder';
 // components
 import {
   ListSLAs,
@@ -134,21 +136,27 @@ class SLAs extends Component {
                     } else if (variables.length != numOfValues || numOfValues != countLeft) {
                       callback({error: `Message template DO NOT match with given variables`});
                     } else {
-                      if (mode === 'add') {
-                        Methods.validateName.call({name, country}, (error, result) => {
-                          if (error) {
-                            callback({error: error.reason});
-                          } else {
-                            const {error} = result;
-                            if (error) {
-                              callback({error});
-                            } else {
-                              callback({});
-                            }
-                          }
-                        });
+                      // validate conditions
+                      const {error} = validateConditions(conditions, makeExpression(conditions));
+                      if(error) {
+                        callback({error});
                       } else {
-                        callback({});
+                        if (mode === 'add') {
+                          Methods.validateName.call({name, country}, (error, result) => {
+                            if (error) {
+                              callback({error: error.reason});
+                            } else {
+                              const {error} = result;
+                              if (error) {
+                                callback({error});
+                              } else {
+                                callback({});
+                              }
+                            }
+                          });
+                        } else {
+                          callback({});
+                        }
                       }
                     }
                   }
@@ -273,7 +281,11 @@ class SLAs extends Component {
           }
           else {
             if (!this._isSameFreq(oldFreq, frequency)) {
-              JobServer(country).editJob({name, freqText: this.getScheduleText(frequency), info: {method: 'bots.elastic', slaId: _id}},
+              JobServer(country).editJob({
+                  name,
+                  freqText: this.getScheduleText(frequency),
+                  info: {method: 'bots.elastic', slaId: _id}
+                },
                 (err, res) => {
                   if (err) {
                     Notify.error({title: 'Edit SLA', message: err.reason});
@@ -294,7 +306,7 @@ class SLAs extends Component {
               JobServer(country).startJob({
                 name,
                 freqText: this.getScheduleText(frequency),
-                info: {slaId: _id}
+                info: {method: 'bots.elastic', slaId: _id}
               }, (err, res) => {
                 if (err) Notify.error({title: 'Start SLA', message: err.reason});
                 else {
@@ -371,7 +383,7 @@ class SLAs extends Component {
       {country} = this.props;
     let message = '';
     try {
-      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {slaId}}, (err, res) => {
+      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {method: 'bots.elastic', slaId}}, (err, res) => {
         if (err) {
           Notify.error({title: 'Active SLA', message: 'Setup frequency failed.'});
           return Methods.setStatus.call({_id: slaId, status: 'draft'});
@@ -422,7 +434,11 @@ class SLAs extends Component {
       {country} = this.props;
     let message = '';
     try {
-      JobServer(country).startJob({name, freqText: this.getScheduleText(frequency), info: {method: 'bots.elastic', slaId}}, (err, res) => {
+      JobServer(country).startJob({
+        name,
+        freqText: this.getScheduleText(frequency),
+        info: {method: 'bots.elastic', slaId}
+      }, (err, res) => {
         if (err) {
           Notify.error({title: 'Start SLA', message: 'Setup frequency failed.'});
           return Methods.setStatus.call({_id: slaId, status: 'draft'});
@@ -575,38 +591,49 @@ class SLAs extends Component {
     event.preventDefault();
 
     switch (action) {
-      case 'back': {
+      case 'back':
+      {
       }
-      case 'cancel': {
+      case 'cancel':
+      {
         return this.setState({mode: 'list', action: null});
       }
-      case 'remove': {
+      case 'remove':
+      {
         return this._removeSLA(row);
       }
-      case 'activate': {
+      case 'activate':
+      {
         return this._activeSLA(row);
       }
-      case 'inactivate': {
+      case 'inactivate':
+      {
         return this._inactivateSLA(row);
       }
-      case 'start': {
+      case 'start':
+      {
         return this._startSLA(row);
       }
-      case 'pause': {
+      case 'pause':
+      {
         return this._pauseSLA(row);
       }
-      case 'resume': {
+      case 'resume':
+      {
         return this._resumeSLA(row);
       }
-      case 'restart': {
+      case 'restart':
+      {
         return this._restartSLA(row);
       }
-      case 'validate': {
+      case 'validate':
+      {
         // Notify.info({title: 'Validate conditions', message: 'looks great.'});
         this._validateAndPreview();
         return this.setState({action});
       }
-      case 'draft': {
+      case 'draft':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -614,7 +641,8 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'save': {
+      case 'save':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -622,7 +650,8 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'execute': {
+      case 'execute':
+      {
         if (this.state.mode === 'edit') {
           this._editSLA(this.props.SLAsList[this.state.row], action);
         } else {
@@ -630,10 +659,12 @@ class SLAs extends Component {
         }
         return this.setState({action});
       }
-      case 'edit': {
+      case 'edit':
+      {
         return this.setState({mode: action, action});
       }
-      default: {
+      default:
+      {
         Notify.error({title: '', message: `Unknown action: ${action}`});
       }
     }
@@ -661,7 +692,7 @@ class SLAs extends Component {
           tools: []
         },
         list: {
-          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn (GMT)'],
+          headers: ['Name', 'Workplace', 'Frequency', 'LastExecutionOn'],
           data: [[]],
           readonly: true,
           actions: [
@@ -690,7 +721,11 @@ class SLAs extends Component {
       {id: 'name', type: 'input', value: s.name},
       {id: 'workplace', type: 'input', value: Workplaces.filter(w => w.id === s.workplace)[0].name || ''},
       {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
-      {id: 'lastExecution', type: 'input', value: _.isEmpty(s.lastExecutedAt) ? 'waiting for activation' : s.lastExecutedAt.toString()},
+      {
+        id: 'lastExecution',
+        type: 'input',
+        value: s.lastExecutedAt ? moment(new Date(s.lastExecutedAt)).format('LLL') : 'waiting'
+      },
       {id: 'status', type: 'input', value: s.status},
     ]));
 
@@ -720,9 +755,11 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add': {
+      case 'add':
+      {
       }
-      case 'edit': {
+      case 'edit':
+      {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate & Preview',
@@ -747,7 +784,8 @@ class SLAs extends Component {
         ];
         break;
       }
-      case 'view': {
+      case 'view':
+      {
         actions.buttons = [
           {
             id: 'edit', label: 'Edit',
@@ -760,7 +798,8 @@ class SLAs extends Component {
         ]
         break;
       }
-      default: {
+      default:
+      {
         alert(`Unknown action: ${mode}`);
       }
     }

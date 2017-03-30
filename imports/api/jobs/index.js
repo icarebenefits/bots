@@ -119,7 +119,6 @@ const JobServer = (country) => {
           },
           data: info
         };
-        console.log('params', params);
         server.call('controllers.start', params, (err, res) => {
           if(err) callback(err, null);
 
