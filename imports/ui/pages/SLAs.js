@@ -121,7 +121,7 @@ class SLAs extends Component {
                     let hasInvalidVariable = false;
                     let isUnused = false;
                     let isDuplicated = false;
-                    let errMsg='';
+                    let errMsg = '';
                     variables.map((v) => {
                       const {summaryType, field, name} =v;
                       if (messageTemplate.indexOf('{' + name + '}') >= 0) {
@@ -131,13 +131,13 @@ class SLAs extends Component {
                         }
                         else {
                           // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
-                          errMsg=`Variable "${name}" is duplicated.`;
+                          errMsg = `Variable "${name}" is duplicated.`;
                           isDuplicated = true;
                         }
                       }
                       else {
                         // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
-                        errMsg=`Variable "${name}" is not used.`;
+                        errMsg = `Variable "${name}" is not used.`;
                         isUnused = true;
                       }
                       if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
@@ -368,30 +368,37 @@ class SLAs extends Component {
     });
   }
 
-  _activeSLA(id) {
+  _activateSLA(id) {
     const
-      {_id: slaId, name, status, frequency} = this.props.SLAsList[id],
+      {_id: slaId, name, frequency} = this.props.SLAsList[id],
       {country} = this.props;
     let message = '';
-    try {
-      JobServer(country).startJob({
-        name,
-        freqText: this.getScheduleText(frequency),
-        info: {method: 'bots.elastic', slaId}
-      }, (err, res) => {
-        if (err) {
-          Notify.error({title: 'Active SLA', message: 'Setup frequency failed.'});
-          return Methods.setStatus.call({_id: slaId, status: 'draft'});
-        }
-        Methods.setStatus.call({_id: slaId, status: 'active'});
-        Notify.info({title: 'Active SLA', message: 'success'});
+
+    this._validateData({SLA: this.props.SLAsList[id], mode: 'list'}, ({error}) => {
+      if (error) {
+        Notify.error({title: 'Activate SLA', message: error});
+        return this.setState({action: null});
+      }
+      try {
+        JobServer(country).startJob({
+          name,
+          freqText: this.getScheduleText(frequency),
+          info: {method: 'bots.elastic', slaId}
+        }, (err, res) => {
+          if (err) {
+            Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
+            return Methods.setStatus.call({_id: slaId, status: 'draft'});
+          }
+          Methods.setStatus.call({_id: slaId, status: 'active'});
+          Notify.info({title: 'Activate SLA', message: 'success'});
+          return this.setState({mode: 'list', action: null});
+        });
+      } catch (e) {
+        Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
+        Methods.setStatus.call({_id: slaId, status: 'draft'});
         return this.setState({mode: 'list', action: null});
-      });
-    } catch (e) {
-      Notify.error({title: 'Active SLA', message: 'Setup frequency failed.'});
-      Methods.setStatus.call({_id: slaId, status: 'draft'});
-      return this.setState({mode: 'list', action: null});
-    }
+      }
+    });
   }
 
   _inactivateSLA(id) {
@@ -510,7 +517,7 @@ class SLAs extends Component {
       }
       case 'activate':
       {
-        return this._activeSLA(row);
+        return this._activateSLA(row);
       }
       case 'inactivate':
       {
