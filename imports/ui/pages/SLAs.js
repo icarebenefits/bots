@@ -122,16 +122,34 @@ class SLAs extends Component {
                     const values = {};
                     let numOfValues = 0;
                     let hasInvalidVariable = false;
+                    let isUnused = false;
+                    let isDuplicated = false;
+                    let errMsg='';
                     variables.map((v) => {
                       const {summaryType, field, name} =v;
                       if (messageTemplate.indexOf('{' + name + '}') >= 0) {
-                        values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
-                        numOfValues++;
+                        if (values[name] === undefined) {
+                          values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+                          numOfValues++;
+                        }
+                        else {
+                          // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
+                          errMsg=`Variable "${name}" is duplicated.`;
+                          isDuplicated = true;
+                        }
+                      }
+                      else {
+                        // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
+                        errMsg=`Variable "${name}" is not used.`;
+                        isUnused = true;
                       }
                       if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
                         hasInvalidVariable = true;
                     });
-                    if (hasInvalidVariable) {
+
+                    if (isUnused || isDuplicated) {
+                      callback({error: errMsg});
+                    } else if (hasInvalidVariable) {
                       callback({error: `Message has INVALID variable`});
                     } else if (variables.length != numOfValues || numOfValues != countLeft) {
                       callback({error: `Message template DO NOT match with given variables`});

@@ -56,17 +56,31 @@ class MessageBuilder extends Component {
       const values = {};
       let numOfValues = 0;
       let hasInvalidVariable = false;
+      let isUnused = false;
+      let isDuplicated = false;
       variables.map((v) => {
         const {summaryType, field, name} =v;
         if (messageTemplate.indexOf('{' + name + '}') >= 0) {
-          values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
-          numOfValues++;
+          if (values[name] === undefined) {
+            values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+            numOfValues++;
+          }
+          else {
+            Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
+            isDuplicated = true;
+          }
+        }
+        else {
+          Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
+          isUnused = true;
         }
         if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
           hasInvalidVariable = true;
       });
       // console.log(values);
-      if (hasInvalidVariable) {
+      if (isUnused || isDuplicated) {
+        return;
+      } else if (hasInvalidVariable) {
         Notify.warning({title: 'Message invalid', message: 'There are INVALID variable'});
       } else if (variables.length != numOfValues || numOfValues != countLeft) {
         Notify.warning({title: 'Message invalid', message: 'Template DO NOT match with given variables'});
@@ -180,9 +194,9 @@ class MessageBuilder extends Component {
             {(readonly)
               ? null
               : <Button
-              className="btn-default pull-right"
-              onClick={e => this._addRow(e)}
-            ><span className="fa fa-plus"></span>{' Add'}</Button>
+                className="btn-default pull-right"
+                onClick={e => this._addRow(e)}
+              ><span className="fa fa-plus"></span>{' Add'}</Button>
             }
           </div>
         </div>
