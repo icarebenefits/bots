@@ -1,71 +1,62 @@
-/* Fork from https://github.com/ryanburgess/react-clock */
-import React from 'react';
-let output;
-const SetIntervalMixin = {
-  componentWillMount() {
-    this.intervals = [];
-  },
+import React, {Component, PropTypes} from 'react';
 
-  componentWillUnmount() {
-    this.intervals.map(clearInterval);
-  },
+class Clock extends Component {
+  constructor(props) {
+    super(props);
 
-  setInterval() {
-    this.intervals.push(setInterval.apply(null, arguments));
-  }
-};
+    const currentTime = new Date();
+    this.state = {
+      hours: currentTime.getHours(),
+      minutes: currentTime.getMinutes(),
+      seconds: currentTime.getSeconds(),
+      ampm: currentTime.getHours() >= 12 ? 'PM' : 'AM'
+    };
 
-const renderTime = () => {
-  const currentTime = new Date();
-  let diem = 'AM';
-  let h = currentTime.getHours();
-  let m = currentTime.getMinutes();
-  let s = currentTime.getSeconds();
+    this._updateClock = this._updateClock.bind(this);
 
-  if (h === 0) {
-    h = 12;
-  } else if (h > 12) {
-    h = h - 12;
-    diem = 'PM';
+    this._setTimer();
   }
 
-  if (m < 10) {
-    m = '0' + m;
+  _setTimer() {
+    setTimeout(this._updateClock, 1000);
   }
-  if (s < 10) {
-    s = '0' + s;
-  }
-  output = {
-    hours: h,
-    minutes: m,
-    seconds: s,
-    diem
-  };
-  return output;
-};
 
-const Clock = React.createClass({
-  displayName: 'Clock',
-  mixins: [SetIntervalMixin],
-  getInitialState() {
-    return { time: renderTime() };
-  },
-  componentDidMount() {
-    this.setInterval(this.tick, 1000);
-  },
-  tick() {
-    renderTime();
-    this.setState({ hours: output.hours, minutes: output.minutes, seconds: output.seconds, diem: output.diem });
-  },
+  _updateClock() {
+    const currentTime = new Date();
+    this.setState({
+      hours: currentTime.getHours(),
+      minutes: currentTime.getMinutes(),
+      seconds: currentTime.getSeconds(),
+      ampm: currentTime.getHours() >= 12 ? 'PM' : 'AM'
+    }, this._setTimer);
+  }
+
   render() {
+    const {hours, minutes, seconds, ampm} = this.state;
+
     return (
-      <span className='clock'>
-        { this.state.hours }:{ this.state.minutes }:{ this.state.seconds }
-        {' '}
-        <span className='diem'>{ this.state.diem }</span>
-      </span>
+      <div className="clock">
+        {
+          hours === 0
+            ? 12
+            : (hours > 12) ? (hours - 12) : hours
+        }
+        :
+        {
+          minutes > 9 ? minutes : `0${minutes}`
+        }
+        :
+        {
+          seconds > 9 ? seconds : `0${seconds}`
+        }
+        {` ${ampm}`}
+      </div>
     );
   }
-});
+}
+
+Clock.propTypes = {
+
+};
 
 export default Clock
