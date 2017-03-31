@@ -9,7 +9,7 @@ import {
 
 const ListItem = (props) => {
   const
-    {row, readonly, rowData, actions} = props,
+    {_id, row, readonly, rowData, actions} = props,
     hasActions = !_.isEmpty(actions)
     ;
   const status = rowData.pop().value;
@@ -38,7 +38,7 @@ const ListItem = (props) => {
                     <Button
                       key={id}
                       className={classNames("btn-default", className)}
-                      onClick={e => handleAction(e, id, row)}
+                      onClick={e => handleAction(e, id, _id)}
                     ><i className={icon}/>{label}</Button>
                 );
               })}

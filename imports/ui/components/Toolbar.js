@@ -3,7 +3,7 @@ import React, {PropTypes} from 'react';
 import {Button} from './elements';
 
 const Toolbar = (props) => {
-  const {buttons, tools} = props;
+  const {buttons, tools, toolLabel} = props;
 
   return (
     <div className="table-toolbar">
@@ -27,16 +27,18 @@ const Toolbar = (props) => {
       {!_.isEmpty(tools) && (
         <div className="col-md-6">
           <div className="btn-group pull-right">
-            <button className="btn green  btn-outline dropdown-toggle" data-toggle="dropdown">Tools
+            <button
+              className="btn green  btn-outline dropdown-toggle"
+              data-toggle="dropdown">{toolLabel}
               <i className="fa fa-angle-down"/>
             </button>
             <ul className="dropdown-menu pull-right">
               {tools.map(tool => {
-                const {id, href, icon, label} = tool;
+                const {id, icon, label, handleOnChange} = tool;
                 return (
                   <li key={id}>
-                    <a href={href}>
-                      <i className={icon} />{label}</a>
+                    <a onClick={e => {e.preventDefault(); handleOnChange(id)}}>
+                      <i className={icon}/>{label}</a>
                   </li>
                 );
               })}

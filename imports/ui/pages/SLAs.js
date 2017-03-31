@@ -25,8 +25,8 @@ import {
 } from '../components';
 
 class SLAs extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       mode: 'list',
@@ -36,11 +36,14 @@ class SLAs extends Component {
       error: null,
       info: null,
       warning: null,
+      SLAsList: props.SLAsList,
+      filter: 'all',
     };
 
     // handlers
     this.handleChangeMode = this.handleChangeMode.bind(this);
     this.handleActionSLA = this.handleActionSLA.bind(this);
+    this.handleFilter = this.handleFilter.bind(this);
 
     // helpers
     this._addSLA = this._addSLA.bind(this);
@@ -58,10 +61,11 @@ class SLAs extends Component {
    * @param nextProps
    */
   componentWillReceiveProps(nextProps) {
-    const {ready, Workplaces} = nextProps;
+    const {ready, Workplaces, SLAsList} = nextProps;
     if (ready && _.isEmpty(Workplaces)) {
       Notify.warning({title: 'Workplaces', message: 'Please add at least 1 workplace.'});
     }
+    this.setState({SLAsList});
   }
 
   /**
@@ -370,11 +374,12 @@ class SLAs extends Component {
 
   _activateSLA(id) {
     const
-      {_id: slaId, name, frequency} = this.props.SLAsList[id],
+      SLA = this.props.SLAsList.filter(s => s._id === id)[0],
+      {_id: slaId, name, frequency} = SLA,
       {country} = this.props;
     let message = '';
 
-    this._validateData({SLA: this.props.SLAsList[id], mode: 'list'}, ({error}) => {
+    this._validateData({SLA, mode: 'list'}, ({error}) => {
       if (error) {
         Notify.error({title: 'Activate SLA', message: error});
         return this.setState({action: null});
@@ -403,9 +408,11 @@ class SLAs extends Component {
 
   _inactivateSLA(id) {
     const
-      {_id, name, status} = this.props.SLAsList[id],
+      {_id, name} = this.props.SLAsList.filter(s => s._id === id)[0],
       {country} = this.props;
     let message = '';
+
+    console.log('inactivate', id);
     JobServer(country).cancelJob({name}, (err, res) => {
       if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
       else {
@@ -430,7 +437,8 @@ class SLAs extends Component {
    * @private
    */
   _removeSLA(id) {
-    const {_id, name} = this.props.SLAsList[id],
+    const
+      {_id, name} = this.props.SLAsList.filter(s => s._id === id)[0],
       {country} = this.props;
     Methods.remove.call({_id}, (error, result) => {
       if (error) {
@@ -500,44 +508,25 @@ class SLAs extends Component {
    * @param row
    * @return {*}
    */
-  handleActionSLA(event, action, row) {
+  handleActionSLA(event, action, _id) {
     event.preventDefault();
 
     switch (action) {
-      case 'back':
-      {
-      }
       case 'cancel':
       {
         return this.setState({mode: 'list', action: null});
       }
       case 'remove':
       {
-        return this._removeSLA(row);
+        return this._removeSLA(_id);
       }
       case 'activate':
       {
-        return this._activateSLA(row);
+        return this._activateSLA(_id);
       }
       case 'inactivate':
       {
-        return this._inactivateSLA(row);
-      }
-      case 'start':
-      {
-        return this._startSLA(row);
-      }
-      case 'pause':
-      {
-        return this._pauseSLA(row);
-      }
-      case 'resume':
-      {
-        return this._resumeSLA(row);
-      }
-      case 'restart':
-      {
-        return this._restartSLA(row);
+        return this._inactivateSLA(_id);
       }
       case 'validate':
       {
@@ -548,7 +537,10 @@ class SLAs extends Component {
       case 'draft':
       {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], action);
+          // check sla exists here
+          // todo
+          const SLA = this.props.SLAsList.filter(s => s._id === this.state.row)[0];
+          this._editSLA(SLA, action);
         } else {
           this._addSLA(action);
         }
@@ -557,7 +549,8 @@ class SLAs extends Component {
       case 'save':
       {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], action);
+          const SLA = this.props.SLAsList.filter(s => s._id === this.state.row)[0];
+          this._editSLA(SLA, action);
         } else {
           this._addSLA(action);
         }
@@ -566,7 +559,8 @@ class SLAs extends Component {
       case 'execute':
       {
         if (this.state.mode === 'edit') {
-          this._editSLA(this.props.SLAsList[this.state.row], action);
+          const SLA = this.props.SLAsList.filter(s => s._id === this.state.row)[0];
+          this._editSLA(SLA, action);
         } else {
           this._addSLA(action);
         }
@@ -583,6 +577,33 @@ class SLAs extends Component {
     }
   }
 
+  _getSLAsList(e) {
+    const {SLAsList} = this.props;
+
+    switch (e) {
+      case 'all':
+      {
+        return this.props.SLAsList;
+      }
+      case 'active':
+      {
+        return SLAsList.filter(s => s.status === 'active');
+      }
+      case 'inactive':
+      {
+        return SLAsList.filter(s => (s.status === 'inactive' || s.status === 'draft'));
+      }
+      default:
+      {
+        return Notify.error({title: 'Filter', message: `filter ${e} is unsupported.`})
+      }
+    }
+  }
+
+  handleFilter(filter) {
+    return this.setState({filter});
+  }
+
   /**
    * Render list of SLAs when mode is list
    * @return {XML}
@@ -590,7 +611,8 @@ class SLAs extends Component {
    */
   _renderListSLAs() {
     const
-      {SLAsList, Workplaces} = this.props,
+      {Workplaces} = this.props,
+      {filter,} = this.state,
       listSLAsProps = {
         toolbar: {
           buttons: [
@@ -602,7 +624,12 @@ class SLAs extends Component {
               handleOnClick: this.handleChangeMode
             }
           ],
-          tools: []
+          toolLabel: 'Filter ',
+          tools: [
+            {id: 'all', icon: '', label: 'All', handleOnChange: this.handleFilter},
+            {id: 'active', icon: '', label: 'Active', handleOnChange: this.handleFilter},
+            {id: 'inactive', icon: '', label: 'Inactive', handleOnChange: this.handleFilter},
+          ]
         },
         list: {
           headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
@@ -614,8 +641,6 @@ class SLAs extends Component {
               icon: 'fa fa-pencil', className: 'btn-primary',
               handleAction: this.handleChangeMode
             },
-            // {id: 'start', label: 'Start', className: 'green', handleAction: this.handleActionSLA},
-            // {id: 'restart', label: 'Restart', handleAction: this.handleActionSLA},
             {id: 'inactivate', label: 'Inactivate', className: 'yellow', handleAction: this.handleActionSLA},
             {id: 'activate', label: 'Activate', className: 'green', handleAction: this.handleActionSLA},
             {
@@ -627,22 +652,29 @@ class SLAs extends Component {
           handleDoubleClick: (dataset) => {
           },
         },
-      }
-      ;
+      };
 
-    const dataList = SLAsList.map(s => ([
-      {id: 'name', type: 'input', value: s.name},
-      {id: 'workplace', type: 'input', value: s.workplace ? Workplaces.filter(w => w.id === s.workplace)[0].name : ''},
-      {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
-      {
-        id: 'lastExecution',
-        type: 'input',
-        value: s.lastExecutedAt
-          ? moment(new Date(s.lastExecutedAt)).format('LLL')
-          : (s.status === 'draft' ? 'pending' : 'waiting')
-      },
-      {id: 'status', type: 'input', value: s.status},
-    ]));
+    const SLAsList = this._getSLAsList(filter);
+
+    const dataList = SLAsList.map(s => ({
+      _id: s._id, row: [
+        {id: 'name', type: 'input', value: s.name},
+        {
+          id: 'workplace',
+          type: 'input',
+          value: s.workplace ? Workplaces.filter(w => w.id === s.workplace)[0].name : ''
+        },
+        {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
+        {
+          id: 'lastExecution',
+          type: 'input',
+          value: s.lastExecutedAt
+            ? moment(new Date(s.lastExecutedAt)).format('LLL')
+            : (s.status === 'draft' ? 'pending' : 'waiting')
+        },
+        {id: 'status', type: 'input', value: s.status},
+      ]
+    }));
 
     listSLAsProps.list.data = dataList;
 
@@ -662,7 +694,7 @@ class SLAs extends Component {
   _renderSingleSLA(mode) {
     const
       {Workplaces, SLAsList} = this.props,
-      {row} = this.state,
+      {row: _id} = this.state,
       actions = {
         buttons: [],
         position: 'col-md-offset-1 col-md-9'
@@ -724,7 +756,7 @@ class SLAs extends Component {
         ref="SLA"
         mode={mode}
         Workplaces={Workplaces}
-        SLA={SLAsList[row]}
+        SLA={SLAsList.filter(s => s._id === _id)[0]}
         actions={actions}
         getScheduleText={this.getScheduleText}
       />
