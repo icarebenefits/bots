@@ -474,7 +474,6 @@ class SLAs extends Component {
     !_.isEmpty(unit) && (preps === 'at') ? (text = `${text}:${unit}`) : (text = `${text} ${unit}`);
     !_.isEmpty(preps2) && (text = `${text} ${preps2}`);
     !_.isEmpty(range2) && (text = `${text} ${range2}`);
-    (preps === 'at' && _.isEmpty(preps2)) && (text = `${text} daily`);
 
     return text;
   }
@@ -703,7 +702,13 @@ class SLAs extends Component {
           type: 'input',
           value: s.workplace ? Workplaces.filter(w => w.id === s.workplace)[0].name : ''
         },
-        {id: 'frequency', type: 'input', value: this.getScheduleText(s.frequency)},
+        {
+          id: 'frequency',
+          type: 'input',
+          value: (s.frequency.preps === 'at' && _.isEmpty(s.frequency.preps2))
+            ? `${this.getScheduleText(s.frequency)} daily`
+            : this.getScheduleText(s.frequency)
+        },
         {
           id: 'lastExecution',
           type: 'input',
