@@ -474,6 +474,7 @@ class SLAs extends Component {
     !_.isEmpty(unit) && (preps === 'at') ? (text = `${text}:${unit}`) : (text = `${text} ${unit}`);
     !_.isEmpty(preps2) && (text = `${text} ${preps2}`);
     !_.isEmpty(range2) && (text = `${text} ${range2}`);
+    (preps === 'at' && _.isEmpty(preps2)) && (text = `${text} daily`);
 
     return text;
   }
