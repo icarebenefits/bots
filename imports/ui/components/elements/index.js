@@ -1,6 +1,7 @@
 export {default as Button} from './Button';
 export {default as Checkbox} from './Checkbox';
 export {default as Selectbox} from './Selectbox';
+export {default as SelectboxGrouped} from './SelectboxGrouped';
 export {default as Select2} from './Select2';
 export {default as Suggest} from './Suggest';
 export {default as DatePicker} from './DatePicker';

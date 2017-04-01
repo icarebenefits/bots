@@ -3,7 +3,11 @@
  */
 import React, {Component, PropTypes} from 'react';
 
+// Fields
+import {Fields, FieldsGroups} from '/imports/api/fields';
+
 import {
+  Dialog,
   FormInput,
   Label,
   Button,
@@ -11,6 +15,7 @@ import {
 import {Variable} from './Variable';
 import * as Notify from '/imports/api/notifications';
 import template from "string-template";
+import _ from 'lodash';
 
 
 class MessageBuilder extends Component {
@@ -21,49 +26,66 @@ class MessageBuilder extends Component {
     const {
       variables = [{
         summaryType: '',
+        group: '',
         field: '',
         name: '',
       }],
-      template = '',
+      messageTemplate = '',
     } = props.message;
 
     this.state = {
       variables,
-      template,
+      messageTemplate,
+      dialog: {}, // get field had been change, {row, groupId, fieldId}
     };
 
     // handlers
     this.handleFieldChange = this.handleFieldChange.bind(this);
     this.handleRemoveRow = this.handleRemoveRow.bind(this);
+
   }
 
   handleCheck(e) {
     e.preventDefault();
 
-    console.log(this.state);
-    const {variables} = this.state;
-    const message = this.refs.template.getValue();
-    const countLeft = (message.match(/{/g) || []).length;
-    const countRight = (message.match(/}/g) || []).length;
+    // console.log(this.state);
+    const {variables, messageTemplate} = this.state;
+    const countLeft = (messageTemplate.match(/{/g) || []).length;
+    const countRight = (messageTemplate.match(/}/g) || []).length;
     if (countLeft === countRight && countLeft > 0) {
       const values = {};
       let numOfValues = 0;
-      let noVariable = false;
+      let hasInvalidVariable = false;
+      let isUnused = false;
+      let isDuplicated = false;
       variables.map((v) => {
-        if (message.indexOf('{' + v.name + '}') >= 0) {
-          values[v.name] = Math.floor(Math.random() * (1000 + 1) + 12);
-          numOfValues++;
+        const {summaryType, field, name} =v;
+        if (messageTemplate.indexOf('{' + name + '}') >= 0) {
+          if (values[name] === undefined) {
+            values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+            numOfValues++;
+          }
+          else {
+            Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
+            isDuplicated = true;
+          }
         }
-        if (v.name === '')
-          noVariable = true;
+        else {
+          Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
+          isUnused = true;
+        }
+        if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
+          hasInvalidVariable = true;
       });
-      console.log(values);
-      if (noVariable) {
-        Notify.warning({title: 'Message invalid', message: 'There are NO variable'});
-      } else if (variables.length != numOfValues) {
+      // console.log(values);
+      if (isUnused || isDuplicated) {
+        return;
+      } else if (hasInvalidVariable) {
+        Notify.warning({title: 'Message invalid', message: 'There are INVALID variable'});
+      } else if (variables.length != numOfValues || numOfValues != countLeft) {
         Notify.warning({title: 'Message invalid', message: 'Template DO NOT match with given variables'});
       } else {
-        const sample = template(message, values);
+        const sample = template(messageTemplate, values);
         Notify.success({title: 'Message Sample:', message: ` "${sample}"`});
       }
     } else {
@@ -74,6 +96,7 @@ class MessageBuilder extends Component {
   _getDefaultVariable() {
     return {
       summaryType: '',
+      group: '',
       field: '',
       name: '',
     }
@@ -102,8 +125,22 @@ class MessageBuilder extends Component {
   handleFieldChange(row, key, value) {
     const
       {variables} = this.state,
-      variable = variables[row];
-    let newVar = {...variable, [`${key}`]: value};
+      variable = variables[row]
+      ;
+    let newVar = {};
+
+    if (key === 'field') {
+      const {groupId, value: val} = value;
+      newVar = {...variable, [`${key}`]: val, group: groupId};
+      if (val === 'total') {
+        this.setState({disableAdd: true});
+      } else {
+        this.setState({disableAdd: false});
+      }
+    } else {
+      newVar = {...variable, [`${key}`]: value};
+    }
+
     const newVariables = variables.map((c, i) => {
       if (i === row) {
         return newVar;
@@ -111,9 +148,13 @@ class MessageBuilder extends Component {
         return c;
       }
     });
-    // console.log("newVariables", newVariables);
+
     return this.setState({
-      variables: newVariables
+      variables: newVariables,
+      dialog: {
+        row,
+        fieldId: value
+      }
     });
   }
 
@@ -131,77 +172,86 @@ class MessageBuilder extends Component {
   }
 
   getData() {
-    return this.state;
+    const {variables, messageTemplate,} = this.state;
+    return {variables, messageTemplate,};
   }
 
   render() {
-    const {variables, template} = this.state;
+    const {variables, messageTemplate, disableAdd} = this.state;
     let {handlers, readonly} = this.props;
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();
     }
+
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="uppercase bold pull-left"
-            value="Message Builder"
-          />
-          {readonly
-            ? null
-            : <Button
-              className="btn-default pull-right"
-              onClick={e => this._addRow(e)}
-            ><span className="fa fa-plus"></span>{' Add'}</Button>
-          }
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold uppercase pull-left"
+              value="Message: "
+            />
+            {(readonly)
+              ? null
+              : <Button
+                className="btn-default pull-right"
+                onClick={e => this._addRow(e)}
+              ><span className="fa fa-plus"></span>{' Add'}</Button>
+            }
+          </div>
         </div>
         <div className="row">
-          <table className="table table-striped">
-            <thead>
-            <tr>
-              <th>summaryType</th>
-              <th>Field</th>
-              <th>Variable</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody
-            >
-            {variables.map((variable, idx) => {
-              console.log("var",variable);
-              return (
-                <Variable
-                  key={idx}
-                  id={idx}
-                  ref={`var-${idx}`}
-                  variable={variable}
-                  readonly={readonly}
-                  handlers={handlers}
-                />
-              );
-            })}
-            </tbody>
-          </table>
+          <div className="col-md-12">
+            <table className="table table-striped">
+              <thead>
+              <tr>
+                <th>Type</th>
+                <th>Field</th>
+                <th>Variable</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody
+              >
+              {variables.map((variable, idx) => {
+                return (
+                  <Variable
+                    key={idx}
+                    id={idx}
+                    ref={`var-${idx}`}
+                    variable={variable}
+                    readonly={readonly}
+                    handlers={handlers}
+                  />
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="row">
-          <Label
-            className="col-md-12 bold pull-left"
-            value="Template"
-          />
+          <div className="col-md-12">
+            <Label
+              className="col-md-4 bold pull-left"
+              value="Template"
+            />
+          </div>
+        </div>
+        <div className="row">
           <div className="col-md-8">
             {readonly ?
               <Label
                 className="col-md-8 form-control pull-left"
-                value={template}
+                value={messageTemplate}
               /> :
               <FormInput
-                ref="template"
+                ref="messageTemplate"
                 multiline={true}
                 type="text"
-                value={template}
+                value={messageTemplate}
                 className="form-control"
-                placeholder="message template"
-                handleOnChange={value => this._handleFieldChange('template', value)}
+                placeholder="message messageTemplate"
+                handleOnChange={value => this._handleFieldChange('messageTemplate', value)}
               />
             }
             <div className="">
@@ -227,10 +277,7 @@ class MessageBuilder extends Component {
 
 MessageBuilder.propTypes = {
   message: PropTypes.shape({
-    summaryType: PropTypes.string,
-    field: PropTypes.string,
-    varName: PropTypes.string,
-    template: PropTypes.string,
+    messageTemplate: PropTypes.string,
   }).isRequired,
 };
 

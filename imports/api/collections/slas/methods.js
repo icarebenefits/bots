@@ -6,6 +6,9 @@ import {IDValidator} from '/imports/utils';
 import {COUNTRIES} from '/imports/utils/defaults';
 import _ from 'lodash';
 
+// query builder
+import {queryBuilder} from '/imports/api/query-builder';
+
 const Methods = {};
 
 /**
@@ -40,6 +43,30 @@ Methods.setStatus = new ValidatedMethod({
     const
       selector = {_id},
       modifier = {status}
+      ;
+
+    return SLAs.update(selector, {$set: modifier});
+  }
+});
+
+
+/**
+* Method set last execution of a SLA
+* @param {} name - description
+* @return {}
+*/
+Methods.setLastExecutedAt = new ValidatedMethod({
+  name: 'slas.setLastExecutedAt',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    lastExecutedAt: {
+      type: Date,
+    }
+  }).validator(),
+  run({_id, lastExecutedAt}) {
+    const
+      selector = {_id},
+      modifier = {lastExecutedAt}
       ;
 
     return SLAs.update(selector, {$set: modifier});
@@ -99,6 +126,80 @@ Methods.validateName = new ValidatedMethod({
         return {error: 'SLA name is exists.'}
       } else {
         return {error: null};
+      }
+    }
+  }
+});
+
+/**
+ * Method validate Conditions of a SLA to query Elasticsearch
+ * @param {Array} conditions - sla name
+ * @return {error} - validate result
+ */
+Methods.validateConditions = new ValidatedMethod({
+  name: 'slas.validateConditions',
+  validate: new SimpleSchema({
+    conditions: {
+      type: [Object],
+    },
+    "conditions.$.not": {
+      type: Boolean,
+      optional: true,
+    },
+    "conditions.$.openParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.group": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.filter": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.field": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.operator": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.values": {
+      type: [Object],
+      optional: true,
+    },
+    "conditions.$.values.$.type": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.values.$.value": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.closeParens": {
+      type: String,
+      optional: true,
+    },
+    "conditions.$.bitwise": {
+      type: String,
+      optional: true,
+    }
+  }).validator(),
+  run({conditions}) {
+    if(!this.isSimulation) {
+      const {Elastic} = require('/imports/api/elastic');
+      const {error, query} = queryBuilder(conditions);
+      if(error) {
+        console.log(error);
+      } else {
+        // console.log(JSON.stringify(query, null, 2));
+        const result = Elastic.indices.validateQuery({body: query});
+        const {valid} = result;
+        
+        console.log('result', result);
+        return valid;
       }
     }
   }

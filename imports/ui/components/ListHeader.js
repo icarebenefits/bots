@@ -1,5 +1,7 @@
 import React, {PropTypes} from 'react';
 
+import {Search} from './common';
+
 const ListHeader = (props) => {
   const {} = props;
 
@@ -19,7 +21,7 @@ const ListHeader = (props) => {
         </div>
       </div>
       <div className="col-md-6 col-sm-6">
-        <div id="sample_1_filter" className="dataTables_filter pull-right">
+        <div className="dataTables_filter pull-right">
           <label>Search: {' '}
             <input type="search" className="form-control input-sm input-small input-inline" placeholder=""
                    aria-controls="sample_1"/>

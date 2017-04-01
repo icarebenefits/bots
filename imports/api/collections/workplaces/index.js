@@ -23,9 +23,6 @@ if (Meteor.isServer) {
 Meteor.methods({
 
   'groups.insert'({groupId, groupName, country}) {
-    console.log(groupName);
-    console.log(groupId);
-    console.log(country);
     check(groupName, String);
 
     WorkplaceGroups.insert({
@@ -39,7 +36,6 @@ Meteor.methods({
   },
 
   'groups.getName': function (groupId) {
-    console.log("groupId:", groupId);
     let result = {};
     if (!this.isSimulation) {
       const fb = new FbRequest();
@@ -64,11 +60,9 @@ Meteor.methods({
   'groups.fetchFB': (groupId) => {
     let result = {};
     if (!this.isSimulation) {
-      console.log('groupId', groupId);
       const fb = new FbRequest();
       const FBValidateSync = Meteor.wrapAsync(fb.validateAsync);
       const validateResult = FBValidateSync(groupId).body;
-      console.log('body', validateResult);
       result = validateResult;
     }
     return result;

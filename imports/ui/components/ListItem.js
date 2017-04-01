@@ -9,10 +9,12 @@ import {
 
 const ListItem = (props) => {
   const
-    {row, readonly, rowData, actions} = props,
+    {_id, row, readonly, rowData, actions} = props,
     hasActions = !_.isEmpty(actions)
     ;
-
+  const status = rowData.pop().value;
+  const skipButton = (status === 'inactive' || status === 'draft') ? 'Inactivate' : 'Activate';
+  // console.log(skipButton);
   if (readonly) {
     return (
       <tr className="odd gradeX">
@@ -28,19 +30,20 @@ const ListItem = (props) => {
         })}
         {hasActions
           ? <td>
-              <div className="btn-group">
-                {actions.map(action => {
-                  const {id, icon, label, className, handleAction} = action;
-                  return (
+            <div className="btn-group">
+              {actions.map(action => {
+                const {id, icon, label, className, handleAction} = action;
+                return (
+                  label === skipButton ? null :
                     <Button
                       key={id}
                       className={classNames("btn-default", className)}
-                      onClick={e => handleAction(e, id, row)}
+                      onClick={e => handleAction(e, id, _id)}
                     ><i className={icon}/>{label}</Button>
-                  );
-                })}
-              </div>
-            </td>
+                );
+              })}
+            </div>
+          </td>
           : null
         }
       </tr>
@@ -66,8 +69,8 @@ const ListItem = (props) => {
         })}
         {hasActions
           ? <td>
-          {actions}
-        </td>
+            {actions}
+          </td>
           : null
         }
       </tr>
