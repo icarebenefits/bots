@@ -1,5 +1,5 @@
 export {default as DashboardStat} from './DashboardStat';
-export {default as Toolbar} from './Toolbar';
+export {default as Toolbar} from './common/Toolbar';
 export {default as List} from './List';
 export {default as ListHeader} from './ListHeader';
 export {default as ListItem} from './ListItem';

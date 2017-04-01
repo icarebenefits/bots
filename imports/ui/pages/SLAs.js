@@ -4,6 +4,7 @@ import {createContainer} from 'meteor/react-meteor-data';
 import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
+import S from 'string';
 // collections
 import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 import SLAsCollection from '/imports/api/collections/slas/slas';
@@ -38,12 +39,14 @@ class SLAs extends Component {
       warning: null,
       SLAsList: props.SLAsList,
       filter: 'all',
+      search: '',
     };
 
     // handlers
     this.handleChangeMode = this.handleChangeMode.bind(this);
     this.handleActionSLA = this.handleActionSLA.bind(this);
     this.handleFilter = this.handleFilter.bind(this);
+    this.handleToolbarChange = this.handleToolbarChange.bind(this);
 
     // helpers
     this._addSLA = this._addSLA.bind(this);
@@ -409,10 +412,10 @@ class SLAs extends Component {
   _inactivateSLA(id) {
     const
       {_id, name} = this.props.SLAsList.filter(s => s._id === id)[0],
-      {country} = this.props;
+      {country} = this.props,
+      {filter} = this.state;
     let message = '';
 
-    console.log('inactivate', id);
     JobServer(country).cancelJob({name}, (err, res) => {
       if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
       else {
@@ -577,31 +580,65 @@ class SLAs extends Component {
     }
   }
 
-  _getSLAsList(e) {
-    const {SLAsList} = this.props;
+  _getSLAsList(filter, search) {
+    const {Workplaces, SLAsList} = this.props;
+    let list = [];
 
-    switch (e) {
+    // filter with type
+    switch (filter) {
       case 'all':
       {
-        return this.props.SLAsList;
+        list = SLAsList;
+        break;
       }
       case 'active':
       {
-        return SLAsList.filter(s => s.status === 'active');
+        list = SLAsList.filter(s => s.status === 'active');
+        break;
       }
       case 'inactive':
       {
-        return SLAsList.filter(s => (s.status === 'inactive' || s.status === 'draft'));
+        list = SLAsList.filter(s => (s.status === 'inactive' || s.status === 'draft'));
+        break;
       }
       default:
       {
-        return Notify.error({title: 'Filter', message: `filter ${e} is unsupported.`})
+        list = SLAsList;
       }
     }
+
+    // filter with search text
+    // fields search: name, workplace, frequency, last execution
+    if (!_.isEmpty(search)) {
+      list = list
+        .filter(s => {
+          const
+            {name, workplace, frequency, lastExecutedAt} = s,
+            wp = Workplaces.filter(w => w.id === s.workplace)
+          let
+            wpName = '';
+          if (!_.isEmpty(wp)) {
+            wpName = wp[0].name
+          }
+
+          return (
+            S(name.toLowerCase()).contains(search)
+            || S(wpName.toLowerCase()).contains(search)
+            || S(this.getScheduleText(frequency).toLowerCase()).contains(search)
+            || S(moment(new Date(lastExecutedAt)).format('LLL').toLowerCase()).contains(search)
+          );
+        });
+    }
+
+    return list;
   }
 
   handleFilter(filter) {
     return this.setState({filter});
+  }
+
+  handleToolbarChange(type, value) {
+    return this.setState({search: value.toLowerCase()});
   }
 
   /**
@@ -612,7 +649,7 @@ class SLAs extends Component {
   _renderListSLAs() {
     const
       {Workplaces} = this.props,
-      {filter,} = this.state,
+      {filter, search} = this.state,
       listSLAsProps = {
         toolbar: {
           buttons: [
@@ -624,12 +661,14 @@ class SLAs extends Component {
               handleOnClick: this.handleChangeMode
             }
           ],
-          toolLabel: 'Filter ',
+          toolLabel: `${S(filter).capitalize().s} SLAs `,
           tools: [
             {id: 'all', icon: '', label: 'All', handleOnChange: this.handleFilter},
             {id: 'active', icon: '', label: 'Active', handleOnChange: this.handleFilter},
             {id: 'inactive', icon: '', label: 'Inactive', handleOnChange: this.handleFilter},
-          ]
+          ],
+          hasSearch: true,
+          handleOnChange: this.handleToolbarChange,
         },
         list: {
           headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
@@ -654,9 +693,8 @@ class SLAs extends Component {
         },
       };
 
-    const SLAsList = this._getSLAsList(filter);
-
-    const dataList = SLAsList.map(s => ({
+    const list = this._getSLAsList(filter, search);
+    listSLAsProps.list.data = list.map(s => ({
       _id: s._id, row: [
         {id: 'name', type: 'input', value: s.name},
         {
@@ -675,8 +713,6 @@ class SLAs extends Component {
         {id: 'status', type: 'input', value: s.status},
       ]
     }));
-
-    listSLAsProps.list.data = dataList;
 
     return (
       <ListSLAs
