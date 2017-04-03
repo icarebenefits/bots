@@ -48,3 +48,8 @@ import '/imports/api/bots';
  * Query builder
  */
 import '/imports/api/query-builder';
+
+/**
+ * OLAP
+ */
+import '/imports/api/olap';
