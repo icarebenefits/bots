@@ -351,7 +351,7 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
       size: 0,
     });
 
-    console.log('total business units', total);
+    // console.log('total business units', total);
 
     if (total > 0) {
       /* get icare members for all business units */
@@ -367,7 +367,7 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
             body,
           });
 
-          console.log('BUs', BUs);
+          // console.log('BUs', BUs);
 
           BUs.map(bu => {
             const {_id} = bu;
@@ -384,8 +384,9 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
                 type,
                 body,
               });
-              console.log('bu _id', _id, 'total icms', total)
+              // console.log('bu _id', _id, 'total icms', total)
               if (total > 0) {
+                let iCMs = [];
                 for (let i = 0; i < total; i += batches) {
                   body.from = i;
                   body.size = batches;
@@ -396,36 +397,36 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
                     body,
                   });
 
-                  console.log('icms', hits);
+                  hits.map(({_source}) => {
+                    iCMs.push(_source);
+                  });
+                }
 
-                  const iCMs = hits.map(({_source}) => {
-                    return _source;
+                // console.log('update', {index, type, id: _id, body: {doc: {icare_members: JSON.stringify(iCMs), length: iCMs.length}}});
+                console.log('BU', _id, 'iCMs', iCMs.length);
+                try {
+                  const {index, type} = dest;
+                  const addiCMs = Elastic.update({
+                    index,
+                    type,
+                    id: _id,
+                    body: {
+                      doc: {
+                        icare_members: iCMs
+                      }
+                    }
                   });
 
-                  try {
-                    const {index, type} = dest;
-                    const addiCMs = Elastic.update({
-                      index,
-                      type,
-                      id: _id,
-                      body: {
-                        doc: {
-                          icare_members: iCMs
-                        }
-                      }
-                    });
+                  Logger.info({name: action, message: JSON.stringify(addiCMs)});
 
-                    Logger.info({name: action, message: JSON.stringify(addiCMs)});
-
-                  } catch (e) {
-                    /* Failed */
-                    Logger.warn({name: action, message: JSON.stringify(e)});
-                  }
+                } catch (e) {
+                  /* Failed */
+                  Logger.warn({name: action, message: JSON.stringify(e), action: 'addiCMs'});
                 }
               } else {
                 Logger.warn({
                   name: action,
-                  message: JSON.stringify({index, type, body})
+                  message: JSON.stringify({index, type, body, reason: 'no document found'})
                 });
               }
             } catch (e) {
@@ -444,6 +445,58 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
     } else {
       return {result: {name: action, message: JSON.stringify({total})}};
     }
+  } catch (e) {
+    /* Failed */
+    return {error: {name: action, message: JSON.stringify(e)}};
+  }
+};
+
+/**
+ * Function test sync data
+ * @param source
+ * @param dest
+ * @param script
+ * @param options
+ */
+const testSync = ({source, dest, script, options}) => {
+  const action = 'testSync';
+
+  /* get total business units */
+  const
+    {index, type} = dest,
+    body = {
+      query: {
+        match_all: {}
+      }
+    };
+
+  try {
+    const {hits: {total}} = Elastic.search({
+      index,
+      type,
+      body,
+      size: 0,
+    });
+
+
+    if (total > 0) {
+      const _id = '3390';
+      const {index, type} = source,
+        body = bodybuilder()
+          .query('term', 'netsuite_business_unit_id', _id)
+          .build()
+      ;
+
+      const {hits: {total}} = Elastic.search({
+        index,
+        type,
+        body,
+      });
+
+      console.log('total icare members of bu', _id, total);
+    }
+    // Finish sync
+    return {result: {name: action, message: JSON.stringify({result})}};
   } catch (e) {
     /* Failed */
     return {error: {name: action, message: JSON.stringify(e)}};
@@ -622,6 +675,7 @@ const customers = ({country}) => {
                   type: 'business_units',
                 };
               const {error, result} = syncIcareMembersIntoBusinessUnits({source, dest});
+              // const {error, result} = testSync({source, dest});
               if (error) {
                 /* failed */
                 Logger.error({
@@ -651,7 +705,6 @@ const customers = ({country}) => {
             }
           }
         }
-
 
 
         /* sync business units basic information */
