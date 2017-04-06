@@ -412,7 +412,8 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
                     id: _id,
                     body: {
                       doc: {
-                        icare_members: iCMs
+                        number_icare_members: iCMs.length,
+                        icare_members: iCMs,
                       }
                     }
                   });
