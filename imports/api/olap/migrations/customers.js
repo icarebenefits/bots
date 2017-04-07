@@ -401,9 +401,7 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
                     iCMs.push(_source);
                   });
                 }
-
-                // console.log('update', {index, type, id: _id, body: {doc: {icare_members: JSON.stringify(iCMs), length: iCMs.length}}});
-                console.log('BU', _id, 'iCMs', iCMs.length);
+                
                 try {
                   const {index, type} = dest;
                   const addiCMs = Elastic.update({
