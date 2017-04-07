@@ -324,6 +324,12 @@ const syncIcareMembersMifosInfo = ({source, dest}) => {
   }
 };
 
+const syncIcareMembersMagentoInfo = ({source, dest}) => {
+  const action = 'syncIcareMembersMagentoInfo';
+
+
+};
+
 /**
  * Function sync iCare Members into Business Units
  * @param source
@@ -411,7 +417,7 @@ const syncIcareMembersIntoBusinessUnits = ({source, dest}) => {
                     body: {
                       doc: {
                         number_icare_members: iCMs.length,
-                        icare_members: iCMs,
+                        total_icare_members: iCMs,
                       }
                     }
                   });
@@ -663,44 +669,55 @@ const customers = ({country}) => {
                 message: {runTime: `${getRunTime(runDate)} seconds`, result: JSON.stringify(result)}
               });
 
-              /* sync icare members into business units */
-              const
-                source = {
-                  index: newIndex,
-                  type: 'icare_members',
-                },
-                dest = {
-                  index: newIndex,
-                  type: 'business_units',
-                };
-              const {error, result} = syncIcareMembersIntoBusinessUnits({source, dest});
-              // const {error, result} = testSync({source, dest});
-              if (error) {
+              /* sync icare members magento info */
+              const {error, result} = syncIcareMembersMagentoInfo({source, dest});
+              if(error) {
                 /* failed */
-                Logger.error({
-                  name: 'MIGRATE_CUSTOMERS.syncIcareMembersIntoBusinessUnits',
-                  message: {runTime: `${getRunTime(runDate)} seconds`, error: JSON.stringify(error)}
-                });
-                return {
-                  error: {
-                    name: 'MIGRATE_CUSTOMERS.syncIcareMembersIntoBusinessUnits',
-                    message: {runTime: `${getRunTime(runDate)} seconds`, error: JSON.stringify(error)}
-                  }
-                };
+                // call handle sync failed
               } else {
                 /* success */
-                Logger.info({
-                  name: 'syncIcareMembersIntoBusinessUnits',
-                  message: {runTime: `${getRunTime(runDate)} seconds`, result: JSON.stringify(result)}
-                });
+                // call handle sync notification
 
-                return {
-                  result: {
-                    name: 'MIGRATE_CUSTOMERS',
+                /* sync icare members into business units */
+                const
+                  source = {
+                    index: newIndex,
+                    type: 'icare_members',
+                  },
+                  dest = {
+                    index: newIndex,
+                    type: 'business_units',
+                  };
+                const {error, result} = syncIcareMembersIntoBusinessUnits({source, dest});
+                // const {error, result} = testSync({source, dest});
+                if (error) {
+                  /* failed */
+                  Logger.error({
+                    name: 'MIGRATE_CUSTOMERS.syncIcareMembersIntoBusinessUnits',
+                    message: {runTime: `${getRunTime(runDate)} seconds`, error: JSON.stringify(error)}
+                  });
+                  return {
+                    error: {
+                      name: 'MIGRATE_CUSTOMERS.syncIcareMembersIntoBusinessUnits',
+                      message: {runTime: `${getRunTime(runDate)} seconds`, error: JSON.stringify(error)}
+                    }
+                  };
+                } else {
+                  /* success */
+                  Logger.info({
+                    name: 'syncIcareMembersIntoBusinessUnits',
                     message: {runTime: `${getRunTime(runDate)} seconds`, result: JSON.stringify(result)}
-                  }
-                };
+                  });
+
+                  return {
+                    result: {
+                      name: 'MIGRATE_CUSTOMERS',
+                      message: {runTime: `${getRunTime(runDate)} seconds`, result: JSON.stringify(result)}
+                    }
+                  };
+                }
               }
+
             }
           }
         }
