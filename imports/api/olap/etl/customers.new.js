@@ -51,6 +51,9 @@ const customers = ({country}) => {
     script = {},
     options = {refresh: true, waitForCompletion: true};
 
+  /**
+   * Reindex basic info of customers, business units, icare members, sales orders
+   */
   /* Customers - basic info */
   actions = ['customers', 'basic'];
   source = {
@@ -113,12 +116,45 @@ const customers = ({country}) => {
   script = {};
   const reindexSOs = ETL.reindex({actions, source, dest, script, options});
 
+  /**
+   * ETL nested data into parents
+   */
+  /* iCare members - sales orders */
+  const etlSOs = ETL.etlSalesOrders({indices});
+
+  /* iCare members - tickets */
+  const etlTicketsICMs = ETL.etlTicketsICMs({indices});
+
+  /* iCare members - mifos */
+  const etlMifos = ETL.etlMifos({indices});
+  
+  /* Business units - iCare members */
+  const etlICMs = ETL.etlICMs({indices});
+
+  /* Customers - Tickets */
+  // cant import cause data in magento have no 
+  const etlTicketsCustomers = ETL.etlTicketsCustomers({indices});
+
+  /* Customers - Business units */
+  const etlBusinessUnits = ETL.etlBusinessUnits({indices});
+
   // stdout
+  console.log('----- indices -----');
   console.log('indices', JSON.stringify(indices, null, 2));
+
+  console.log('----- reindex -----');
   console.log('reindexCustomers', JSON.stringify(reindexCustomers, null, 2));
   console.log('reindexBUs', JSON.stringify(reindexBUs, null, 2));
   console.log('reindexICMs', JSON.stringify(reindexICMs, null, 2));
   console.log('reindexSOs', JSON.stringify(reindexSOs, null, 2));
+
+  console.log('----- ETL -----');
+  console.log('etlSOs', JSON.stringify(etlSOs, null, 2));
+  console.log('etlTicketsICMs', JSON.stringify(etlTicketsICMs, null, 2));
+  console.log('etlMifos', JSON.stringify(etlMifos, null, 2));
+  console.log('etlICMs', JSON.stringify(etlICMs, null, 2));
+  console.log('etlTicketsCustomers', JSON.stringify(etlTicketsCustomers, null, 2));
+  console.log('etlBusinessUnits', JSON.stringify(etlBusinessUnits, null, 2));
 
 };
 
