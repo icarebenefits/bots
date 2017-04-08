@@ -133,7 +133,7 @@ const customers = ({country}) => {
 
   /* Customers - Tickets */
   // cant import cause data in magento have no 
-  const etlTicketsCustomers = ETL.etlTicketsCustomers({indices});
+  // const etlTicketsCustomers = ETL.etlTicketsCustomers({indices});
 
   /* Customers - Business units */
   const etlBusinessUnits = ETL.etlBusinessUnits({indices});
@@ -153,7 +153,7 @@ const customers = ({country}) => {
   console.log('etlTicketsICMs', JSON.stringify(etlTicketsICMs, null, 2));
   console.log('etlMifos', JSON.stringify(etlMifos, null, 2));
   console.log('etlICMs', JSON.stringify(etlICMs, null, 2));
-  console.log('etlTicketsCustomers', JSON.stringify(etlTicketsCustomers, null, 2));
+  // console.log('etlTicketsCustomers', JSON.stringify(etlTicketsCustomers, null, 2));
   console.log('etlBusinessUnits', JSON.stringify(etlBusinessUnits, null, 2));
 
 };

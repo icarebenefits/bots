@@ -56,14 +56,14 @@ const handleResponse = (res, mess) => {
     /* Failed */
     // log into file
     Logger.error(error);
-    Logger.error(mess);
+    if (mess) Logger.error(mess);
     // send notification (to slack or workplace)
     // todo
   } else {
     /* Success */
     // log into file
     Logger.info(result);
-    Logger.info(mess);
+    if (mess) Logger.info(mess);
     // send notification (to slack or workplace)
     // todo
   }
@@ -175,8 +175,6 @@ const etl = ({actions, source, dest, key, field, removedFields, options = {batch
 
   // get distinct list of key from source
   let keys = new Set(); // only store the uniq of key
-  let arr = [];
-  let count = 0;
   for (let i = 0; i < totalSourceDocs; i += batches) {
     body.from = i;
     body.size = batches;
@@ -188,11 +186,7 @@ const etl = ({actions, source, dest, key, field, removedFields, options = {batch
         body,
       });
 
-      hits.map(({_source}) => {
-        keys.add(_source[key]);
-        arr.push(_source[key]);
-        count++;
-      });
+      hits.map(({_source}) => keys.add(_source[key]));
     } catch (e) {
       const
         runTime = getRunTime(start),
@@ -234,14 +228,14 @@ const etl = ({actions, source, dest, key, field, removedFields, options = {batch
           const {hits: {hits}} = Elastic.search({index, type, body});
           hits.map(({_source}) => {
             const src = _source;
-            if(!_.isEmpty(removedFields)) {
+            if (!_.isEmpty(removedFields)) {
               removedFields.map(f => {
                 delete src[f];
               });
             }
             doc[field].push(src);
           });
-        } catch(e) {
+        } catch (e) {
           const
             runTime = getRunTime(start),
             res = {error: {name: getName([name, `get_all_source_of_${id}`]), message: getMessage(e)}},
@@ -335,118 +329,59 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
     return {result, runTime};
   }
 
-  // get distinct list of key from source
-  let keys = new Set(); // only store the uniq of key
-  let arr = [];
-  let count = 0;
   for (let i = 0; i < totalSourceDocs; i += batches) {
     body.from = i;
     body.size = batches;
 
     try {
-      const {hits: {hits}} = Elastic.search({
-        index,
-        type,
-        body,
-      });
-
+      const {hits: {hits}} = Elastic.search({index, type, body});
       hits.map(({_source}) => {
-        keys.add(_source[key]);
-        arr.push(_source[key]);
-        count++;
-      });
-    } catch (e) {
-      const
-        runTime = getRunTime(start),
-        res = {error: {name: getName([name, 'get_list_of_keys_from_source']), message: getMessage(e)}},
-        mess = {runTime, message: getMessage({index, type, body})};
-      handleResponse(res, mess);
-    }
-  }
+        console.log(_source);
+        const
+          id = _source[key],
+          doc = {};
 
-  keys = Array.from(keys);
-  if (_.isEmpty(keys)) {
-    // finish adding field cause no source keys found
-    const
-      runTime = getRunTime(start),
-      result = {name: getName([name, 'no source keys found']), message: getMessage(stats)};
-    return {result, runTime};
-  }
+        // get data for fields
+        Object.keys(fields).map(f => {
+          doc[f] = _source[fields[f]];
+          // add total field
+          // doc[`total_${f}`] = doc[f].length;
+        });
 
-  // get source for every key
-  keys.map(id => {
-    // get all source's docs which match the dest id
-    const
-      {index, type} = source,
-      body = bodybuilder()
-        .query('term', key, id)
-        .size(0)
-        .build();
-    let doc = {};
+        stats.push(id);
 
-    try {
-      const {hits: {total}} = Elastic.search({index, type, body,});
-
-      // initiate fields data
-      Object.keys(fields).map(f => doc[f] = []);
-      for (let i = 0; i < total; i += batches) {
-        body.from = i;
-        body.size = batches;
-
+        // add fields into dest id
         try {
-          const {hits: {hits}} = Elastic.search({index, type, body});
-          hits.map(({_source}) => {
-            // fields into updated doc
-            Object.keys(fields).map(f => {
-              const srcField = fields[f];
-              doc[f] = _source[srcField];
-            });
+          const {index, type} = dest;
+          const addFields = Elastic.update({
+            index,
+            type,
+            id: id,
+            body: {doc}
           });
-        } catch(e) {
+
           const
             runTime = getRunTime(start),
-            res = {error: {name: getName([name, `get_all_source_of_${id}`]), message: getMessage(e)}},
-            mess = {runTime, message: getMessage({index, type, body})};
+            res = {result: {name: getName([name, `update/${id}`]), message: getMessage(addFields)}},
+            mess = {runTime, message: getMessage({index, type, body, doc})};
+          handleResponse(res, mess);
+        } catch (e) {
+          const
+            runTime = getRunTime(start),
+            res = {error: {name: getName([name, `update/${id}`]), message: getMessage(e)}},
+            mess = {runTime, message: getMessage({index, type, body, doc})};
           handleResponse(res, mess);
         }
-      }
+      });
+      console.log('count', count);
     } catch (e) {
       const
         runTime = getRunTime(start),
-        res = {error: {name: getName([name, `get_all_source_of_${id}`]), message: getMessage(e)}},
+        res = {error: {name: getName([name, 'get_source_docs']), message: getMessage(e)}},
         mess = {runTime, message: getMessage({index, type, body})};
       handleResponse(res, mess);
     }
-
-    // add total field
-    doc[`total_${field}`] = doc[field].length;
-    // add stats of field
-    stats.push({[`${id}`]: doc[field].length});
-
-    // add field into dest id
-    try {
-      const {index, type} = dest;
-
-      const addField = Elastic.update({
-        index,
-        type,
-        id: id,
-        body: {doc}
-      });
-
-      const
-        runTime = getRunTime(start),
-        res = {result: {name: getName([name, `update/${id}`]), message: getMessage(addField)}},
-        mess = {runTime, message: getMessage({index, type, body, doc})};
-      handleResponse(res, mess);
-    } catch (e) {
-      const
-        runTime = getRunTime(start),
-        res = {error: {name: getName([name, `update/${id}`]), message: getMessage(e)}},
-        mess = {runTime, message: getMessage({index, type, body, doc})};
-      handleResponse(res, mess);
-    }
-  });
+  }
 
   return {result: {name, message: getMessage(stats)}};
 
@@ -668,18 +603,6 @@ const etlBusinessUnits = ({indices}) => {
   return {...result, runTime};
 };
 
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlCustomers = () => {
-
-};
-
 const ETL = {
   reindex,
   etl,
@@ -691,7 +614,6 @@ const ETL = {
   etlICMs,
   etlBusinessUnits,
   etlTicketsCustomers,
-  etlCustomers,
 };
 
 export default ETL
