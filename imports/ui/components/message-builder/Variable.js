@@ -7,13 +7,9 @@ import {
   Selectbox,
   SelectboxGrouped,
   FormInput,
-  Label,
   Button,
 } from '../elements';
-import {
-  Fields,
-  FieldsGroups
-} from '/imports/api/fields';
+import {FieldsGroups} from '/imports/api/fields';
 
 export class Variable extends Component {
 
@@ -53,7 +49,7 @@ export class Variable extends Component {
     const
       {
         id,
-        variable: {summaryType = '', group = '', field = '', name = ''},
+        variable: {summaryType = '', field = '', name = ''},
         handlers: {
           handleFieldChange,
           handleRemoveRow,

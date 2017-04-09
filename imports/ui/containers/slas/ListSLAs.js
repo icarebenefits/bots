@@ -1,15 +1,13 @@
-import React, {Component, PropTypes} from 'react';
+import React, {PropTypes} from 'react';
 
 // components
 import {
   List,
   Toolbar,
-  ListHeader,
-  ListFooter
 } from '../../components';
 
 const ListSLAs = (props) => {
-  const {toolbar, list, handleChangeMode, handleActionSLA} = props;
+  const {toolbar, list} = props;
 
   return (
     <div className="col-md-12">

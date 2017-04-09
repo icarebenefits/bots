@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
 import _ from 'lodash';
@@ -10,6 +11,7 @@ import {FbRequest} from '../facebook';
 import {queryBuilder, aggsBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';
+import {Elastic} from '../elastic';
 
 /**
  * Function for checking operation of bot
@@ -25,7 +27,7 @@ const fistSLACheck = () => {
   let message = '';
 
   // check result
-  const {took, timed_out, hits: {total, hits: data}} = Elastic.search({
+  const {hits: {total}} = Elastic.search({
     index,
     type,
     body,
@@ -112,7 +114,7 @@ const executeElastic = (slaId) => {
             const vars = {};
             // build message to send to workplace
             variables.map(v => {
-              const {total} = hits;
+              // const {total} = hits;
               const {summaryType, group, field, name} = v;
 
               let

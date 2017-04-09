@@ -21,8 +21,6 @@ import '/imports/api/fields';
 /**
  * Modules
  */
-// node-rules
-import '/imports/api/node_rules/register-server';
 // workplaces
 import '/imports/api/facebook/index';
 

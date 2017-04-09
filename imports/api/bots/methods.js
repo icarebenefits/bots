@@ -11,7 +11,7 @@ import {ESFuncs} from '/imports/api/elastic';
 const testBots = new ValidatedMethod({
   name: 'bots.test',
   validate: null,
-  run({}) {
+  run() {
     if (Meteor.isServer) {
       const result = Bots.fistSLACheck();
       return result;

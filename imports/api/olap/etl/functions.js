@@ -1,16 +1,14 @@
 /**
  * ETL functions for bots Elastic index
  */
-import {Meteor} from 'meteor/meteor';
 import moment from 'moment';
 import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
 import _ from 'lodash';
+import {check} from 'meteor/check';
 
 import {Logger} from '/imports/api/logger';
 import {Elastic} from '../../elastic';
-import scripts from './scripts';
-const {batches} = Meteor.settings.elastic.migration;
 
 /**
  * Get etl action name
@@ -18,6 +16,7 @@ const {batches} = Meteor.settings.elastic.migration;
  * @return {*|string|String}
  */
 const getName = (actions) => {
+  check(actions, Array);
   return actions.join('.');
 };
 
@@ -38,14 +37,19 @@ const getRunTime = (start) => {
  * @param unusedFields
  * @return {*}
  */
-const removeUnusedFields = ({data, unusedFields}) => {
-  const fields = data;
-  unusedFields.map(f => {
-    delete fields[f];
-  });
-  return fields;
-};
+// const removeUnusedFields = ({data, unusedFields}) => {
+//   const fields = data;
+//   unusedFields.map(f => {
+//     delete fields[f];
+//   });
+//   return fields;
+// };
 
+/**
+ * get reponse message
+ * @param mess
+ * @return {JSON}
+ */
 const getMessage = (mess) => {
   return JSON.stringify(mess);
 };
@@ -69,27 +73,35 @@ const handleResponse = (res, mess) => {
   }
 };
 
-const getTotalDocuments = ({actions, index, type, body}) => {
-  const
-    name = getName(actions),
-    start = new Date();
-  let totalDocs = {};
-  try {
-    const {hits: {total}} = Elastic.search({
-      index,
-      type,
-      body,
-      size: 0,
-    });
-    totalDocs.result = {total}
-  } catch (e) {
-    totalDocs.error = {name, message: getMessage(e)};
-  }
-
-  const runTime = getRunTime(start);
-  handleResponse(totalDocs);
-  return {...totalDocs, runTime};
-};
+/**
+ * get the total documents of an Elastic query
+ * @param actions
+ * @param index
+ * @param type
+ * @param body
+ * @return {{runTime: String}}
+ */
+// const getTotalDocuments = ({actions, index, type, body}) => {
+//   const
+//     name = getName(actions),
+//     start = new Date();
+//   let totalDocs = {};
+//   try {
+//     const {hits: {total}} = Elastic.search({
+//       index,
+//       type,
+//       body,
+//       size: 0,
+//     });
+//     totalDocs.result = {total}
+//   } catch (e) {
+//     totalDocs.error = {name, message: getMessage(e)};
+//   }
+//
+//   const runTime = getRunTime(start);
+//   handleResponse(totalDocs);
+//   return {...totalDocs, runTime};
+// };
 
 /**
  * Elastic reindex
@@ -130,7 +142,7 @@ const reindex = ({actions, source, dest, script, options}) => {
 };
 
 /**
- * etl nested data into parent
+ * etl nested index into parent
  * @param {Object} source {index, type}
  * @param {Object} dest {index, type}
  * @param {Object} script {lang, inline}
@@ -373,7 +385,6 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
           handleResponse(res, mess);
         }
       });
-      console.log('count', count);
     } catch (e) {
       const
         runTime = getRunTime(start),
@@ -603,6 +614,72 @@ const etlBusinessUnits = ({indices}) => {
   return {...result, runTime};
 };
 
+/**
+ * get the indices name of a alias
+ * @param {String} index - A comma-separated list of index names to filter aliases
+ * @param {String} alias - A comma-separated list of alias names to return
+ * @return {error, result, runTime}
+ */
+const getAliasIndices = ({index, alias}) => {
+  const
+    start = new Date(),
+    name = `getAliasIndices.${alias}`;
+  const
+    res = {},
+    params = {
+      ignoreUnavailable: true,
+      name: alias
+    };
+
+  if(index) params.index = index;
+
+  try {
+    const getIndices = Elastic.indices.getAlias(params);
+    const indices = Object.keys(getIndices);
+    res.result = {name, indices};
+  } catch (e) {
+    res.error = {name, message: getMessage(e)};
+  }
+  const runTime = getRunTime(start);
+  return {...res, runTime};
+};
+
+/**
+ *
+ * @param {String} alias
+ * @param {Array} removes - list of removed indices
+ * @param {Array} adds - list of added indices
+ * @return {error, result, runTime}
+ */
+const updateAliases = ({alias, removes, adds}) => {
+  const
+    start = new Date(),
+    name = `updateAliases`;
+  const
+    res = {},
+    body = {
+      actions: []
+    };
+
+  // add removed indices
+  removes.map(index => {
+    body.actions.push({remove: {index, alias}});
+  });
+  // add new indices
+  adds.map(index => {
+    body.actions.push({add: {index, alias}});
+  });
+
+  try {
+    const updateAlias = Elastic.indices.updateAliases({body});
+    res.result = {name, updateAlias};
+  } catch (e) {
+    res.error = {name, message: getMessage(e)};
+  }
+  const runTime = getRunTime(start);
+  return {...res, runTime};
+};
+
 const ETL = {
   reindex,
   etl,
@@ -614,6 +691,9 @@ const ETL = {
   etlICMs,
   etlBusinessUnits,
   etlTicketsCustomers,
+  getAliasIndices,
+  getMessage,
+  updateAliases,
 };
 
 export default ETL

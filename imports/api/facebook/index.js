@@ -34,7 +34,7 @@ FbRequest.prototype = {
         },
         json: true
       };
-      request(options, function (error, response, body) {
+      request(options, function (error) {
         if (error) throw new Error(error);
 
         // console.log(body);

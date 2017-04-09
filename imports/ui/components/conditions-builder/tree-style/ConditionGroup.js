@@ -1,4 +1,4 @@
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 // import classNames from 'classnames';
 
 // components
@@ -47,7 +47,7 @@ class ConditionGroup extends Component {
     const
       {
         combinator, rules,
-        schema: {combinators, controls, onRuleRemove, isRuleGroup, classNames}
+        schema: {combinators, onRuleRemove, isRuleGroup, classNames}
       } = this.props,
       style = {
         marginRight: 5

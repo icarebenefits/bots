@@ -8,7 +8,7 @@ import {
   Button,
 } from '../elements';
 import {
-  Fields,
+  // Fields,
   FieldsGroups
 } from '/imports/api/fields';
 
@@ -42,12 +42,12 @@ export class Condition extends Component {
       {
         id,
         condition: {
-          not = false, openParens = '', group = '', filter = '', field = '',
+          not = false, openParens = '', filter = '', field = '',
           operator = '', values = [], closeParens = '', bitwise = ''
         },
         handlers: {
           handleFieldChange,
-          getFieldProps,
+          // getFieldProps,
           handleRemoveCondition,
           handleInsertCondition,
           getDescription,

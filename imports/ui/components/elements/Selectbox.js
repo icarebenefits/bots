@@ -1,6 +1,5 @@
 import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
-import _ from 'lodash';
 
 export class Selectbox extends Component {
 

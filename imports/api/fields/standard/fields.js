@@ -4,7 +4,7 @@ import Operators from '../operators';
  * Composition Standard fields
  * @constructor
  */
-export const StringField = (...args) => ({
+export const StringField = () => ({
   props: {
     id: 'string',
     name: 'string',
@@ -16,7 +16,7 @@ export const StringField = (...args) => ({
   }
 });
 
-const NumberField = (...args) => ({
+const NumberField = () => ({
   props: {
     id: 'number',
     name: 'number'

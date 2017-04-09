@@ -38,7 +38,7 @@ class ValueSelector extends Component {
   render() {
     const
       {options, className} = this.props,
-      {selected: {name, label}} = this.state
+      {selected: {label}} = this.state
       ;
 
     // console.log({name, label})
@@ -63,7 +63,7 @@ class ValueSelector extends Component {
               <a
                 id={option.name}
                 href="#"
-                onClick={e => this._onClickOption(option.name, option.label)}
+                onClick={() => this._onClickOption(option.name, option.label)}
               >{option.label}</a>
             </li>
           ))}

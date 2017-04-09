@@ -22,6 +22,8 @@ class NavBar extends Component {
   }
 }
 
-NavBar.propTypes = {};
+NavBar.propTypes = {
+  handleTabChange: PropTypes.func,
+};
 
 export default NavBar

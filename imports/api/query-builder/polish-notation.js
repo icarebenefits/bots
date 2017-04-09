@@ -1,4 +1,3 @@
-import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
 
 import {Operators, FieldsGroups} from '/imports/api/fields';
@@ -17,7 +16,7 @@ operators.push(')');
  */
 export const makeExpression = (conditions) => {
   const stack = [];
-  conditions.map((condition, idx) => {
+  conditions.map((condition) => {
     const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
     if (not) {
       stack.push('not');
@@ -161,9 +160,9 @@ export const validateConditions = (conditions, expression) => {
  * @param aggregations
  * @return {{}}
  */
-const validateAggregations = (aggregations) => {
-  return {};
-};
+// const validateAggregations = (aggregations) => {
+//   return {};
+// };
 
 /**
  * Function build Elastic query from conditions with Polish Notation Algorithm

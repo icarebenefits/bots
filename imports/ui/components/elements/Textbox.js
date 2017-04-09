@@ -7,7 +7,7 @@ export class Textbox extends Component {
   }
   
   render() {
-    const {name, multiline = false, className, value, handleOnChange} = this.props;
+    const {multiline = false, className, value, handleOnChange} = this.props;
     if(multiline) {
       return (
         <textarea

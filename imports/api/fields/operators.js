@@ -1,5 +1,4 @@
 import moment from 'moment';
-import S from 'string';
 import bodybuilder from 'bodybuilder';
 
 /**
