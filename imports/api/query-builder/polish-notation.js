@@ -156,6 +156,13 @@ export const validateConditions = (conditions, expression) => {
 };
 
 /**
+ * Function build query
+ */
+const buildQuery = () => {
+  
+};
+
+/**
  * Function validate the aggregations
  * @param aggregations
  * @return {{}}
@@ -230,8 +237,7 @@ const queryBuilder = (conditions) => {
 
           // verify params type
           if (!isQueryObject(param1) || !isQueryObject(param2)) {
-            console.log("can't build 'or' query from a non query object!!!");
-            return {};
+            return {error: "can't build 'or' query from a non query object!!!"};
           }
           const
             {query: preQuery1} = param1,

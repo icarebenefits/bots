@@ -1,11 +1,11 @@
 import moment from 'moment';
 import bodybuilder from 'bodybuilder';
 
-/**
- * Composition Objects for all of operators
- */
 
-// Elaistc time units
+/**
+ * List all Elastic supported time units
+ * @type {{years: string, months: string, weeks: string, days: string, hours: string, minutes: string, seconds: string}}
+ */
 export const timeUnits = {
   years: 'y',
   months: 'M',
@@ -16,7 +16,13 @@ export const timeUnits = {
   seconds: 's',
 };
 
-// generic
+/**
+ * Composition Objects for all of operators
+ */
+
+/**
+ * Generic
+ */
 const not = () => ({
   props: {
     id: 'not',
@@ -30,8 +36,23 @@ const not = () => ({
       .build();
   }
 });
+const empty = () => ({
+  props: {
+    id: 'empty',
+    name: 'is',
+    type: 'null',
+    params: 2,
+  },
+  buildQuery: (field) => {
+    return bodybuilder()
+      .query('exists', 'field', field)
+      .build();
+  },
+});
 
-// bitwise
+/**
+ * Bitwise
+ */
 const and = () => ({
   props: {
     id: 'and',
@@ -61,7 +82,9 @@ const or = () => ({
   }
 });
 
-// Boolean
+/**
+ * Boolean
+ */
 const bool = () => ({
   props: {
     id: 'bool',
@@ -77,7 +100,9 @@ const bool = () => ({
   },
 });
 
-// Gender
+/**
+ * Gender
+ */
 const gender = () => ({
   props: {
     id: 'gender',
@@ -93,7 +118,9 @@ const gender = () => ({
   },
 });
 
-// Array
+/**
+ * Array
+ */
 const inArray = () => ({
   props: {
     id: 'inArray',
@@ -107,7 +134,9 @@ const inArray = () => ({
   },
 });
 
-// string
+/**
+ * String
+ */
 const is = () => ({
   props: {
     id: 'is',
@@ -151,7 +180,9 @@ const startsWith = () => ({
   }
 });
 
-// date
+/**
+ * Date
+ */
 const on = () => ({
   props: {
     id: 'on',
@@ -254,7 +285,9 @@ const inLast = () => ({
   }
 });
 
-// number
+/**
+ * Number
+ */
 const equal = () => ({
   props: {
     id: 'equal',
@@ -341,12 +374,18 @@ const between = () => ({
   }
 });
 
-// aggregation
+/**
+ * Aggregations
+ */
 
-
+/**
+ * List all supported operators
+ * @type {{not: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), and: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), or: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), bool: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), gender: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), inArray: (function(): {props: {id: string, name: string, type: string}, buildQuery: (function())}), is: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), contains: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), startsWith: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), on: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), before: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), after: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), onOrBefore: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), onOrAfter: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), within: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), inLast: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), equal: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), lessThan: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), greaterThan: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), lessThanOrEqual: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), greaterThanOrEqual: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), between: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())})}}
+ */
 const Operators = {
   //generic
   not,
+  empty,
   // bitwise
   and,
   or,

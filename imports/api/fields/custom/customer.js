@@ -5,137 +5,168 @@ import StandardFields from '../standard/fields';
  * @constructor
  */
 
-// string
-const name = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'name',
-      name: 'Company Name',
-      type: 'string',
-      ESField: 'company_name',
-    }
-  }
-);
-const email = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'email',
-      name: 'Email',
-      type: 'string',
-      ESField: 'email',
-    }
-  }
-);
-const phone = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'phone',
-      name: 'Phone',
-      type: 'string',
-      ESField: 'phone',
-    }
-  }
-);
-const address = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'address',
-      name: 'Address',
-      type: 'string',
-      ESField: 'address',
-    }
-  }
-);
-const repaymentMethod = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'repaymentMethod',
-      name: 'Repayment Method',
-      type: 'string',
-      ESField: 'repayment_method',
-    }
-  }
-);
-const typeOfContract = () => Object.assign(
-  {},
-  StandardFields.StringField(),
-  {
-    props: {
-      id: 'typeOfContract',
-      name: 'Type of Contract',
-      type: 'string',
-      ESField: 'type_of_contract',
-    }
-  }
-);
-
-// date
-const contractStartDate = () => Object.assign(
-  {},
-  StandardFields.DateField(),
-  {
-    props: {
-      id: 'contractStartDate',
-      name: 'Contract Start Date',
-      type: 'date',
-      ESField: 'contract_start_date',
-    }
-  }
-);
-const contractEndDate = () => Object.assign(
-  {},
-  StandardFields.DateField(),
-  {
-    props: {
-      id: 'contractEndDate',
-      name: 'Contract End Date',
-      type: 'date',
-      ESField: 'contract_end_date',
-    }
-  }
-);
-// number
-const numberOfEmployees = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'numberOfEmployees',
-      name: 'Number of Employees',
-      type: 'number',
-      ESField: 'number_employees',
-    },
-  },
-);
-
 
 const Customer = {
   props: {
     id: 'Customer',
     name: 'Customer',
     type: 'group',
-    ESType: 'customers',
+    elastic: {
+      parent: null
+    },
   },
   fields: {
-    name,
-    email,
-    phone,
-    address,
-    repaymentMethod,
-    typeOfContract,
-    contractStartDate,
-    contractEndDate,
-    numberOfEmployees,
+    name: () => Object.assign(
+      {},
+      StandardFields.StringField(),
+      {
+        props: {
+          id: 'name',
+          name: 'Name',
+          type: 'string',
+          elastic: {
+            parent: null,
+            field: 'name',
+          }
+        }
+      }
+    ),
+    umberOfEmployees: () => Object.assign(
+      {},
+      StandardFields.NumberField(),
+      {
+        props: {
+          id: 'numberOfEmployees',
+          name: 'Number of employees',
+          type: 'number',
+          elastic: {
+            parent: null,
+            field: 'number_employees',
+          }
+        },
+      },
+    ),
+    numberOfICMs: () => Object.assign(
+      {},
+      StandardFields.NumberField(),
+      {
+        props: {
+          id: 'numberOfICMs',
+          name: 'number of iCare members',
+          type: 'number',
+          elastic: {
+            parent: null,
+            field: 'number_iCMs',
+            type: 'script',  // script field, value is calculated when search
+          },
+        }
+      }
+    ),
+    email: () => Object.assign(
+      {},
+      StandardFields.StringField(),
+      {
+        props: {
+          id: 'email',
+          name: 'Email',
+          type: 'string',
+          elastic: {
+            parent: null,
+            field: 'email'
+          },
+        }
+      }
+    ),
+    phone: () => Object.assign(
+      {},
+      StandardFields.StringField(),
+      {
+        props: {
+          id: 'phone',
+          name: 'Phone',
+          type: 'string',
+          elastic: {
+            parent: null,
+            field: 'phone',
+          }
+        }
+      }
+    ),
+    address: () => Object.assign(
+      {},
+      StandardFields.StringField(),
+      {
+        props: {
+          id: 'address',
+          name: 'Address',
+          type: 'string',
+          elastic: {
+            parent: null,
+            field: 'address',
+          }
+        }
+      }
+    ),
+    contractStartDate: () => Object.assign(
+      {},
+      StandardFields.DateField(),
+      {
+        props: {
+          id: 'contractStartDate',
+          name: 'Contract start date',
+          type: 'date',
+          elastic: {
+            parent: null,
+            field: 'contract_start_date',
+          },
+        }
+      }
+    ),
+    contractEndDate: () => Object.assign(
+      {},
+      StandardFields.DateField(),
+      {
+        props: {
+          id: 'contractEndDate',
+          name: 'Contract end date',
+          type: 'date',
+          elastic: {
+            parent: null,
+            field: 'contract_end_date',
+          },
+        }
+      }
+    ),
+    repaymentMethod: () => Object.assign(
+      {},
+      StandardFields.StringField(),
+      {
+        props: {
+          id: 'repaymentMethod',
+          name: 'Repayment method',
+          type: 'string',
+          elastic: {
+            parent: null,
+            field: 'repayment_method',
+          }
+        }
+      }
+    ),
+    typeOfContract: () => Object.assign(
+      {},
+      StandardFields.StringField(),
+      {
+        props: {
+          id: 'typeOfContract',
+          name: 'Type of contract',
+          type: 'string',
+          elastic: {
+            parent: null,
+            field: 'type_of_contract',
+          },
+        }
+      }
+    ),
   }
 };
 

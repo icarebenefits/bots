@@ -1,8 +1,19 @@
-import {iCareMember,Customer} from './custom';
+import {
+  Customer,
+  BusinessUnit,
+  iCareMember,
+  iCMTicket,
+  iCMSaleOrder,
+  iCMLoan,
+} from './custom';
 
 const FieldsGroups = {
+  Customer,
+  BusinessUnit,
   iCareMember,
-  Customer
+  iCMTicket,
+  iCMSaleOrder,
+  iCMLoan,
 };
 
 export default FieldsGroups

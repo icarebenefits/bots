@@ -13,6 +13,7 @@ export const StringField = () => ({
     is: Object.assign({}, Operators.is()),
     contains: Object.assign({}, Operators.contains()),
     startsWith: Object.assign({}, Operators.startsWith()),
+    empty: Object.assign({}, Operators.empty()),
   }
 });
 
@@ -64,6 +65,16 @@ const ArrayField = () => ({
   },
   operators: {
     in: Object.assign({}, Operators.inArray()),
+  }
+});
+
+const EmptyField = () => ({
+  props: {
+    id: 'empty',
+    name: 'empty',
+  },
+  operators: {
+    empty: Object.assign({}, Operators.empty()),
   }
 });
 
