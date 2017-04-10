@@ -1,8 +1,4 @@
-import React, {Component, PropTypes} from 'react';
-import _ from 'lodash';
-
-// components
-import Button from '../../components/elements/Button';
+import React, {Component} from 'react';
 
 // data handler
 import {schema} from './schema';
@@ -13,7 +9,7 @@ class PreferencesPage extends Component {
     const expression = this.refs.conditionBuilder.getExpression();
     const conditions = this.refs.conditionBuilder.getConditions();
 
-    // console.log(expression);
+    console.log(expression);
     console.log(conditions);
   }
 

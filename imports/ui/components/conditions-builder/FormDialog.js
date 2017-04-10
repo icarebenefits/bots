@@ -1,4 +1,5 @@
 import React, {Component, PropTypes} from 'react';
+import _ from 'lodash';
 
 import {
   FormInput,
@@ -8,7 +9,7 @@ class FormDialog extends Component {
   render() {
     const
       {row, condition, fields, operators, values, handleOnChange} = this.props,
-      {operator, values: condValues, field} = condition
+      {operator, field} = condition
       ;
 
     if (fields) {

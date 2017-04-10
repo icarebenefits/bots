@@ -4,14 +4,14 @@ import moment from 'moment';
 
 // Fields
 import {
-  Fields,
+  // Fields,
   FieldsGroups,
 } from '/imports/api/fields';
 
 import {
   Button,
   Dialog,
-  FormInput,
+  // FormInput,
   Label,
 } from '../elements';
 import {Condition} from './Condition';
@@ -360,7 +360,7 @@ class ConditionsBuilder extends Component {
     }
 
     const FieldGroup = FieldsGroups[groupId],
-      {props, fields: FieldData} = FieldGroup,
+      {fields: FieldData} = FieldGroup,
       {fields, operators, props: {name: header}} = FieldData[fieldId]()
       ;
 
@@ -407,8 +407,7 @@ class ConditionsBuilder extends Component {
 
   render() {
     const
-      {conditions, edit} = this.state,
-      expression = this.getExpression(conditions)
+      {conditions, edit} = this.state
       ;
     let {handlers, readonly} = this.props;
 

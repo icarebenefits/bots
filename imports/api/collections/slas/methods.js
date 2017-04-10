@@ -1,9 +1,7 @@
 import SLAs from './slas';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
-import {ValidationError} from 'meteor/mdg:validation-error';
 import {IDValidator} from '/imports/utils';
-import {COUNTRIES} from '/imports/utils/defaults';
 import _ from 'lodash';
 
 // query builder

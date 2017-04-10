@@ -1,10 +1,6 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
 
-import {Search} from './common';
-
-const ListHeader = (props) => {
-  const {} = props;
-
+const ListHeader = () => {
   return (
     <div className="row">
       <div className="col-md-6 col-sm-6">

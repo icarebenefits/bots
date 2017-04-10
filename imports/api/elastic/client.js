@@ -1,6 +1,7 @@
 import elastic from 'elasticsearch';
 import {Async} from 'meteor/meteorhacks:async';
 import {Meteor} from 'meteor/meteor';
+import _ from 'lodash';
 
 const {host, region, accessKey, secretKey} = Meteor.settings.elastic;
 const config = {

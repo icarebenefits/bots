@@ -169,18 +169,18 @@ const contractType = () => Object.assign(
     }
   }
 );
-const inactivate = () => Object.assign(
-  {},
-  StandardFields.BoolField(),
-  {
-    props: {
-      id: 'inactivate',
-      name: 'Inactivate',
-      type: 'bool',
-      ESField: 'is_active',
-    }
-  }
-);
+// const inactivate = () => Object.assign(
+//   {},
+//   StandardFields.BoolField(),
+//   {
+//     props: {
+//       id: 'inactivate',
+//       name: 'Inactivate',
+//       type: 'bool',
+//       ESField: 'is_active',
+//     }
+//   }
+// );
 const creditLimit = () => Object.assign(
   {},
   StandardFields.NumberField(),
@@ -206,30 +206,30 @@ const dueLimit = () => Object.assign(
   }
 );
 // not active
-const availableCL = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'availableCL',
-      name: 'Available Credit Limit',
-      type: 'number',
-      ESField: '',
-    }
-  }
-);
-const availableDL = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'availableDL',
-      name: 'Available Due Limit',
-      type: 'number',
-      ESField: '',
-    }
-  }
-);
+// const availableCL = () => Object.assign(
+//   {},
+//   StandardFields.NumberField(),
+//   {
+//     props: {
+//       id: 'availableCL',
+//       name: 'Available Credit Limit',
+//       type: 'number',
+//       ESField: '',
+//     }
+//   }
+// );
+// const availableDL = () => Object.assign(
+//   {},
+//   StandardFields.NumberField(),
+//   {
+//     props: {
+//       id: 'availableDL',
+//       name: 'Available Due Limit',
+//       type: 'number',
+//       ESField: '',
+//     }
+//   }
+// );
 const maternityLeaveStartDate = () => Object.assign(
   {},
   StandardFields.DateField(),
@@ -302,42 +302,42 @@ const lastPurchasedDate = () => Object.assign(
     }
   }
 );
-const hasAnySO = () => Object.assign(
-  {},
-  StandardFields.BoolField(),
-  {
-    props: {
-      id: 'hasAnySO',
-      name: 'Has Any SO',
-      type: 'bool',
-      ESField: '',
-    }
-  }
-);
-const soNumber = () => Object.assign(
-  {},
-  StandardFields.NumberField(),
-  {
-    props: {
-      id: 'soNumber',
-      name: 'SO Number',
-      type: 'number',
-      ESField: '',
-    }
-  }
-);
-const purchaseDate = () => Object.assign(
-  {},
-  StandardFields.DateField(),
-  {
-    props: {
-      id: 'purchaseDate',
-      name: 'Purchase Date',
-      type: 'date',
-      ESField: '',
-    }
-  }
-);
+// const hasAnySO = () => Object.assign(
+//   {},
+//   StandardFields.BoolField(),
+//   {
+//     props: {
+//       id: 'hasAnySO',
+//       name: 'Has Any SO',
+//       type: 'bool',
+//       ESField: '',
+//     }
+//   }
+// );
+// const soNumber = () => Object.assign(
+//   {},
+//   StandardFields.NumberField(),
+//   {
+//     props: {
+//       id: 'soNumber',
+//       name: 'SO Number',
+//       type: 'number',
+//       ESField: '',
+//     }
+//   }
+// );
+// const purchaseDate = () => Object.assign(
+//   {},
+//   StandardFields.DateField(),
+//   {
+//     props: {
+//       id: 'purchaseDate',
+//       name: 'Purchase Date',
+//       type: 'date',
+//       ESField: '',
+//     }
+//   }
+// );
 const createdAt = () => Object.assign(
   {},
   StandardFields.DateField(),

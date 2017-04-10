@@ -1,8 +1,6 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
 
-const Pagination = (props) => {
-  const {} = props;
-  
+const Pagination = () => {
   return (
     <ul className="pagination" style={{visibility: 'visible'}}>
       <li className="prev disabled">

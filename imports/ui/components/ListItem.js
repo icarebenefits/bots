@@ -19,7 +19,7 @@ const ListItem = (props) => {
     return (
       <tr className="odd gradeX">
         {rowData.map((cell, idx) => {
-          const {id, value} = cell;
+          const {value} = cell;
           return (
             <td
               key={idx}

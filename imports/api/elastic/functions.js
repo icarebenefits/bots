@@ -1,6 +1,6 @@
 import {Meteor} from 'meteor/meteor';
 import moment from 'moment';
-import bodybuilder from 'bodybuilder';
+import _ from 'lodash';
 
 // elastic
 import {Elastic} from './';
@@ -33,7 +33,7 @@ const migrateICareMembers = (country = 'kh') => {
       }
       ;
     try {
-      const reindex = Elastic.reindex({
+      Elastic.reindex({
         waitForCompletion: true,
         body: {
           source,
@@ -45,7 +45,7 @@ const migrateICareMembers = (country = 'kh') => {
       source.type = 'b2b_customer';
       dest.type = 'customers';
       try {
-        const reindex = Elastic.reindex({
+        Elastic.reindex({
           refresh: true,
           waitForCompletion: true,
           body: {
@@ -92,11 +92,11 @@ const migrateICareMembers = (country = 'kh') => {
                 if (!_.isEmpty(hits)) {
                   hits.map(hit => {
                     const
-                      {_id, _source} = hit,
+                      {_source} = hit,
                       {customerId} = _source
                       ;
                     try {
-                      const addClient = Elastic.update({
+                      Elastic.update({
                         index: dest.index,
                         type: 'icare_members',
                         id: customerId,
@@ -115,8 +115,8 @@ const migrateICareMembers = (country = 'kh') => {
 
                 } else {
                   /* Failed */
-                  Logger.error({name: "FETCH_CLIENTS", message: {error: JSON.stringify(e)}});
-                  return {error: 'FETCH_CLIENTS_FAILED', message: {error: JSON.stringify(e)}};
+                  Logger.error({name: "FETCH_CLIENTS", message: {error: JSON.stringify({index, type, body})}});
+                  return {error: 'FETCH_CLIENTS_FAILED', message: {error: JSON.stringify({index, type, body})}};
                 }
               } catch (e) {
                 /* Failed */
@@ -126,8 +126,8 @@ const migrateICareMembers = (country = 'kh') => {
             }
           } else {
             /* Failed */
-            Logger.error({name: "NO_CLIENTS_FOUND", message: {error: JSON.stringify(e)}});
-            return {error: 'NO_CLIENTS_FOUND', message: {error: JSON.stringify(e)}};
+            Logger.error({name: "NO_CLIENTS_FOUND", message: {error: JSON.stringify({index, type, body})}});
+            return {error: 'NO_CLIENTS_FOUND', message: {error: JSON.stringify({index, type, body})}};
           }
 
         } catch (e) {

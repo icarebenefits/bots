@@ -1,9 +1,8 @@
 import uniqueId from 'uuid/v4';
 import cloneDeep from 'lodash/cloneDeep';
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 
 import ConditionGroup from './ConditionGroup';
-import {ActionElement, ValueEditor, ValueSelector} from './controls/index';
 
 class QueryBuilder extends Component {
   constructor(...args) {

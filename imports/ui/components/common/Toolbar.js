@@ -1,4 +1,5 @@
 import React, {PropTypes} from 'react';
+import _ from 'lodash';
 
 import {Button} from '../elements';
 import {Search} from './';

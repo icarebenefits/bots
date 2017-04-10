@@ -36,7 +36,7 @@ const searchCustomer = (keyword, callback) => {
     // console.log("keyword:" + keyword);
     getToken(function (access_token) {
         const
-            {id, secret, username, password, baseUrl, tenant: {Cambodia: tenant}} = Meteor.settings.clients.b2b,
+            {baseUrl, tenant: {Cambodia: tenant}} = Meteor.settings.clients.b2b,
             options = {
                 method: 'GET',
                 url: `${baseUrl}/api/v1/customers/search?q=${keyword}`,
