@@ -1,4 +1,4 @@
-import {toastr} from 'meteor/chrismbeckett:toastr';
+// import toastr from 'meteor/chrismbeckett:toastr';
 /**
  * @summary toastr methods which are using https://atmospherejs.com/chrismbeckett/toastr
  * @success

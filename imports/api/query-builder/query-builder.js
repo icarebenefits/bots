@@ -27,7 +27,7 @@ const buildQuery = () => {
   // implement the transformation from condition to below format
   // todo
 
-  const condition = [
+  const cond1 = [
     {
       field: 'business_units.icare_members.loans.totalPrincipalAmount',
       parent: 'business_units.icare_members.loans',
@@ -38,6 +38,11 @@ const buildQuery = () => {
     {field: 'business_units.icare_members', parent: 'business_units'},
     {field: 'business_units', parent: 'customers',},
     {field: 'customers', parent: null},
+  ];
+
+  const cond2 = [
+    {field: 'name', type: 'wildcard', value: '*KE*', parent: 'customers'},
+    {field: 'customers', parent: null}
   ];
 
   const buildTree = (condition, parent) => {
@@ -62,7 +67,8 @@ const buildQuery = () => {
     return node;
   };
 
-  const customers = buildTree(condition, null).child;
+  const customers = buildTree(cond2, null).child;
+  console.log('customers', customers);
   /*
   const customers = {
     type: 'nested',
@@ -104,11 +110,19 @@ const buildQuery = () => {
   };
 
   const {type, field} = customers;
-  const {nest} = nested(customers.child, field);
-  const body = bodybuilder()
-      .query(type, field, nest)
+  let body = bodybuilder();
+  if(type === 'nested') {
+    const {nest} = nested(customers.child);
+    body = body
+        .query(type, field, nest)
+        .build()
+      ;
+  } else {
+    const {value} = customers;
+    body = body
+      .query(type, field, value)
       .build()
-    ;
+  }
 
   console.log('body', JSON.stringify(body));
 };

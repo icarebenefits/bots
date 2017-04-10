@@ -34,7 +34,7 @@ const not = () => ({
     return bodybuilder()
       .query("bool", {"must_not": [query]})
       .build();
-  }
+  },
 });
 const empty = () => ({
   props: {
@@ -47,6 +47,9 @@ const empty = () => ({
     return bodybuilder()
       .query('exists', 'field', field)
       .build();
+  },
+  getParams: (field) => {
+    return {type: 'exists', field: 'field', value: field};
   },
 });
 
@@ -98,6 +101,10 @@ const bool = () => ({
       .query('term', field, bool)
       .build();
   },
+  getParams: (field, values) => {
+    const bool = Boolean(values[0].value);
+    return {type: 'term', field, value: bool};
+  },
 });
 
 /**
@@ -116,6 +123,10 @@ const gender = () => ({
       .query('term', field, str)
       .build();
   },
+  getParams: (field, values) => {
+    const str = values[0].value.toString();
+    return {type: 'term', field, value: str};
+  },
 });
 
 /**
@@ -131,6 +142,10 @@ const inArray = () => ({
     return bodybuilder()
       .query('terms', field, values)
       .build();
+  },
+  getParams: (field, values) => {
+    const str = values[0].value.toString();
+    return {type: 'term', field, value: str};
   },
 });
 
@@ -149,7 +164,11 @@ const is = () => ({
     return bodybuilder()
       .query('term', `${field}.keyword`, str)
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const str = values[0].value.toString();
+    return {type: 'term', field: `${field}.keyword`, value: str};
+  },
 });
 const contains = () => ({
   props: {
@@ -163,7 +182,11 @@ const contains = () => ({
     return bodybuilder()
       .query('wildcard', `${field}.keyword`, `*${str}*`)
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const str = values[0].value.toString();
+    return {type: 'wildcard', field: `${field}.keyword`, value: `*${str}*`};
+  },
 });
 const startsWith = () => ({
   props: {
@@ -177,7 +200,11 @@ const startsWith = () => ({
     return bodybuilder()
       .query('prefix', `${field}.keyword`, str)
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const str = values[0].value.toString();
+    return {type: 'prefix', field: `${field}.keyword`, value: str};
+  },
 });
 
 /**
@@ -195,7 +222,11 @@ const on = () => ({
     return bodybuilder()
       .query('term', field, date)
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return {type: 'term', field, value: date};
+  },
 });
 const before = () => ({
   props: {
@@ -209,7 +240,11 @@ const before = () => ({
     return bodybuilder()
       .query('range', field, {gt: date})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return {type: 'range', field, value: {gt: date}};
+  },
 });
 const after = () => ({
   props: {
@@ -223,7 +258,11 @@ const after = () => ({
     return bodybuilder()
       .query('range', field, {lt: date})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return {type: 'range', field, value: {lt: date}};
+  },
 });
 const onOrBefore = () => ({
   props: {
@@ -237,7 +276,11 @@ const onOrBefore = () => ({
     return bodybuilder()
       .query('range', field, {gte: date})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return {type: 'range', field, value: {gte: date}};
+  },
 });
 const onOrAfter = () => ({
   props: {
@@ -251,7 +294,11 @@ const onOrAfter = () => ({
     return bodybuilder()
       .query('range', field, {lte: date})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return {type: 'range', field, value: {lte: date}};
+  },
 });
 const within = () => ({
   props: {
@@ -266,7 +313,11 @@ const within = () => ({
     return bodybuilder()
       .query('range', field, {gte: date1, lte: date2})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+    return {type: 'range', field, value: {gte: date1, lte: date2}};
+  },
 });
 const inLast = () => ({
   props: {
@@ -282,7 +333,13 @@ const inLast = () => ({
     return bodybuilder()
       .query('range', field, {gte: `now-${num}${tu}`, lte: 'now'})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num = Number(values[0].value); // 3
+    const str = values[1].value.toString(); // in Elastic timeUnits (years, months, ...)
+    const tu = timeUnits[str];
+    return {type: 'range', field, value: {gte: `now-${num}${tu}`, lte: 'now'}};
+  },
 });
 
 /**
@@ -300,7 +357,11 @@ const equal = () => ({
     return bodybuilder()
       .query('term', field, num)
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num = Number(values[0].value);
+    return {type: 'term', field, value: num};
+  },
 });
 const lessThan = () => ({
   props: {
@@ -314,7 +375,11 @@ const lessThan = () => ({
     return bodybuilder()
       .query('range', field, {lt: num})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num = Number(values[0].value);
+    return {type: 'range', field, value: {lt: num}};
+  },
 });
 const greaterThan = () => ({
   props: {
@@ -328,7 +393,11 @@ const greaterThan = () => ({
     return bodybuilder()
       .query('range', field, {gt: num})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num = Number(values[0].value);
+    return {type: 'range', field, value: {gt: num}};
+  },
 });
 const lessThanOrEqual = () => ({
   props: {
@@ -342,7 +411,11 @@ const lessThanOrEqual = () => ({
     return bodybuilder()
       .query('range', field, {lte: num})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num = Number(values[0].value);
+    return {type: 'range', field, value: {lte: num}};
+  },
 });
 const greaterThanOrEqual = () => ({
   props: {
@@ -356,7 +429,11 @@ const greaterThanOrEqual = () => ({
     return bodybuilder()
       .query('range', field, {gte: num})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num = Number(values[0].value);
+    return {type: 'range', field, value: {gte: num}};
+  },
 });
 const between = () => ({
   props: {
@@ -371,7 +448,12 @@ const between = () => ({
     return bodybuilder()
       .query('range', field, {gte: num1, lte: num2})
       .build();
-  }
+  },
+  getParams: (field, values) => {
+    const num1 = Number(values[0].value);
+    const num2 = Number(values[1].value);
+    return {type: 'range', field, value: {gte: num1, lte: num2}};
+  },
 });
 
 /**
