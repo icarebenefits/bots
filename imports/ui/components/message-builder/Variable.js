@@ -9,7 +9,7 @@ import {
   FormInput,
   Button,
 } from '../elements';
-import {FieldsGroups} from '/imports/api/fields';
+import {Field} from '/imports/api/fields';
 
 export class Variable extends Component {
 
@@ -19,18 +19,23 @@ export class Variable extends Component {
 
   _getFilters() {
     const
-      listGroups = Object.keys(FieldsGroups)
+      listGroups = Object.keys(Field())
       ;
 
-    const grpOptions = listGroups.map(groupName => {
-      const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
-      const listFields = Object.keys(fields);
-      // const options = []; // temporary support for count only
+    const grpOptions = listGroups.map(group => {
+      const
+        Fields = Field()[group]().field,
+        {id: name, name: label} = Field()[group]().props();
+      const listFields = Object.keys(Fields());
+
       const options = listFields
       // message builder apply for number fields only
-        .filter(f => fields[f]().props.type === 'number')
+        .filter(f => {
+          console.log('filter', f, Fields);
+          return Fields()[f]().props().type === 'number'
+        })
         .map(f => {
-          const {id: name, name: label} = fields[f]().props;
+          const {id: name, name: label} = Fields()[f]().props();
           return {name, label};
         });
       return {name, label, options};

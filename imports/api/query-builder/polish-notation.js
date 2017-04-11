@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {Operators, FieldsGroups, Operator, Field} from '/imports/api/fields';
+import {Operator, Field} from '/imports/api/fields';
 import Query from './query';
 
 // list of supported operators
@@ -321,13 +321,13 @@ export default queryBuilder
 
 
 /* Test data */
-const {SLAs} = require('../collections/slas');
-const SLA = SLAs.findOne({_id: "ZkY73hbBmXCtfAigy"});
-const {conditions, message} = SLA;
-const {error, query} = queryBuilder(conditions);
-if(error) {
-  console.log('error', error);
-} else {
-  console.log(JSON.stringify(query));
-}
+// const {SLAs} = require('../collections/slas');
+// const SLA = SLAs.findOne({_id: "ZkY73hbBmXCtfAigy"});
+// const {conditions, message} = SLA;
+// const {error, query} = queryBuilder(conditions);
+// if(error) {
+//   console.log('error', error);
+// } else {
+//   console.log(JSON.stringify(query));
+// }
 

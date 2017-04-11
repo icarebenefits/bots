@@ -19,7 +19,7 @@ const BusinessUnit = () => ({
   field: () => ({
     name: () => Object.assign(
       {},
-      Standard().StringField(),
+      Standard().String(),
       {
         props: () => ({
           id: 'name',
@@ -33,7 +33,7 @@ const BusinessUnit = () => ({
     ),
     paymentDate: () => Object.assign(
       {},
-      Standard().DateField(),
+      Standard().Date(),
       {
         props: () => ({
           id: 'paymentDate',
@@ -47,7 +47,7 @@ const BusinessUnit = () => ({
     ),
     numberCutOffTimes: () => Object.assign(
       {},
-      Standard().NumberField(),
+      Standard().Number(),
       {
         props: () => ({
           id: 'numberCutOffTimes',
@@ -61,7 +61,7 @@ const BusinessUnit = () => ({
     ),
     totalICMs: () => Object.assign(
       {},
-      Standard().NumberField(),
+      Standard().Number(),
       {
         props: () => ({
           id: 'totalICMs',
