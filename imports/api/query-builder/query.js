@@ -1,22 +1,5 @@
 import {Operator} from '/imports/api/fields';
-import Condition from './condition';
-import build from './query-builder';
-
-
-const getParent = (group) => {
-  switch (group) {
-    case 'customers': {
-      return null;
-    }
-    case 'business_units': {
-      return 'customers';
-    }
-    case 'icare_members': {
-      return 'business_units';
-    }
-      
-  }
-};
+import SingleQuery from './single-query';
 
 const Query = ({params, operator = ''}) => {
   switch (operator) {
@@ -38,8 +21,8 @@ const Query = ({params, operator = ''}) => {
     default:
     {
       const {field, values: value} = params;
-      const output = Condition().generate({operator, fieldGroup: field, value});
-      const query = build(output, 'agg');
+      const output = SingleQuery().generate({operator, fieldGroup: field, value});
+      const query = SingleQuery().build(output);
       return query;
     }
   }

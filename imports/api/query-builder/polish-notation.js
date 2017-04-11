@@ -1,15 +1,15 @@
 import _ from 'lodash';
-import {Operators, FieldsGroups} from '/imports/api/fields';
+import {Operators, FieldsGroups, Operator, Field} from '/imports/api/fields';
 import Query from './query';
 
 // list of supported operators
-const operators = Object.keys(Operators);
+const operators = Object.keys(Operator());
 // support for compound conditions
 operators.push('(');
 operators.push(')');
 
 const getField = (group, fieldId) => {
-  const {elastic: {field}} = FieldsGroups[group].fields[fieldId]().props;
+  const {field} = Field()[group]().field()[fieldId]().elastic();
   return field;
 };
 
@@ -191,7 +191,7 @@ const queryBuilder = (conditions) => {
 
   // console.log('conditions', conditions);
   // console.log('expression', expression);
-  console.log('polishNotaion', polishNotation);
+  // console.log('polishNotaion', polishNotation);
 
   polishNotation.map(p => {
     if (isOperator(p)) {
