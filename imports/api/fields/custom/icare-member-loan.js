@@ -11,7 +11,8 @@ const iCMLoan = {
     name: 'iCare member loan',
     type: 'group',
     elastic: {
-      parent: 'icare_members'
+      parent: 'icare_members',
+      field: 'loans',
     },
   },
   fields: {

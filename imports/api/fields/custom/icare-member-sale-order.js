@@ -11,7 +11,8 @@ const iCMSaleOrder = {
     name: 'iCare member sale order',
     type: 'group',
     elastic: {
-      parent: 'icare_members'
+      parent: 'icare_members',
+      field: 'sales_orders',
     },
   },
   fields: {

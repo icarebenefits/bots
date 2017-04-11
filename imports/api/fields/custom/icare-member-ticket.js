@@ -11,7 +11,8 @@ const iCMTicket = {
     name: 'iCare member ticket',
     type: 'group',
     elastic: {
-      parent: 'icare_members'
+      parent: 'icare_members',
+      field: 'tickets',
     },
   },
   fields: {

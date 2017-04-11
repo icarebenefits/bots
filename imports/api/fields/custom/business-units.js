@@ -12,7 +12,8 @@ const BusinessUnit = {
     name: 'Business unit',
     type: 'group',
     elastic: {
-      parent: 'customer'
+      parent: 'customers',
+      field: 'business_units',
     },
   },
   fields: {

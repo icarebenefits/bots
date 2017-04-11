@@ -6,7 +6,8 @@ const iCareMember = {
     name: 'iCare Member',
     type: 'group',
     elastic: {
-      parent: 'business_units'
+      parent: 'business_units',
+      field: 'icare_members',
     },
   },
   fields: {

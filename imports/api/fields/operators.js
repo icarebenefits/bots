@@ -34,7 +34,7 @@ const not = () => ({
     return bodybuilder()
       .query("bool", {"must_not": [query]})
       .build();
-  },
+  }
 });
 const empty = () => ({
   props: {
