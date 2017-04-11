@@ -44,42 +44,73 @@ const buildTree = (condition, parent) => {
   return node;
 };
 
-const nested = (object) => {
+const nested = (object, queryType = 'query') => {
   const {type, field} = object;
   let nest = () => {
   };
   if (!_.isEmpty(object.child)) {
-    nest = (q) => {
-      return q
-        .query(type, field, nested(object.child).nest);
-    };
+    if(queryType === 'agg') {
+      let name = '';
+      field.path ? name = field.path : name = field;
+      nest = (q) => {
+        return q
+          .agg(type, field, name, nested(object.child, queryType).nest);
+      };
+    } else {
+      nest = (q) => {
+        return q
+          .query(type, field, nested(object.child, queryType).nest);
+      };
+    }
   } else {
     const {value} = object;
-    nest = (q) => {
-      return q
-        .query(type, field, value)
-    };
+    if(queryType === 'agg') {
+      nest = (q) => {
+        return q
+          .agg(type, field)
+      };
+    } else {
+      nest = (q) => {
+        return q
+          .query(type, field, value)
+      };
+    }
   }
 
   return {nest};
 };
 
-const buildQuery = (cond) => {
+const buildQuery = (cond, queryType = 'query') => {
   const customers = buildTree(cond, null).child;
   
   const {type, field} = customers;
   let body = bodybuilder();
   if(type === 'nested') {
-    const {nest} = nested(customers.child);
-    body = body
+    const {nest} = nested(customers.child, queryType);
+    if(queryType === 'agg') {
+      let name = '';
+      field.path ? name = field.path : name = field;
+      body = body
+        .agg(type, field, name, nest)
+        .build()
+      ;
+    } else {
+      body = body
         .query(type, field, nest)
         .build()
       ;
+    }
   } else {
     const {value} = customers;
-    body = body
-      .query(type, field, value)
-      .build()
+    if(queryType === 'agg') {
+      body = body
+        .agg(type, field)
+        .build()
+    } else {
+      body = body
+        .query(type, field, value)
+        .build()
+    }
   }
   return body;
 };

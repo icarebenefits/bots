@@ -39,7 +39,7 @@ const Query = ({params, operator = ''}) => {
     {
       const {field, values: value} = params;
       const output = Condition().generate({operator, fieldGroup: field, value});
-      const query = build(output);
+      const query = build(output, 'agg');
       return query;
     }
   }
