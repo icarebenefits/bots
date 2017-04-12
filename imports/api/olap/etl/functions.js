@@ -552,6 +552,11 @@ const etlICMs = ({indices}) => {
   return {...result, runTime};
 };
 
+const etlTotalICMs = ({indices}) => {
+  // get all customers
+  
+};
+
 /**
  *
  * @param {Object} source {index, type}

@@ -1,12 +1,13 @@
 const scripts = {
   lang: "painless",
   bots: {
-    customers: {
+    customer: {
       netsuiteId: "ctx._source.netsuite_id = ctx._source.remove(\"id\")",
       customerId: "ctx._source.customer_id = ctx._source.remove(\"b2b_customer_id\")",
       name: "ctx._source.name = ctx._source.remove(\"company_name\")",
     },
-    icareMembers: {
+    icareMember: {
+      parent: "ctx._parent=ctx._source.organization_id",
       name: "ctx._source.name = ctx._source.remove(\"full_name\")",
       phone: "ctx._source.phone = ctx._source.remove(\"telephone\")",
       magentoCustomerId: "ctx._source.magento_customer_id = ctx._source.remove(\"id\")",
@@ -29,6 +30,15 @@ const scripts = {
       clientId: "ctx._source.remove(\"client_id\")",
       mClient: "ctx._source.remove(\"m_client\")",
     },
+    salesOrder: {
+      parent: "ctx._parent=ctx._source.magento_customer_id;ctx._routing=ctx._source.netsuite_customer_id",
+      country: "ctx._source.remove(\"country\")",
+      mClient: "ctx._source.remove(\"@timestamp\")",
+      mClient: "ctx._source.remove(\"@version\")",
+    },
+    loan: {
+      parent: "ctx._parent=ctx._source.clientExternalId;ctx._routing=ctx._source.orgId"
+    }
   }
 };
 
