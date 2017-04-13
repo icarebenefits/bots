@@ -12,8 +12,10 @@ const iCMSalesOrder = () => ({
     type: 'group'
   }),
   elastic: () => ({
+    id: 'so_number',
+    type: 'sales_order',
+    grandParent: 'customer',
     parent: 'icare_member',
-    child: null,
   }),
   field: () => ({
     soNumber: () => Object.assign(

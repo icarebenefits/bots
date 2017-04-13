@@ -11,8 +11,10 @@ const Customer = () => ({
     type: 'group'
   }),
   elastic: () => ({
-    parent: null,
-    field: 'customers',
+    id: 'netsuite_customer_id',
+    type: 'customer',
+    child: ['icare_member'],
+    grandChild: ['sales_order', 'loan'],
   }),
   field: () => ({
     name: () => Object.assign(

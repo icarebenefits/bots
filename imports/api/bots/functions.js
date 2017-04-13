@@ -5,10 +5,10 @@ import _ from 'lodash';
 // collections
 import {SLAs} from '../collections/slas';
 // fields
-import {FieldsGroups} from '/imports/api/fields';
+import {Field} from '/imports/api/fields';
 // functions
 import {FbRequest} from '../facebook';
-import {queryBuilder, aggsBuilder} from '../query-builder';
+import {QueryBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';
 import {Elastic} from '../elastic';
@@ -170,11 +170,89 @@ const checkSLA = (slaId) => {
       throw new Meteor.Error('MESSAGE_EMPTY');
     }
 
-    console.log('variables', JSON.stringify(variables, null, 2));
-    console.log('conditions', JSON.stringify(conditions, null, 2));
+    /* For every variable - build appropriated query
+     * and get the aggregation result */
+    const vars = {};
+    variables.map(aggregation => {
+      const
+        {summaryType: aggType, group, field, name} = aggregation,
+        {type} = Field()[group]().elastic();
+      const
+        {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
+        index = `${indexPrefix}_${country}_${env}`;
+
+      const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
+      const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(aggregation);
+
+      // console.log('query', JSON.stringify(query))
+
+      if (error || aggsErr) {
+        throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
+      } else {
+        // build the query
+        const ESQuery = {
+          query,
+          aggs,
+          size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+        };
+
+        const {Elastic} = require('../elastic');
+        // validate query before run
+        const {valid} = Elastic.indices.validateQuery({
+          index,
+          type,
+          body: {query}
+        });
+        if (!valid) {
+          throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
+        } else {
+          let agg = {};
+          try {
+            const {hits, aggregations} = Elastic.search({
+              index,
+              type,
+              body: ESQuery
+            });
+            agg = aggregations;
+          } catch(e) {
+            console.log({name: 'checkSLA', message: JSON.stringify(e)});
+          }
+
+          if (!_.isEmpty(agg)) {
+            let ESField = '';
+            if (field === 'total') {
+              ESField = Field()[group]().elastic().id;
+            } else {
+              ESField = Field()[group]().field()[field]().elastic().field;
+            }
+            const {value} = agg[`agg_${aggType}_${ESField}`];
+
+            vars[name] = Number(value) === 0 ? 'no' : accounting.formatNumber(value, 0);
+          }
+        }
+      }
+    });
+
+    /* Build message */
+    const message = format(`${name}: ${messageTemplate}`, vars);
+
+    /* Send message to workplace */
+    const wpRequest = new FbRequest();
+    const {personalId} = Meteor.settings.facebook;
+    wpRequest.post(personalId, workplace, message);
+    Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
+
+    return {
+      check: true,
+      notify: true,
+    };
 
   } else {
-    throw new Meteor.Error('SLA_NOT_FOUND');
+    return {
+      check: false,
+      notify: false,
+      error: 'SLA_NOT_FOUND'
+    };
   }
 };
 
@@ -183,5 +261,7 @@ const Bots = {
   executeElastic,
   checkSLA,
 };
+
+checkSLA('gfg2FfzH35iTt3BgM');
 
 export default Bots

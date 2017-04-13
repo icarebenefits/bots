@@ -7,7 +7,9 @@ const iCareMember = () => ({
     type: 'group'
   }),
   elastic: () => ({
+    id: 'magento_customer_id',
     parent: 'customer',
+    type: 'icare_member',
     child: ['sales_order', 'loan'],
   }),
   field: () => ({

@@ -12,8 +12,10 @@ const iCMLoan = () => ({
     type: 'group'
   }),
   elastic: () => ({
+    id: 'id',
+    type: 'loan',
+    grandParent: 'customer',
     parent: 'icare_members',
-    child: null,
   }),
   field: () => ({
     loanSaving: () => Object.assign(
