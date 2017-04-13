@@ -399,6 +399,109 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
 };
 
 /**
+ * Add a field has data calculated by calculator on source index into dest index
+ * @param {Array} actions
+ * @param {Object} source - {index, type, ...options}
+ * @param {Object} dest - {index, type, ...options}
+ * @param {String} field - field name
+ * @param {Object} options - ex: batches: 1000
+ * @param {Func} calculator(index, id) - function execute calculation for value of field
+ * @return {*}
+ */
+const etlField = ({
+  actions, source, dest, field, options = {batches: 1000}, calculator = () => {
+}
+}) => {
+  const
+    name = getName(actions),
+    start = new Date(),
+    {batches} = options;
+
+  // get total source docs
+  const
+    {index, type} = dest,
+    body = bodybuilder()
+      .query('match_all', {})
+      .size(0)
+      .build();
+  let
+    totalSourceDocs = 0,
+    stats = []
+    ;
+  try {
+    const result = Elastic.search({index, type, body});
+    totalSourceDocs = result.hits.total;
+  } catch (e) {
+    const
+      runTime = getRunTime(start),
+      res = {error: {name: getName([name, 'COUNT_TOTAL_DEST_DOCS']), message: getMessage(e)}},
+      mess = {runTime, message: getMessage({index, type, body})};
+    handleResponse(res, mess);
+  }
+
+  if (totalSourceDocs <= 0) {
+    // finish adding field cause no source documents found
+    const
+      runTime = getRunTime(start),
+      result = {name: getName([name, 'NO_DEST_DOC_FOUND']), message: getMessage(stats)};
+    return {result, runTime};
+  }
+
+  for (let i = 0; i < totalSourceDocs; i += batches) {
+    body.from = i;
+    body.size = batches;
+    body._source = false;
+
+    try {
+      const {hits: {hits}} = Elastic.search({index, type, body});
+      hits.map(({_id}) => {
+        // calculate field value
+        const {error, result} = calculator(source, _id);
+        if(error) {
+          return {error: {name, message: getMessage(error)}};
+        }
+        const doc = {
+          [`${field}`]: result.numberICMs
+        };
+
+        // add field into dest
+        try {
+          const {index, type} = dest;
+          const addField = Elastic.update({
+            index,
+            type,
+            id: _id,
+            body: {doc}
+          });
+
+          stats.push({[`${_id}`]: result.numberICMs})
+          const
+            runTime = getRunTime(start),
+            res = {result: {name: getName([name, `update/${_id}`]), message: getMessage(addField)}},
+            mess = {runTime, message: getMessage({index, type, body, doc})};
+          handleResponse(res, mess);
+        } catch (e) {
+          const
+            runTime = getRunTime(start),
+            res = {error: {name: getName([name, `update/${_id}`]), message: getMessage(e)}},
+            mess = {runTime, message: getMessage({index, type, body, doc})};
+          handleResponse(res, mess);
+        }
+      });
+    } catch (e) {
+      const
+        runTime = getRunTime(start),
+        res = {error: {name: getName([name, 'GET_DEST_DOC_DATA']), message: getMessage(e)}},
+        mess = {runTime, message: getMessage({index, type, body})};
+      handleResponse(res, mess);
+    }
+  }
+
+  return {result: {name, message: getMessage({total: stats.length, stats})}};
+
+};
+
+/**
  *
  * @param {Object} source {index, type}
  * @param {Object} dest {index, type}
@@ -554,7 +657,7 @@ const etlICMs = ({indices}) => {
 
 const etlTotalICMs = ({indices}) => {
   // get all customers
-  
+
 };
 
 /**
@@ -636,7 +739,7 @@ const getAliasIndices = ({index, alias}) => {
       name: alias
     };
 
-  if(index) params.index = index;
+  if (index) params.index = index;
 
   try {
     const getIndices = Elastic.indices.getAlias(params);
@@ -685,9 +788,41 @@ const updateAliases = ({alias, removes, adds}) => {
   return {...res, runTime};
 };
 
+/**
+ * Calculate the number of iCare members from netsuite_customer_id
+ * @param source
+ * @param netsuite_customer_id
+ * @return {{}}
+ */
+const calculateNumberICMs = (source, netsuite_customer_id) => {
+  const
+    name = 'calculateNumberICMs',
+    {index, type} = source,
+    body = bodybuilder()
+      .query('term', 'netsuite_customer_id', netsuite_customer_id)
+      .query('term', 'inactivate', false)
+      .size(0)
+      .build(),
+    response = {};
+  try {
+    const {hits: {total}} = Elastic.search({index, type, body});
+    response.result = {name, numberICMs: total};
+  } catch (e) {
+    const
+      runTime = getRunTime(start),
+      res = {error: {name, message: getMessage(e)}},
+      mess = {runTime, message: getMessage({index, type, body})};
+    handleResponse(res, mess);
+    response.error = {name, message: getMessage(e)};
+  }
+
+  return response;
+};
+
 const ETL = {
   reindex,
   etl,
+  etlField,
   etlItems,
   etlShipment,
   etlSalesOrders,
@@ -699,6 +834,7 @@ const ETL = {
   getAliasIndices,
   getMessage,
   updateAliases,
+  calculateNumberICMs,
 };
 
 export default ETL

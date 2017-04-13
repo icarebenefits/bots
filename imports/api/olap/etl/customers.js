@@ -224,31 +224,54 @@ const customers = ({country}) => {
   console.log('reindexSOs', JSON.stringify(reindexSOs, null, 2));
   console.log('reindexLoan', JSON.stringify(reindexLoan, null, 2));
 
+  const getAliasIndices = ETL.getAliasIndices({alias});
+  let
+    removes = [],
+    adds = [];
+  if (getAliasIndices.error) {
+    console.log('getAliasIndices', ETL.getMessage(getAliasIndices.error), getAliasIndices.runTime);
+
+  } else {
+    removes = getAliasIndices.result.indices;
+  }
+
+  adds = [indices.new.index];
+
+  console.log('updateAliases', ETL.getMessage({alias, removes, adds}));
+  const updateAliases = ETL.updateAliases({alias, removes, adds});
+  if(updateAliases.error) {
+    console.log('updateAliases', ETL.getMessage(updateAliases.error), updateAliases.runTime);
+  } else {
+    console.log('updateAliases', ETL.getMessage(updateAliases.result), updateAliases.runTime);
+  }
+
+  /**
+   * ETL addition fields
+   */
+  /* Customer - number_iCMs (calculate the number of iCare members) */
+  actions = ['customer', 'number_iCMs'];
+  source = {
+    index: indices.new.index,
+    type: indices.new.types.icare_member
+  };
+  dest = {
+    index: indices.new.index,
+    type: indices.new.types.customer,
+  };
+  script = {};
+  const
+    field = 'number_iCMs',
+    calculator = ETL.calculateNumberICMs;
+  const etlNumberICMs = ETL.etlField({actions, source, dest, field, calculator});
+
   console.log('----- ETL -----');
-  // console.log('etlSOs', JSON.stringify(etlSOs, null, 2));
+  console.log('etlNumberICMs', JSON.stringify(etlNumberICMs, null, 2));
+  // console.log('addNumberICMs', JSON.stringify(addNumberICMs, null, 2));
   // console.log('etlTicketsICMs', JSON.stringify(etlTicketsICMs, null, 2));
   // console.log('etlMifos', JSON.stringify(etlMifos, null, 2));
   // console.log('etlICMs', JSON.stringify(etlICMs, null, 2));
   // console.log('etlTicketsCustomers', JSON.stringify(etlTicketsCustomers, null, 2));
   // console.log('etlBusinessUnits', JSON.stringify(etlBusinessUnits, null, 2));
-
-  const getAliasIndices = ETL.getAliasIndices({alias});
-  if (getAliasIndices.error) {
-    console.log('getAliasIndices', ETL.getMessage(getAliasIndices.error), getAliasIndices.runTime);
-  } else {
-    const
-      {indices: removes} = getAliasIndices.result,
-      adds = [indices.new.index];
-
-    console.log('updateAliases', ETL.getMessage({alias, removes, adds}));
-    const updateAliases = ETL.updateAliases({alias, removes, adds});
-    if(updateAliases.error) {
-      console.log('updateAliases', ETL.getMessage(updateAliases.error), updateAliases.runTime);
-    } else {
-      console.log('updateAliases', ETL.getMessage(updateAliases.result), updateAliases.runTime);
-    }
-  }
-
 
 };
 

@@ -2,9 +2,10 @@ const scripts = {
   lang: "painless",
   bots: {
     customer: {
-      netsuiteId: "ctx._source.netsuite_id = ctx._source.remove(\"id\")",
-      customerId: "ctx._source.customer_id = ctx._source.remove(\"b2b_customer_id\")",
+      netsuiteId: "ctx._source.netsuite_customer_id = ctx._source.remove(\"id\")",
       name: "ctx._source.name = ctx._source.remove(\"company_name\")",
+      restrictionTime: "ctx._source.remove(\"restriction_time\")",
+      restrictionTime: "ctx._source.remove(\"icare_member_eligible_fields\")",
     },
     icareMember: {
       parent: "ctx._parent=ctx._source.organization_id",
@@ -29,6 +30,7 @@ const scripts = {
       totalUsingDueAmount: "ctx._source.total_using_due_amount = ctx._source.remove(\"m_total_using_due_amount\")",
       clientId: "ctx._source.remove(\"client_id\")",
       mClient: "ctx._source.remove(\"m_client\")",
+      restrictionTime: "ctx._source.remove(\"restriction_time\")",
     },
     salesOrder: {
       parent: "ctx._parent=ctx._source.magento_customer_id;ctx._routing=ctx._source.netsuite_customer_id",
@@ -37,7 +39,20 @@ const scripts = {
       mClient: "ctx._source.remove(\"@version\")",
     },
     loan: {
-      parent: "ctx._parent=ctx._source.clientExternalId;ctx._routing=ctx._source.orgId"
+      parent: "ctx._parent=ctx._source.clientExternalId;ctx._routing=ctx._source.orgId",
+      magentoCustomerId: "ctx._source.magento_customer_id = ctx._source.remove(\"clientExternalId\")",
+      netsuiteCustomerId: "ctx._source.netsuite_customer_id = ctx._source.remove(\"orgId\")",
+      installmentOverview: "ctx._source.installment_overview = ctx._source.remove(\"installmentOverview\")",
+      dueInstallments: "ctx._source.due_installments = ctx._source.remove(\"dueInstallments\")",
+      dpdInfo: "ctx._source.dpd = ctx._source.remove(\"dpdInfo\")",
+      saving: "ctx._source.saving = ctx._source.remove(\"totalSavingBalance\")",
+      phone: "ctx._source.phone = ctx._source.remove(\"mobile\")",
+      creditLimit: "ctx._source.credit_limit = ctx._source.remove(\"creditLimit\")",
+      dueLimit: "ctx._source.due_limit = ctx._source.remove(\"dueLimit\")",
+      socialId: "ctx._source.social_id = ctx._source.remove(\"socialNo\")",
+      creditLimit: "ctx._source.credit_limit = ctx._source.remove(\"creditLimit\")",
+      mClient: "ctx._source.remove(\"customerId\")",
+      mClient: "ctx._source.remove(\"businessUnitId\")",
     }
   }
 };
