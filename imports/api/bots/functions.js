@@ -262,6 +262,7 @@ const Bots = {
   checkSLA,
 };
 
-checkSLA('gfg2FfzH35iTt3BgM');
+/* Test checking SLA */
+// checkSLA('gfg2FfzH35iTt3BgM');
 
 export default Bots
