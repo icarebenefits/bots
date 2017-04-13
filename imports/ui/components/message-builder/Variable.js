@@ -31,20 +31,20 @@ export class Variable extends Component {
       const options = listFields
       // message builder apply for number fields only
         .filter(f => {
-          console.log('filter', f, Fields);
           return Fields()[f]().props().type === 'number'
         })
         .map(f => {
           const {id: name, name: label} = Fields()[f]().props();
           return {name, label};
         });
+      options.splice(0, 0, {name: `${group}_total`, label: 'total'});
       return {name, label, options};
     });
 
     grpOptions.splice(0, 0, {
-      name: 'common',
-      label: 'common',
-      options: [{name: '', label: ''}, {name: 'total', label: 'total'}]
+      name: 'empty',
+      label: '',
+      options: [{name: '', label: ''}]
     });
 
     return grpOptions;

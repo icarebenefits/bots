@@ -9,7 +9,7 @@ import {Elastic} from './';
  * Function
  * @param country
  */
-const migrateICareMembers = (country = 'kh') => {
+const migrateToElastic = (country = 'kh') => {
   if(Meteor.isServer) {
     const
       runDate = new Date(),
@@ -220,7 +220,7 @@ const migrateICareMembers = (country = 'kh') => {
 };
 
 const Functions = {
-  migrateICareMembers,
+  migrateToElastic,
 };
 
 export default Functions

@@ -12,91 +12,21 @@ const iCMLoan = () => ({
     type: 'group'
   }),
   elastic: () => ({
-    parent: 'business_units.icare_members',
-    field: 'business_units.icare_members.loans',
+    parent: 'icare_members',
+    child: null,
   }),
   field: () => ({
-    loanId: () => Object.assign(
-      {},
-      Standard().String(),
-      {
-        props: () => ({
-          id: 'loanId',
-          name: 'Loan ID',
-          type: 'string'
-        }),
-        elastic: () => ({
-          field: 'loanId',
-        })
-      }
-    ),
-    orderId: () => Object.assign(
-      {},
-      Standard().String(),
-      {
-        props: () => ({
-          id: 'orderId',
-          name: 'Order ID',
-          type: 'string'
-        }),
-        elastic: () => ({
-          field: 'orderId',
-        }),
-      }
-    ),
-    overduePeriod: () => Object.assign(
-      {},
-      Standard().String(),
-      {
-        props: () => ({
-          id: 'overduePeriod',
-          name: 'Over due period',
-          type: 'string'
-        }),
-        elastic: () => ({
-          field: 'overduePeriod',
-        }),
-      }
-    ),
-    totalOverdueAmount: () => Object.assign(
+    loanSaving: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'totalOverdueAmount',
-          name: 'Total over due amount',
+          id: 'loanSaving',
+          name: 'Saving',
           type: 'number'
         }),
         elastic: () => ({
-          field: 'totalOverdueAmount',
-        })
-      }
-    ),
-    totalPaidAmount: () => Object.assign(
-      {},
-      Standard().Number(),
-      {
-        props: () => ({
-          id: 'totalPaidAmount',
-          name: 'Total paid amount',
-          type: 'number'
-        }),
-        elastic: () => ({
-          field: 'totalPaidAmount',
-        })
-      }
-    ),
-    totalPrincipalAmount: () => Object.assign(
-      {},
-      Standard().Number(),
-      {
-        props: () => ({
-          id: 'totalPrincipalAmount',
-          name: 'totalPrincipalAmount',
-          type: 'number'
-        }),
-        elastic: () => ({
-          field: 'totalPrincipalAmount',
+          field: 'saving',
         })
       }
     ),

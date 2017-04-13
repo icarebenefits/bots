@@ -47,7 +47,7 @@ Meteor.startup(function () {
               priority: 'high',
               freqText: frequency[country],
               info: {
-                method: 'bots.migrateIcareMembers',
+                method: 'bots.migrateToElastic',
                 country,
               }
             };

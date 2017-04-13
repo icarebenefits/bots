@@ -140,8 +140,6 @@ class ConditionsBuilder extends Component {
             FieldData = Object.assign({}, Fields.field()[filter]())
           }
 
-          console.log('fielddata', value, FieldData.operator());
-
           const {type, params} = FieldData.operator()[value].props();
           for (let i = 0; i < params - 1; i++) {
             newValues.push({type, value: this._getDefaultValue(type)});
@@ -358,11 +356,6 @@ class ConditionsBuilder extends Component {
       return null;
     }
 
-    // const FieldGroup = Field()[groupId](),
-    //   {fields: FieldData} = FieldGroup,
-    //   {fields, operators, props: {name: header}} = FieldData[fieldId]()
-    //   ;
-
     const
       fields = {},
       FieldData = Field()[groupId]().field()[fieldId](),
@@ -439,7 +432,7 @@ class ConditionsBuilder extends Component {
         </div>
         <div className="row">
           <div className="col-md-12">
-            <table className="table table-striped">
+            <table className="table table-striped table-hover">
               <thead>
               <tr>
                 <th>Not</th>

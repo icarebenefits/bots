@@ -5,7 +5,7 @@ const scripts = {
       netsuiteId: "ctx._source.netsuite_customer_id = ctx._source.remove(\"id\")",
       name: "ctx._source.name = ctx._source.remove(\"company_name\")",
       restrictionTime: "ctx._source.remove(\"restriction_time\")",
-      restrictionTime: "ctx._source.remove(\"icare_member_eligible_fields\")",
+      iCMEligibleFields: "ctx._source.remove(\"icare_member_eligible_fields\")",
     },
     icareMember: {
       parent: "ctx._parent=ctx._source.organization_id",
@@ -35,8 +35,9 @@ const scripts = {
     salesOrder: {
       parent: "ctx._parent=ctx._source.magento_customer_id;ctx._routing=ctx._source.netsuite_customer_id",
       country: "ctx._source.remove(\"country\")",
-      mClient: "ctx._source.remove(\"@timestamp\")",
-      mClient: "ctx._source.remove(\"@version\")",
+      timesStamp: "ctx._source.remove(\"@timestamp\")",
+      version: "ctx._source.remove(\"@version\")",
+      type: "ctx._source.remove(\"type\")",
     },
     loan: {
       parent: "ctx._parent=ctx._source.clientExternalId;ctx._routing=ctx._source.orgId",
@@ -50,9 +51,8 @@ const scripts = {
       creditLimit: "ctx._source.credit_limit = ctx._source.remove(\"creditLimit\")",
       dueLimit: "ctx._source.due_limit = ctx._source.remove(\"dueLimit\")",
       socialId: "ctx._source.social_id = ctx._source.remove(\"socialNo\")",
-      creditLimit: "ctx._source.credit_limit = ctx._source.remove(\"creditLimit\")",
-      mClient: "ctx._source.remove(\"customerId\")",
-      mClient: "ctx._source.remove(\"businessUnitId\")",
+      customerId: "ctx._source.remove(\"customerId\")",
+      businessUnitId: "ctx._source.remove(\"businessUnitId\")",
     }
   }
 };

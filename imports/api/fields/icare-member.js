@@ -7,16 +7,16 @@ const iCareMember = () => ({
     type: 'group'
   }),
   elastic: () => ({
-    parent: 'business_units',
-    field: 'business_units.icare_members',
+    parent: 'customer',
+    child: ['sales_order', 'loan'],
   }),
   field: () => ({
-    name: () => Object.assign(
+    icmName: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'name',
+          id: 'icmName',
           name: 'Name',
           type: 'string'
         }),
@@ -25,12 +25,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    socialId: () => Object.assign(
+    icmSocialId: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'socialId',
+          id: 'icmSocialId',
           name: 'Social ID',
           type: 'string'
         }),
@@ -39,12 +39,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    gender: () => Object.assign(
+    icmGender: () => Object.assign(
       {},
       Standard().Gender(),
       {
         props: () => ({
-          id: 'gender',
+          id: 'icmGender',
           name: 'Gender',
           type: 'gender'
         }),
@@ -53,12 +53,12 @@ const iCareMember = () => ({
         })
       }
     ),
-    dateOfBirth: () => Object.assign(
+    icmDateOfBirth: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'dateOfBirth',
+          id: 'icmDateOfBirth',
           name: 'Date of birth',
           type: 'date'
         }),
@@ -67,12 +67,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    phone: () => Object.assign(
+    icmPhone: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'phone',
+          id: 'icmPhone',
           name: 'Phone',
           type: 'string'
         }),
@@ -81,12 +81,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    email: () => Object.assign(
+    icmEmail: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'email',
+          id: 'icmEmail',
           name: 'Email',
           type: 'string'
         }),
@@ -95,12 +95,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    address: () => Object.assign(
+    icmAddress: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'address',
+          id: 'icmAddress',
           name: 'Address',
           type: 'string'
         }),
@@ -109,12 +109,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    employeeId: () => Object.assign(
+    icmEmployeeId: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'employeeId',
+          id: 'icmEmployeeId',
           name: 'Employee ID',
           type: 'string'
         }),
@@ -123,12 +123,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    jobTitle: () => Object.assign(
+    icmJobTitle: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'jobTitle',
+          id: 'icmJobTitle',
           name: 'Job title',
           type: 'string'
         }),
@@ -137,12 +137,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    department: () => Object.assign(
+    icmDepartment: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'department',
+          id: 'icmDepartment',
           name: 'Department',
           type: 'string'
         }),
@@ -151,12 +151,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    salary: () => Object.assign(
+    icmSalary: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'salary',
+          id: 'icmSalary',
           name: 'Salary',
           type: 'number'
         }),
@@ -165,12 +165,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    hiringDate: () => Object.assign(
+    icmHiringDate: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'hiringDate',
+          id: 'icmHiringDate',
           name: 'Hiring date',
           type: 'date'
         }),
@@ -179,12 +179,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    terminationDate: () => Object.assign(
+    icmTerminationDate: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'terminationDate',
+          id: 'icmTerminationDate',
           name: 'Termination date',
           type: 'date'
         }),
@@ -193,12 +193,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    contractType: () => Object.assign(
+    icmContractType: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'contractType',
+          id: 'icmContractType',
           name: 'Contract type',
           type: 'string'
         }),
@@ -207,12 +207,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    inactivate: () => Object.assign(
+    icmInactivate: () => Object.assign(
       {},
       Standard().Bool(),
       {
         props: () => ({
-          id: 'inactivate',
+          id: 'icmInactivate',
           name: 'Inactivate',
           type: 'bool'
         }),
@@ -221,12 +221,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    creditLimit: () => Object.assign(
+    icmCreditLimit: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'creditLimit',
+          id: 'icmCreditLimit',
           name: 'Credit limit',
           type: 'number'
         }),
@@ -235,12 +235,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    dueLimit: () => Object.assign(
+    icmDueLimit: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'dueLimit',
+          id: 'icmDueLimit',
           name: 'Due limit',
           type: 'number'
         }),
@@ -249,12 +249,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    availableCL: () => Object.assign(
+    icmAvailableCL: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'availableCL',
+          id: 'icmAvailableCL',
           name: 'Available credit limit',
           type: 'number'
         }),
@@ -263,26 +263,26 @@ const iCareMember = () => ({
         }),
       }
     ),
-    availableDL: () => Object.assign(
+    icmAvailableDL: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'availableDL',
+          id: 'icmAvailableDL',
           name: 'Available due limit',
           type: 'number'
         }),
         elastic: () => ({
-          field: 'available due limit'
+          field: 'available_due_limit'
         }),
       }
     ),
-    saving: () => Object.assign(
+    icmSaving: () => Object.assign(
       {},
       Standard().Number(),
       {
         props: () => ({
-          id: 'saving',
+          id: 'icmSaving',
           name: 'Saving',
           type: 'number'
         }),
@@ -291,12 +291,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    maternityLeaveStartDate: () => Object.assign(
+    icmMaternityLeaveStartDate: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'maternityLeaveStartDate',
+          id: 'icmMaternityLeaveStartDate',
           name: 'Maternity leave start date',
           type: 'date'
         }),
@@ -305,12 +305,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    maternityLeaveEndDate: () => Object.assign(
+    icmMaternityLeaveEndDate: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'maternityLeaveEndDate',
+          id: 'icmMaternityLeaveEndDate',
           name: 'Maternity leave end date',
           type: 'date'
         }),
@@ -319,12 +319,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    salaryPaymentMethod: () => Object.assign(
+    icmSalaryPaymentMethod: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'salaryPaymentMethod',
+          id: 'icmSalaryPaymentMethod',
           name: 'Salary payment method',
           type: 'string'
         }),
@@ -333,12 +333,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    bankName: () => Object.assign(
+    icmBankName: () => Object.assign(
       {},
       Standard().String(),
       {
         props: () => ({
-          id: 'bankName',
+          id: 'icmBankName',
           name: 'Bank name',
           type: 'string'
         }),
@@ -347,12 +347,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    hasPurchased: () => Object.assign(
+    icmHasPurchased: () => Object.assign(
       {},
       Standard().Bool(),
       {
         props: () => ({
-          id: 'hasPurchased',
+          id: 'icmHasPurchased',
           name: 'Has purchased',
           type: 'bool'
         }),
@@ -361,12 +361,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    lastPurchaseDate: () => Object.assign(
+    icmLastPurchaseDate: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'lastPurchaseDate',
+          id: 'icmLastPurchaseDate',
           name: 'Last purchase date',
           type: 'date'
         }),
@@ -375,12 +375,12 @@ const iCareMember = () => ({
         }),
       }
     ),
-    createdAt: () => Object.assign(
+    icmCreatedAt: () => Object.assign(
       {},
       Standard().Date(),
       {
         props: () => ({
-          id: 'createdAt',
+          id: 'icmCreatedAt',
           name: 'Create Date',
           type: 'date'
         }),

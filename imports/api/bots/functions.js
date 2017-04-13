@@ -157,9 +157,31 @@ const executeElastic = (slaId) => {
   }
 };
 
+const checkSLA = (slaId) => {
+  const sla = SLAs.findOne({_id: slaId});
+  if (!_.isEmpty(sla)) {
+    const {name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
+
+    /* validate conditions and message */
+    if (_.isEmpty(conditions)) {
+      throw new Meteor.Error('CONDITIONS_EMPTY');
+    }
+    if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+      throw new Meteor.Error('MESSAGE_EMPTY');
+    }
+
+    console.log('variables', JSON.stringify(variables, null, 2));
+    console.log('conditions', JSON.stringify(conditions, null, 2));
+
+  } else {
+    throw new Meteor.Error('SLA_NOT_FOUND');
+  }
+};
+
 const Bots = {
   fistSLACheck,
   executeElastic,
+  checkSLA,
 };
 
 export default Bots

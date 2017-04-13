@@ -34,7 +34,7 @@ const Customer = () => ({
       Standard().Number(),
       {
         props: () => ({
-          id: 'numberOfEmployees',
+          id: 'numberEmployees',
           name: 'Number of employees',
           type: 'number'
         }),
@@ -48,13 +48,12 @@ const Customer = () => ({
       Standard().Number(),
       {
         props: () => ({
-          id: 'numberOfICMs',
-          name: 'number of iCare members',
+          id: 'numberICMs',
+          name: 'Number of iCare members',
           type: 'number'
         }),
         elastic: () => ({
-          field: 'number_iCMs',
-          type: 'script',  // script field, value is calculated when search
+          field: 'number_iCMs'
         }),
       }
     ),
