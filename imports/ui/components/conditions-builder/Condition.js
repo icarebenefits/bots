@@ -7,10 +7,7 @@ import {
   Label,
   Button,
 } from '../elements';
-import {
-  // Fields,
-  FieldsGroups
-} from '/imports/api/fields';
+import {Field} from '/imports/api/fields';
 
 export class Condition extends Component {
 
@@ -20,17 +17,22 @@ export class Condition extends Component {
 
   _getFilters() {
     const
-      listGroups = Object.keys(FieldsGroups)
+      listGroups = Object.keys(Field())
       ;
 
-    const grpOptions = listGroups.map(groupName => {
-      const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
-      const listFields = Object.keys(fields);
+
+    const grpOptions = listGroups.map(group => {
+      const
+        Fields = Field()[group]().field,
+        {id: name, name: label} = Field()[group]().props();
+
+      const listFields = Object.keys(Fields());
       const options = listFields.map(field => {
-        const {id: name, name: label} = fields[field]().props;
+        const {id: name, name: label} = Fields()[field]().props();
         return {name, label};
       });
-      options.splice(0, 0, {name: '', label: ''});
+      options.push({name: '', label: ''});
+      // options.splice(0, 0, {name: '', label: ''});
       return {name, label, options};
     });
 

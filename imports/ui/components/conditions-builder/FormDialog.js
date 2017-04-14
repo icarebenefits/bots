@@ -12,7 +12,7 @@ class FormDialog extends Component {
       {operator, field} = condition
       ;
 
-    if (fields) {
+    if (!_.isEmpty(fields)) {
       // Dialog field props
       const options = Object.keys(fields)
           .map(f => {
@@ -78,7 +78,7 @@ class FormDialog extends Component {
       const
         options = Object.keys(operators)
           .map(op => {
-            const {id: name, name: label} = operators[op].props;
+            const {id: name, name: label} = operators[op].props();
             return {name, label};
           })
         ;
