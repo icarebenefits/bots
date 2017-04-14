@@ -31,8 +31,8 @@ const customers = ({country}) => {
             sales_orders: 'sales_order',
             items: 'item',
             shipment: 'shipment',
-            tickets_customers: 'tickets_customer',
-            tickets_icare_members: 'ticket_icare_member',
+            ticket_customer: 'ticket_customer',
+            ticket_icare_member: 'ticket_icare_member',
           }
         },
         new: {
@@ -202,7 +202,7 @@ const customers = ({country}) => {
     actions = ['ticket', 'icare_member'];
     source = {
       index: indices.etl.index,
-      type: indices.etl.types.ticket,
+      type: indices.etl.types.ticket_icare_member,
       query: {
         bool: {
           must: [
@@ -254,44 +254,32 @@ const customers = ({country}) => {
     /* Customers - Business units */
     // const etlBusinessUnits = ETL.etlBusinessUnits({indices});
 
-
-    // stdout
-    // console.log('----- indices -----');
-    // console.log('indices', JSON.stringify(indices, null, 2));
-
-    // console.log('----- reindex -----');
-    console.log('reindexCustomers', JSON.stringify(reindexCustomers.result.message.total, null, 2));
-    // console.log('reindexBUs', JSON.stringify(reindexBUs, null, 2));
-    // console.log('reindexICMs', JSON.stringify(reindexICMs, null, 2));
-    // console.log('reindexSOs', JSON.stringify(reindexSOs, null, 2));
-    // console.log('reindexLoan', JSON.stringify(reindexLoan, null, 2));
-
     message = `${message} \n ## Indices information`;
     message = `${message} \n \`\`\`${JSON.stringify(indices, null, 2)} \n \`\`\``;
     message = `${message} \n ## Progress `;
-    message = `${message} \n **Customer** \n \`\`\` ${JSON.stringify({
+    message = `${message} \n **Customer** \n \`\`\` \n ${JSON.stringify({
       name: reindexCustomers.error ? reindexCustomers.error.name : reindexCustomers.result.name,
-      total: reindexCustomers.result.message.total,
+      total: JSON.parse(reindexCustomers.result.message).total,
       runtime: reindexCustomers.runTime
     }, null, 2)} \n \`\`\``;
-    message = `${message} \n **iCare Member** \n\`\`\` ${JSON.stringify({
+    message = `${message} \n **iCare Member** \n\`\`\` \n ${JSON.stringify({
       name: reindexICMs.error ? reindexICMs.error.name : reindexICMs.result.name,
-      total: reindexICMs.result.message.total,
+      total: JSON.parse(reindexICMs.result.message).total,
       runtime: reindexICMs.runTime
     }, null, 2)} \n \`\`\``;
-    message = `${message} \n **iCM Sales Order** \n\`\`\` ${JSON.stringify({
+    message = `${message} \n **iCM Sales Order** \n\`\`\` \n ${JSON.stringify({
       name: reindexSOs.error ? reindexSOs.error.name : reindexSOs.result.name,
-      total: reindexSOs.result.message.total,
+      total: JSON.parse(reindexSOs.result.message).total,
       runtime: reindexSOs.runTime
     }, null, 2)} \n \`\`\``;
-    message = `${message} \n **iCM Loan** \n\`\`\` ${JSON.stringify({
+    message = `${message} \n **iCM Loan** \n\`\`\` \n ${JSON.stringify({
       name: reindexLoan.error ? reindexLoan.error.name : reindexLoan.result.name,
-      total: reindexLoan.result.message.total,
+      total: JSON.parse(reindexLoan.result.message).total,
       runtime: reindexLoan.runTime
     }, null, 2)} \n \`\`\``;
-    message = `${message} \n **iCM Ticket** \n\`\`\` ${JSON.stringify({
+    message = `${message} \n **iCM Ticket** \n\`\`\` \n ${JSON.stringify({
       name: reindexTicket.error ? reindexTicket.error.name : reindexTicket.result.name,
-      total: reindexTicket.result.message.total,
+      total: JSON.parse(reindexTicket.result.message).total,
       runtime: reindexTicket.runTime
     }, null, 2)} \n \`\`\``;
 
@@ -300,9 +288,8 @@ const customers = ({country}) => {
       removes = [],
       adds = [];
     if (getAliasIndices.error) {
-      console.log('getAliasIndices', ETL.getMessage(getAliasIndices.error), getAliasIndices.runTime);
 
-      message = `${message} \n ### Waring - Get Bots Elastic Alias \n \`\`\` ${JSON.stringify({
+      message = `${message} \n ### Waring - Get Bots Elastic Alias \n \`\`\` \n ${JSON.stringify({
         warning: getAliasIndices.error,
         runtime: getAliasIndices.runTime
       }, null, 2)} \n \`\`\` **`;
@@ -312,9 +299,7 @@ const customers = ({country}) => {
 
     adds = [indices.new.index];
 
-    // console.log('updateAliases', ETL.getMessage({alias, removes, adds}));
-
-    message = `${message} \n **Update Bots Elastic Alias** \n \`\`\` ${JSON.stringify({
+    message = `${message} \n **Update Bots Elastic Alias** \n \`\`\` \n ${JSON.stringify({
       alias,
       removes,
       adds
@@ -322,16 +307,14 @@ const customers = ({country}) => {
 
     const updateAliases = ETL.updateAliases({alias, removes, adds});
     if (updateAliases.error) {
-      // console.log('updateAliases', ETL.getMessage(updateAliases.error), updateAliases.runTime);
 
-      message = `${message} \n ### Error - Update Bots Elastic Alias \n \`\`\` ${JSON.stringify({
+      message = `${message} \n ### Error - Update Bots Elastic Alias \n \`\`\` \n ${JSON.stringify({
         error: updateAliases.error,
         runtime: updateAliases.runTime
       }, null, 2)} \n \`\`\` **`;
     } else {
-      // console.log('updateAliases', ETL.getMessage(updateAliases.result), updateAliases.runTime);
 
-      message = `${message} \n ### Success - Update Bots Elastic Alias \n \`\`\` ${JSON.stringify({
+      message = `${message} \n ### Success - Update Bots Elastic Alias \n \`\`\` \n ${JSON.stringify({
         result: updateAliases.result.name,
         runtime: updateAliases.runTime
       }, null, 2)} \n \`\`\``;
@@ -356,20 +339,12 @@ const customers = ({country}) => {
       calculator = ETL.calculateNumberICMs;
     const etlNumberICMs = ETL.etlField({actions, source, dest, field, calculator});
 
-    // console.log('----- ETL -----');
-    // console.log('etlNumberICMs', JSON.stringify(etlNumberICMs, null, 2));
     message = `${message} \n **ETL Additional Fields**`;
-    message = `${message} \n \`\`\` ${JSON.stringify({
+    message = `${message} \n \`\`\` \n ${JSON.stringify({
       name: etlNumberICMs.error ? etlNumberICMs.error.name : etlNumberICMs.result.name,
-      total: etlNumberICMs.result.message.total,
+      total: JSON.parse(etlNumberICMs.result.message).total,
       runtime: etlNumberICMs.runTime
     }, null, 2)} \n \`\`\``;
-    // console.log('addNumberICMs', JSON.stringify(addNumberICMs, null, 2));
-    // console.log('etlTicketsICMs', JSON.stringify(etlTicketsICMs, null, 2));
-    // console.log('etlMifos', JSON.stringify(etlMifos, null, 2));
-    // console.log('etlICMs', JSON.stringify(etlICMs, null, 2));
-    // console.log('etlTicketsCustomers', JSON.stringify(etlTicketsCustomers, null, 2));
-    // console.log('etlBusinessUnits', JSON.stringify(etlBusinessUnits, null, 2));
 
     message = `${message} \n **Powered by** [iCare-bots](bots.stage.icbsys.net)`;
     /* Post ETL result to admin workplace */

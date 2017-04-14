@@ -3,6 +3,7 @@ import BusinessUnit from './business-unit';
 import iCareMember from './icare-member';
 import iCMLoan from './icm-loan';
 import iCMSalesOrder from './icm-sales-order';
+import iCMTicket from './icm-ticket';
 
 const Field = () => ({
   Customer,
@@ -10,6 +11,7 @@ const Field = () => ({
   iCareMember,
   // iCMLoan,
   iCMSalesOrder,
+  iCMTicket,
 });
 
 export default Field

@@ -260,7 +260,7 @@ const buildParentChildQuery = ({aggGroup, operator, fieldGroup, value}) => {
       .build();
   }
   /* agg & query is same generation */
-  if (!_.isEmpty(query.type) && agg.type === query.type) {
+  if (!_.isEmpty(query.type) && agg.parent === query.parent) {
     /* build normal query */
     /* agg type and query type dont match */
     if (aggGroup !== queryGroup) {
