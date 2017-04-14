@@ -1,10 +1,8 @@
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 // import classNames from 'classnames';
 
 // components
 import {ValueSelector, ValuesEditor, ActionElement} from './controls';
-// fields
-import Fields from '/imports/api/fields/custom/customer';
 
 class Condition extends Component {
 
@@ -36,9 +34,8 @@ class Condition extends Component {
   render() {
     const
       {
-        id, parentId, field, operator, value,
+        field, operator, value,
         schema: {fields,
-          controls: {fieldSelector, operatorSelector, valueEditor, removeRuleAction},
           getOperators, classNames}
       } = this.props,
       style = {

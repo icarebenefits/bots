@@ -5,9 +5,8 @@
   "scripts": {
     "lint": "eslint .",
     "pretest": "meteor npm run lint --silent",
-    "test": "meteor test --once --driver-package dispatch:mocha-phantomjs",
-    "test-watch": "meteor test --driver-package practicalmeteor:mocha",
-    "test-app-watch": "meteor test --full-app --driver-package practicalmeteor:mocha",
+    "test": "meteor test --settings settings.json --driver-package practicalmeteor:mocha",
+    "test-app": "meteor test --settings settings.json --full-app --driver-package practicalmeteor:mocha",
     "start": "meteor run --settings settings.json"
   },
   "eslintConfig": {
@@ -28,8 +27,10 @@
     ],
     "env": {
       "browser": true,
+      "es6": true,
       "node": true,
-      "mocha": true
+      "mocha": true,
+      "jquery": true
     },
     "settings": {
       "import/resolver": "meteor"
@@ -79,6 +80,7 @@
     "babel-plugin-transform-class-properties": "^6.23.0",
     "eslint": "^3.16.0",
     "eslint-config-airbnb": "^14.1.0",
+    "eslint-config-jquery": "^1.0.1",
     "eslint-import-resolver-meteor": "^0.3.4",
     "eslint-plugin-babel": "^4.0.1",
     "eslint-plugin-import": "^2.2.0",

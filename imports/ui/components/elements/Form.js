@@ -19,7 +19,7 @@ export class Form extends Component {
       >
         <div className="form-body">
           {fields.map(field => {
-            const {id, label, type, className, hidden, options, handleOnChange} = field;
+            const {id, label, type, hidden} = field;
             let value = field.value;
 
             if(type === 'date') {

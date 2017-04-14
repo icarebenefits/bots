@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import moment from 'moment';
+import _ from 'lodash';
 
 export class DatePicker extends Component {
 
@@ -73,7 +74,7 @@ export class DatePicker extends Component {
   }
 
   render() {
-    const {label = '', value = '', error, isDateObject = false, disabled} = this.props;
+    const {label = '', value = '', isDateObject = false, disabled} = this.props;
     const dateObj = moment(value);
     return (
       <div className={'form-group'}>

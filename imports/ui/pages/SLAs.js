@@ -5,6 +5,7 @@ import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
 import S from 'string';
+import {later} from 'meteor/mrt:later';
 // collections
 import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 import SLAsCollection from '/imports/api/collections/slas/slas';
@@ -214,7 +215,7 @@ class SLAs extends Component {
    */
   _addSLA(action) {
     const
-      {country, Workplaces} = this.props,
+      {country} = this.props,
       {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData()
       ;
 
@@ -246,7 +247,7 @@ class SLAs extends Component {
                 name,
                 freqText: this.getScheduleText(frequency),
                 info: {method: 'bots.elastic', slaId}
-              }, (err, res) => {
+              }, (err) => {
                 if (err) {
                   Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
                   Methods.setStatus.call({_id: slaId, status: 'draft'});
@@ -281,7 +282,7 @@ class SLAs extends Component {
    */
   _editSLA(SLA, action) {
     const
-      {country, Workplaces} = this.props,
+      {country} = this.props,
       {_id, frequency: oldFreq} = SLA,
       {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData()
       ;
@@ -304,7 +305,7 @@ class SLAs extends Component {
           return this.setState({action: null});
         }
       }
-      Methods.edit.call(newSLA, (error, result) => {
+      Methods.edit.call(newSLA, (error) => {
         if (error) {
           Notify.error({title: 'Edit SLA', message: error.reason});
           return this.setState({action: null});
@@ -316,7 +317,7 @@ class SLAs extends Component {
                 freqText: this.getScheduleText(frequency),
                 info: {method: 'bots.elastic', slaId: _id}
               },
-              (err, res) => {
+              (err) => {
                 if (err) {
                   Notify.error({title: 'Edit SLA', message: err.reason});
                   return this.setState({action: null});
@@ -326,7 +327,7 @@ class SLAs extends Component {
           if (action === 'draft') {
             // cancel all Jobs
             JobServer(country).cancelJob({name},
-              (err, res) => {
+              (err) => {
                 if (err) {
                   Notify.error({title: 'Edit SLA', message: err.reason});
                   return this.setState({action: null});
@@ -337,7 +338,7 @@ class SLAs extends Component {
               name,
               freqText: this.getScheduleText(frequency),
               info: {method: 'bots.elastic', slaId: _id}
-            }, (err, res) => {
+            }, (err) => {
               if (err) Notify.error({title: 'Start SLA', message: err.reason});
               else {
                 Notify.info({title: 'Start SLA', message: 'success'});
@@ -353,8 +354,8 @@ class SLAs extends Component {
 
   _validateAndPreview() {
     const
-      {name, description, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
-      {country, Workplaces} = this.props
+      {name, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
+      {country} = this.props
       ;
     // validate SLA data
     this._validateData({SLA: {name, workplace, conditions, frequency, country, message}, mode: 'edit'}, ({error}) => {
@@ -380,7 +381,6 @@ class SLAs extends Component {
       SLA = this.props.SLAsList.filter(s => s._id === id)[0],
       {_id: slaId, name, frequency} = SLA,
       {country} = this.props;
-    let message = '';
 
     this._validateData({SLA, mode: 'list'}, ({error}) => {
       if (error) {
@@ -392,7 +392,7 @@ class SLAs extends Component {
           name,
           freqText: this.getScheduleText(frequency),
           info: {method: 'bots.elastic', slaId}
-        }, (err, res) => {
+        }, (err) => {
           if (err) {
             Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
             return Methods.setStatus.call({_id: slaId, status: 'draft'});
@@ -412,14 +412,12 @@ class SLAs extends Component {
   _inactivateSLA(id) {
     const
       {_id, name} = this.props.SLAsList.filter(s => s._id === id)[0],
-      {country} = this.props,
-      {filter} = this.state;
-    let message = '';
+      {country} = this.props;
 
-    JobServer(country).cancelJob({name}, (err, res) => {
+    JobServer(country).cancelJob({name}, (err) => {
       if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
       else {
-        Methods.setStatus.call({_id, status: 'inactive'}, (error, result) => {
+        Methods.setStatus.call({_id, status: 'inactive'}, (error) => {
           if (error) {
             Notify.error({title: 'Inactivate SLA', message: error.reason});
           }
@@ -443,12 +441,12 @@ class SLAs extends Component {
     const
       {_id, name} = this.props.SLAsList.filter(s => s._id === id)[0],
       {country} = this.props;
-    Methods.remove.call({_id}, (error, result) => {
+    Methods.remove.call({_id}, (error) => {
       if (error) {
         Notify.error({title: 'Remove SLA', message: error.reason});
       }
       else {
-        JobServer(country).removeJob({name}, (err, res) => {
+        JobServer(country).removeJob({name}, (err) => {
           if (err) {
             Notify.error({title: 'Remove SLA', message: err.reason});
           }
@@ -613,7 +611,7 @@ class SLAs extends Component {
       list = list
         .filter(s => {
           const
-            {name, workplace, frequency, lastExecutedAt} = s,
+            {name, frequency, lastExecutedAt} = s,
             wp = Workplaces.filter(w => w.id === s.workplace)
           let
             wpName = '';
@@ -688,7 +686,7 @@ class SLAs extends Component {
               handleAction: this.handleActionSLA
             },
           ],
-          handleDoubleClick: (dataset) => {
+          handleDoubleClick: () => {
           },
         },
       };
@@ -744,8 +742,30 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add':
-      {
+      case 'add':{
+        actions.buttons = [
+          {
+            id: 'validate', label: 'Validate',
+            className: 'btn-info', type: 'button', handleOnClick: this.handleActionSLA
+          },
+          {
+            id: 'draft', label: 'Save as Draft',
+            className: 'green', type: 'button', handleOnClick: this.handleActionSLA
+          },
+          {
+            id: 'save', label: 'Save',
+            className: 'green', type: 'button', handleOnClick: this.handleActionSLA
+          },
+          // {
+          //   id: 'execute', label: 'Save and Execute',
+          //   className: 'green', type: 'button', handleOnClick: this.handleActionSLA
+          // },
+          {
+            id: 'cancel', label: 'Cancel',
+            className: 'btn-default', type: 'button', handleOnClick: this.handleActionSLA
+          },
+        ];
+        break;
       }
       case 'edit':
       {
@@ -759,7 +779,7 @@ class SLAs extends Component {
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'save', label: 'Save and Execute',
+            id: 'save', label: 'Save',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           // {
@@ -811,7 +831,7 @@ class SLAs extends Component {
    */
   render() {
     const
-      {ready, country, Workplaces} = this.props,
+      {ready} = this.props,
       {mode} = this.state,
       sideBarProps = {
         options: [

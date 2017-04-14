@@ -1,5 +1,4 @@
-import React, {Component, PropTypes} from 'react';
-import {FlowRouter} from 'meteor/kadira:flow-router';
+import React, {Component} from 'react';
 
 // Components
 // common
@@ -7,9 +6,6 @@ import {
   Header,
   Footer
 } from '../../ui/components/common';
-import {
-  PageSideBar,
-} from '../../ui/components';
 
 
 class MainLayout extends Component {
@@ -50,6 +46,5 @@ class MainLayout extends Component {
     );
   }
 }
-;
 
 export default MainLayout

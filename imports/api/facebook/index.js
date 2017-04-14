@@ -30,14 +30,15 @@ FbRequest.prototype = {
         },
         body: {
           "message": message,
-          "type": "status"
+          "type": "status",
+          formatting: "MARKDOWN"
         },
         json: true
       };
       request(options, function (error, response, body) {
         if (error) throw new Error(error);
 
-        // console.log(body);
+        console.log('postfb', JSON.stringify({error, response, body}));
       });
     });
   },

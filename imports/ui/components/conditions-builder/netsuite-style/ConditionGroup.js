@@ -2,13 +2,13 @@ import React, {Component} from 'react';
 import _ from 'lodash';
 
 import {
-  Button,
+  // Button,
   Dialog,
   Form,
   Label,
 } from '../../elements';
 import {Condition} from './Condition';
-import {Fields} from '/imports/api/fields';
+// import {Fields} from '/imports/api/fields';
 import {Schema} from './schema';
 
 export class ConditionGroup extends Component {
@@ -91,8 +91,7 @@ export class ConditionGroup extends Component {
       condition = conditions[row];
     let
       newCond = {},
-      newConditions = [],
-      dialog = null
+      newConditions = []
       ;
 
     // handle for values change
@@ -316,7 +315,7 @@ export class ConditionGroup extends Component {
   _createFormFields(state) {
     const
       {conditions, hidden = true} = this.state,
-      {row, id, description: label, fieldType, operators} = state,
+      {row, id, fieldType, operators} = state,
       {operator} = conditions[row],
       fields = [],
       fieldOptions = [{name: '', label: ''}],
@@ -324,7 +323,7 @@ export class ConditionGroup extends Component {
       ;
 
     operators.map(op => {
-      const {id: name, description: label, noOfParams, code} = this.getOperatorProps(op);
+      const {id: name, description: label, noOfParams} = this.getOperatorProps(op);
       fieldOptions.push({name, label, noOfParams});
     });
 
@@ -336,7 +335,7 @@ export class ConditionGroup extends Component {
     });
 
     // values fields
-    for (i = 0; i < noOfValueSupported; i++) {
+    for (let i = 0; i < noOfValueSupported; i++) {
       if (i !== 0) {
         // console.log(i);
         fields.push({
@@ -382,8 +381,7 @@ export class ConditionGroup extends Component {
 
   render() {
     const
-      {conditions, edit} = this.state,
-      expression = this.getExpression(conditions)
+      {conditions, edit} = this.state
       ;
     let {handlers, readonly} = this.props;
 
