@@ -8,7 +8,7 @@ export class Checkbox extends Component {
   }
 
   render() {
-    const {name, className, value, handleOnChange} = this.props;
+    const {className, value, handleOnChange} = this.props;
     return (
       <input 
         type="checkbox"

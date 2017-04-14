@@ -7,13 +7,9 @@ import {
   Selectbox,
   SelectboxGrouped,
   FormInput,
-  Label,
   Button,
 } from '../elements';
-import {
-  Fields,
-  FieldsGroups
-} from '/imports/api/fields';
+import {Field} from '/imports/api/fields';
 
 export class Variable extends Component {
 
@@ -23,27 +19,32 @@ export class Variable extends Component {
 
   _getFilters() {
     const
-      listGroups = Object.keys(FieldsGroups)
+      listGroups = Object.keys(Field())
       ;
 
-    const grpOptions = listGroups.map(groupName => {
-      const {props: {id: name, name: label}, fields} = FieldsGroups[groupName];
-      const listFields = Object.keys(fields);
-      // const options = []; // temporary support for count only
+    const grpOptions = listGroups.map(group => {
+      const
+        Fields = Field()[group]().field,
+        {id: name, name: label} = Field()[group]().props();
+      const listFields = Object.keys(Fields());
+
       const options = listFields
       // message builder apply for number fields only
-        .filter(f => fields[f]().props.type === 'number')
+        .filter(f => {
+          return Fields()[f]().props().type === 'number'
+        })
         .map(f => {
-          const {id: name, name: label} = fields[f]().props;
+          const {id: name, name: label} = Fields()[f]().props();
           return {name, label};
         });
+      options.splice(0, 0, {name: 'total', label: 'total'});
       return {name, label, options};
     });
 
     grpOptions.splice(0, 0, {
-      name: 'common',
-      label: 'common',
-      options: [{name: '', label: ''}, {name: 'total', label: 'total'}]
+      name: 'empty',
+      label: '',
+      options: [{name: '', label: ''}]
     });
 
     return grpOptions;
@@ -53,7 +54,7 @@ export class Variable extends Component {
     const
       {
         id,
-        variable: {summaryType = '', group = '', field = '', name = ''},
+        variable: {summaryType = '', field = '', name = ''},
         handlers: {
           handleFieldChange,
           handleRemoveRow,

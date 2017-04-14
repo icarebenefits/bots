@@ -125,21 +125,3 @@ export const Operators = {
   }
 };
 
-export const FormFields = {
-  create: (operator) => {
-    const fields = [
-      {
-        id: 'operator',
-        type: 'select',
-        label: '',
-        options: operators
-      },
-      {
-        id: 'value',
-        type: 'input',
-        label: '',
-      }
-    ];
-  }
-};
-

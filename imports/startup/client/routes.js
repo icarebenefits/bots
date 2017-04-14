@@ -5,7 +5,7 @@ import {mount} from 'react-mounter';
 // layouts
 import {
   MainLayout,
-  BlankLayout
+  // BlankLayout
 } from '../../ui/layouts';
 
 // pages
@@ -14,13 +14,13 @@ import {
   WorkplacesPage,
   SLAsPage,
 
-  BlankPage,
+  // BlankPage,
 
   ErrorPage,
 
   Discover,
   ConditionBuilderTree,
-  Redux,
+  // Redux,
 } from '../../ui/pages';
 import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
 import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
@@ -113,7 +113,7 @@ const examplesRoutes = FlowRouter.group({
 
 examplesRoutes.route('/conditions-builder/:style', {
   name: 'conditions-builder',
-  action(params, queryParams) {
+  action(params) {
     const {style} = params;
     mount(MainLayout, {
       content() {

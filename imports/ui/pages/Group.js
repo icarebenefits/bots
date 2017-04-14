@@ -1,6 +1,5 @@
 import React, {Component, PropTypes} from 'react';
 import {Meteor} from 'meteor/meteor';
-import classnames from 'classnames';
 
 
 export default class Group extends Component {
@@ -14,12 +13,6 @@ export default class Group extends Component {
   }
 
   render() {
-
-    const GroupClassName = classnames({
-      private: this.props.group.private,
-    });
-
-
     return (
       <tr >
         <td>
@@ -36,16 +29,11 @@ export default class Group extends Component {
           </button>
         </td>
       </tr>
-
     );
-
   }
-
 }
-
 
 Group.propTypes = {
   group: PropTypes.object.isRequired,
-
 };
 

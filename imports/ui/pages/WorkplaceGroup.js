@@ -31,7 +31,6 @@ class WorkplaceGroup extends Component {
   handleCheck(event) {
     event.preventDefault();
     // Find the text country via the React ref
-    const country = this.state.country;// ReactDOM.findDOMNode(this.refs.country).value.trim();
     const inputId = ReactDOM.findDOMNode(this.refs.groupId);
     const inputName = ReactDOM.findDOMNode(this.refs.groupName);
     const groupId = inputId.value;
@@ -127,14 +126,12 @@ class WorkplaceGroup extends Component {
 
       </div>
     );
-  };
-
+  }
 }
 
 WorkplaceGroup.propTypes = {
   groups: PropTypes.array.isRequired,
 };
-
 
 export default createContainer(() => {
   Meteor.subscribe('groups');

@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import _ from 'lodash';
 
 import {Checkbox} from './Checkbox';
 import {Selectbox} from './Selectbox';
@@ -89,7 +88,7 @@ export class AllElements extends Component {
     });
   }
 
-  _saveDataDialog(action) {
+  _saveDataDialog() {
     this._closeDialog();
   }
 
@@ -129,13 +128,13 @@ export class AllElements extends Component {
 
     const
       {operator, values, hidden} = this.state,
-      {id, description: label, fieldType, operators} = state,
+      {id, fieldType, operators} = state,
       fields = [],
       fieldOptions = [{name: '', label: ''}]
       ;
 
     operators.map(op => {
-      const {id: name, description: label, noOfParams, code} = this.getOperatorProps(op);
+      const {id: name, description: label, noOfParams,} = this.getOperatorProps(op);
       fieldOptions.push({name, label, noOfParams});
     });
 

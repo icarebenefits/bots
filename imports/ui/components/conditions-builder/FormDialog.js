@@ -1,4 +1,5 @@
 import React, {Component, PropTypes} from 'react';
+import _ from 'lodash';
 
 import {
   FormInput,
@@ -8,10 +9,10 @@ class FormDialog extends Component {
   render() {
     const
       {row, condition, fields, operators, values, handleOnChange} = this.props,
-      {operator, values: condValues, field} = condition
+      {operator, field} = condition
       ;
 
-    if (fields) {
+    if (!_.isEmpty(fields)) {
       // Dialog field props
       const options = Object.keys(fields)
           .map(f => {
@@ -77,7 +78,7 @@ class FormDialog extends Component {
       const
         options = Object.keys(operators)
           .map(op => {
-            const {id: name, name: label} = operators[op].props;
+            const {id: name, name: label} = operators[op].props();
             return {name, label};
           })
         ;

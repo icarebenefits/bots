@@ -3,15 +3,11 @@ import _ from 'lodash';
 import moment from 'moment';
 
 // Fields
-import {
-  Fields,
-  FieldsGroups,
-} from '/imports/api/fields';
+import {Field} from '/imports/api/fields';
 
 import {
   Button,
   Dialog,
-  FormInput,
   Label,
 } from '../elements';
 import {Condition} from './Condition';
@@ -132,18 +128,19 @@ class ConditionsBuilder extends Component {
         } else {
           // key: operator, value: bool
           const
-            {fields: Fields} = FieldsGroups[groupId],
+            Fields = Field()[groupId](),
             {filter, field} = conditions[row],
             newValues = []
             ;
           let FieldData = {};
           if (!_.isEmpty(field)) {
-            FieldData = Object.assign({}, Fields[filter]().fields[field]);
+            // field group
+            // FieldData = Object.assign({}, Fields[filter]().fields[field]);
           } else {
-            FieldData = Object.assign({}, Fields[filter]())
+            FieldData = Object.assign({}, Fields.field()[filter]())
           }
 
-          const {type, params} = FieldData.operators[value].props;
+          const {type, params} = FieldData.operator()[value].props();
           for (let i = 0; i < params - 1; i++) {
             newValues.push({type, value: this._getDefaultValue(type)});
           }
@@ -359,10 +356,11 @@ class ConditionsBuilder extends Component {
       return null;
     }
 
-    const FieldGroup = FieldsGroups[groupId],
-      {props, fields: FieldData} = FieldGroup,
-      {fields, operators, props: {name: header}} = FieldData[fieldId]()
-      ;
+    const
+      fields = {},
+      FieldData = Field()[groupId]().field()[fieldId](),
+      operators = FieldData.operator(),
+      {name: header} = FieldData.props();
 
     return (
       <Dialog
@@ -407,8 +405,7 @@ class ConditionsBuilder extends Component {
 
   render() {
     const
-      {conditions, edit} = this.state,
-      expression = this.getExpression(conditions)
+      {conditions, edit} = this.state
       ;
     let {handlers, readonly} = this.props;
 
@@ -435,7 +432,7 @@ class ConditionsBuilder extends Component {
         </div>
         <div className="row">
           <div className="col-md-12">
-            <table className="table table-striped">
+            <table className="table table-striped table-hover">
               <thead>
               <tr>
                 <th>Not</th>
