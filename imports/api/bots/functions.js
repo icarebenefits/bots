@@ -161,6 +161,8 @@ const checkSLA = (slaId) => {
   const sla = SLAs.findOne({_id: slaId});
   if (!_.isEmpty(sla)) {
     const {name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
+    const {level} = Meteor.settings.log;
+    let queries = [];
 
     /* validate conditions and message */
     if (_.isEmpty(conditions)) {
@@ -195,6 +197,8 @@ const checkSLA = (slaId) => {
           aggs,
           size: 0 // just need the result of total and aggregation, no need to fetch ES documents
         };
+
+        queries.push({index, type, ESQuery});
 
         const {Elastic} = require('../elastic');
         // validate query before run
@@ -236,6 +240,9 @@ const checkSLA = (slaId) => {
     /* Build message */
     let message = `# ${name} \n`;
     message = message + format(messageTemplate, vars);
+    if(level === 'debug') {
+      message = `${message} \n **Query** \n \`\`\`${JSON.stringify(queries, null, 2)} \n \`\`\``;
+    }
     // message = `${message} \n\n **@Powered by** [iCare-bots](bots.stage.icbsys.net)`;
 
     /* Send message to workplace */
