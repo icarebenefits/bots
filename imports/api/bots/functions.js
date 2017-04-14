@@ -236,7 +236,7 @@ const checkSLA = (slaId) => {
     /* Build message */
     let message = `# ${name} \n`;
     message = message + format(messageTemplate, vars);
-    message = `${message} \n **Powered by** [iCare-bots](bots.stage.icbsys.net)`;
+    message = `${message} \n\n **@Powered by** [iCare-bots](bots.stage.icbsys.net)`;
 
     /* Send message to workplace */
     const wpRequest = new FbRequest();

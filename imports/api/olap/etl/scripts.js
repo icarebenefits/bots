@@ -53,6 +53,13 @@ const scripts = {
       socialId: "ctx._source.social_id = ctx._source.remove(\"socialNo\")",
       customerId: "ctx._source.remove(\"customerId\")",
       businessUnitId: "ctx._source.remove(\"businessUnitId\")",
+    },
+    ticket: {
+      parent: "ctx._parent=ctx._source.magento_customer_id;ctx._routing=ctx._source.netsuite_customer_id",
+      country: "ctx._source.remove(\"country\")",
+      timesStamp: "ctx._source.remove(\"@timestamp\")",
+      version: "ctx._source.remove(\"@version\")",
+      type: "ctx._source.remove(\"type\")",
     }
   }
 };

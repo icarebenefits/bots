@@ -753,7 +753,7 @@ class SLAs extends Component {
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'save', label: 'Save and Execute',
+            id: 'save', label: 'Save',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           // {
@@ -779,7 +779,7 @@ class SLAs extends Component {
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           {
-            id: 'save', label: 'Save and Execute',
+            id: 'save', label: 'Save',
             className: 'green', type: 'button', handleOnClick: this.handleActionSLA
           },
           // {
