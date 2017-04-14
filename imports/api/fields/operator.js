@@ -5,16 +5,16 @@ import bodybuilder from 'bodybuilder';
  * List all supported operators
  * @type {{not: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), and: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), or: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), bool: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), gender: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), inArray: (function(): {props: {id: string, name: string, type: string}, buildQuery: (function())}), is: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), contains: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), startsWith: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), on: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), before: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), after: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), onOrBefore: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), onOrAfter: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), within: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), inLast: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), equal: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), lessThan: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), greaterThan: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), lessThanOrEqual: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), greaterThanOrEqual: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())}), between: (function(): {props: {id: string, name: string, type: string, params: number}, buildQuery: (function())})}}
  */
+const timeUnits = () => ({
+  years: 'y',
+  months: 'M',
+  weeks: 'w',
+  days: 'd',
+  hours: 'h',
+  minutes: 'm',
+  seconds: 's',
+});
 const Operator = () => ({
-  timeUnits: () => ({
-    years: 'y',
-    months: 'M',
-    weeks: 'w',
-    days: 'd',
-    hours: 'h',
-    minutes: 'm',
-    seconds: 's',
-  }),
   not: () => ({
     props: () => ({
       id: 'not',
@@ -289,7 +289,7 @@ const Operator = () => ({
     getParams: (field, values) => {
       const num = Number(values[0].value); // 3
       const str = values[1].value.toString(); // in Elastic timeUnits (years, months, ...)
-      const tu = timeUnits[str];
+      const tu = timeUnits()[str];
       return {type: 'range', field, value: {gte: `now-${num}${tu}`, lte: 'now'}};
     },
   }),
