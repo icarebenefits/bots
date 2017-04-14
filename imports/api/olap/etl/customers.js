@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import {ETL} from '/imports/api/olap';
 import scripts from './scripts';
+import {FbRequest} from '/imports/api/facebook';
 
 const customers = ({country}) => {
   const
@@ -10,6 +11,7 @@ const customers = ({country}) => {
     {
       elastic: {indexPrefix: prefix},
       public: {env},
+      facebook: {personalId, adminWorkplace}
     } = Meteor.settings,
     suffix = moment(runDate).format('YYYY.MM.DD-HH.mm'), // elastic index suffix
     alias = `${prefix}_${country}_${env}`,
@@ -44,18 +46,21 @@ const customers = ({country}) => {
         }
       },
     },
-    {lang, bots: {
-      customer: customersScripts, 
+    {
+      lang, bots: {
+      customer: customersScripts,
       icareMember: iCMsScripts,
       salesOrder: SOScripts,
       loan: loanScripts,
-    }} = scripts;
+    }
+    } = scripts;
   let
     actions = [],
     source = {},
     dest = {},
     script = {},
-    options = {refresh: true, waitForCompletion: true};
+    options = {refresh: true, waitForCompletion: true},
+    message = `# ETL - Index: ${alias} - on ${moment(runDate).format('LLL')}`;
 
   /**
    * Reindex basic info of customers, business units, icare members, sales orders
@@ -80,18 +85,18 @@ const customers = ({country}) => {
 
   /* Business units - basic info */
   /* Skip BUs
-  actions = ['business_units', 'basic'];
-  source = {
-    index: indices.etl.index,
-    type: indices.etl.types.business_units
-  };
-  dest = {
-    index: indices.new.index,
-    type: indices.new.types.business_units,
-  };
-  script = {};
-  const reindexBUs = ETL.reindex({actions, source, dest, script, options});
-  */
+   actions = ['business_units', 'basic'];
+   source = {
+   index: indices.etl.index,
+   type: indices.etl.types.business_units
+   };
+   dest = {
+   index: indices.new.index,
+   type: indices.new.types.business_units,
+   };
+   script = {};
+   const reindexBUs = ETL.reindex({actions, source, dest, script, options});
+   */
 
   /* iCare member */
   actions = ['icare_member'];
@@ -214,15 +219,35 @@ const customers = ({country}) => {
 
 
   // stdout
-  console.log('----- indices -----');
-  console.log('indices', JSON.stringify(indices, null, 2));
+  // console.log('----- indices -----');
+  // console.log('indices', JSON.stringify(indices, null, 2));
 
-  console.log('----- reindex -----');
-  console.log('reindexCustomers', JSON.stringify(reindexCustomers, null, 2));
+  // console.log('----- reindex -----');
+  // console.log('reindexCustomers', JSON.stringify(reindexCustomers, null, 2));
   // console.log('reindexBUs', JSON.stringify(reindexBUs, null, 2));
-  console.log('reindexICMs', JSON.stringify(reindexICMs, null, 2));
-  console.log('reindexSOs', JSON.stringify(reindexSOs, null, 2));
-  console.log('reindexLoan', JSON.stringify(reindexLoan, null, 2));
+  // console.log('reindexICMs', JSON.stringify(reindexICMs, null, 2));
+  // console.log('reindexSOs', JSON.stringify(reindexSOs, null, 2));
+  // console.log('reindexLoan', JSON.stringify(reindexLoan, null, 2));
+
+  message = `${message} \n ## Indices information`;
+  message = `${message} \n \`\`\`${JSON.stringify(indices, null, 2)} \n \`\`\``;
+  message = `${message} \n ## Progress `;
+    message = `${message} \n **Customer** \n \`\`\`${JSON.stringify({
+      name: reindexCustomers.error ? reindexCustomers.error.name : reindexCustomers.result.name,
+      runtime: reindexCustomers.runTime
+    }, null, 2)} \n \`\`\``;
+    message = `${message} \n **iCare Member** \n\`\`\`${JSON.stringify({
+      name: reindexICMs.error ? reindexICMs.error.name : reindexICMs.result.name,
+      runtime: reindexICMs.runTime
+    }, null, 2)} \n \`\`\``;
+    message = `${message} \n **iCM Sales Order** \n\`\`\`${JSON.stringify({
+      name: reindexSOs.error ? reindexSOs.error.name : reindexSOs.result.name,
+      runtime: reindexSOs.runTime
+    }, null, 2)} \n \`\`\``;
+    message = `${message} \n **iCM Loan** \n\`\`\`${JSON.stringify({
+      name: reindexLoan.error ? reindexLoan.error.name : reindexLoan.result.name,
+      runtime: reindexLoan.runTime
+    }, null, 2)} \n \`\`\``;
 
   const getAliasIndices = ETL.getAliasIndices({alias});
   let
@@ -237,12 +262,29 @@ const customers = ({country}) => {
 
   adds = [indices.new.index];
 
-  console.log('updateAliases', ETL.getMessage({alias, removes, adds}));
+  // console.log('updateAliases', ETL.getMessage({alias, removes, adds}));
+
+  message = `${message} \n **Update Bots Elastic Alias** \n \`\`\`${JSON.stringify({
+    alias,
+    removes,
+    adds
+  }, null, 2)} \n \`\`\``;
+
   const updateAliases = ETL.updateAliases({alias, removes, adds});
-  if(updateAliases.error) {
-    console.log('updateAliases', ETL.getMessage(updateAliases.error), updateAliases.runTime);
+  if (updateAliases.error) {
+    // console.log('updateAliases', ETL.getMessage(updateAliases.error), updateAliases.runTime);
+
+    message = `${message} \n ### Error - Update Bots Elastic Alias \n \`\`\`${JSON.stringify({
+      error: updateAliases.error,
+      runtime: updateAliases.runTime
+    }, null, 2)} \n \`\`\` **`;
   } else {
-    console.log('updateAliases', ETL.getMessage(updateAliases.result), updateAliases.runTime);
+    // console.log('updateAliases', ETL.getMessage(updateAliases.result), updateAliases.runTime);
+
+    message = `${message} \n ### Success - Update Bots Elastic Alias \n \`\`\`${JSON.stringify({
+      result: updateAliases.result.name,
+      runtime: updateAliases.runTime
+    }, null, 2)} \n \`\`\``;
   }
 
   /**
@@ -264,8 +306,13 @@ const customers = ({country}) => {
     calculator = ETL.calculateNumberICMs;
   const etlNumberICMs = ETL.etlField({actions, source, dest, field, calculator});
 
-  console.log('----- ETL -----');
-  console.log('etlNumberICMs', JSON.stringify(etlNumberICMs, null, 2));
+  // console.log('----- ETL -----');
+  // console.log('etlNumberICMs', JSON.stringify(etlNumberICMs, null, 2));
+  message = `${message} \n **ETL Additional Fields**`;
+  message = `${message} \n \`\`\`${JSON.stringify({
+    name: etlNumberICMs.error ? etlNumberICMs.error.name : etlNumberICMs.result.name,
+    runtime: etlNumberICMs.runTime
+  }, null, 2)} \n \`\`\``;
   // console.log('addNumberICMs', JSON.stringify(addNumberICMs, null, 2));
   // console.log('etlTicketsICMs', JSON.stringify(etlTicketsICMs, null, 2));
   // console.log('etlMifos', JSON.stringify(etlMifos, null, 2));
@@ -273,7 +320,12 @@ const customers = ({country}) => {
   // console.log('etlTicketsCustomers', JSON.stringify(etlTicketsCustomers, null, 2));
   // console.log('etlBusinessUnits', JSON.stringify(etlBusinessUnits, null, 2));
 
-};
+  message = `${message} \n **Powered by** [iCare-bots](bots.stage.icbsys.net)`;
+  /* Post ETL result to admin workplace */
+  const wpRequest = new FbRequest();
+  wpRequest.post(personalId, adminWorkplace, message);
+}
+;
 
 export default customers
 

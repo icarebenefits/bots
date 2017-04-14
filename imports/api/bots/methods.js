@@ -40,7 +40,7 @@ const elastic = new ValidatedMethod({
   run({data}) {
     if (Meteor.isServer) {
       const {slaId} = data;
-      const result = Bots.executeElastic(slaId);
+      const result = Bots.checkSLA(slaId);
       return result;
     }
   }
