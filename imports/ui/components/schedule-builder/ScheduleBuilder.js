@@ -1,6 +1,7 @@
 import React, {Component, PropTypes} from 'react';
 import {later} from 'meteor/mrt:later';
 import momentTZ from 'moment-timezone';
+import _ from 'lodash';
 
 import {
   FormInput,
@@ -30,9 +31,9 @@ class ScheduleBuilder extends Component {
     this._validateSchedule = this._validateSchedule.bind(this);
   }
 
-  componentWillReceiveProps(nextProps) {
-    const {frequency} = nextProps;
-  }
+  // componentWillReceiveProps(nextProps) {
+  //   const {frequency} = nextProps;
+  // }
 
   getData() {
     return this.state;
@@ -85,7 +86,6 @@ class ScheduleBuilder extends Component {
       }
       case 'range':
       {
-        const {preps} = this.state;
         return this.setState({
           range: value
         });

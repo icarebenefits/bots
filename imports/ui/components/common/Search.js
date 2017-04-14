@@ -1,8 +1,6 @@
 import React, {Component, PropTypes} from 'react';
 import classnames from 'classnames';
 
-import {Button} from '../elements';
-
 class Search extends Component {
 
   render() {

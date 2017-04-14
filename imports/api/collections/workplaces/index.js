@@ -36,6 +36,7 @@ Meteor.methods({
   },
 
   'groups.getName': function (groupId) {
+    check(groupId, String);
     let result = {};
     if (!this.isSimulation) {
       const fb = new FbRequest();
@@ -58,6 +59,7 @@ Meteor.methods({
   },
 
   'groups.fetchFB': (groupId) => {
+    check(groupId, String);
     let result = {};
     if (!this.isSimulation) {
       const fb = new FbRequest();

@@ -21,8 +21,6 @@ import '/imports/api/fields';
 /**
  * Modules
  */
-// node-rules
-import '/imports/api/node_rules/register-server';
 // workplaces
 import '/imports/api/facebook/index';
 
@@ -48,3 +46,8 @@ import '/imports/api/bots';
  * Query builder
  */
 import '/imports/api/query-builder';
+
+/**
+ * OLAP
+ */
+import '/imports/api/olap';

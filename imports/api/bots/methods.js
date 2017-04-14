@@ -11,7 +11,7 @@ import {ESFuncs} from '/imports/api/elastic';
 const testBots = new ValidatedMethod({
   name: 'bots.test',
   validate: null,
-  run({}) {
+  run() {
     if (Meteor.isServer) {
       const result = Bots.fistSLACheck();
       return result;
@@ -40,7 +40,7 @@ const elastic = new ValidatedMethod({
   run({data}) {
     if (Meteor.isServer) {
       const {slaId} = data;
-      const result = Bots.executeElastic(slaId);
+      const result = Bots.checkSLA(slaId);
       return result;
     }
   }
@@ -50,15 +50,15 @@ const elastic = new ValidatedMethod({
  * Method called by job server for executing the job migrate data
  * @param {String} slaId
  */
-const migrateIcareMembers = new ValidatedMethod({
-  name: 'bots.migrateIcareMembers',
+const migrateToElastic = new ValidatedMethod({
+  name: 'bots.migrateToElastic',
   validate: new SimpleSchema({
     data: {
       type: Object,
     },
     'data.method': {
       type: String,
-      allowedValues: ['bots.migrateIcareMembers'],
+      allowedValues: ['bots.migrateToElastic'],
     },
     'data.country': {
       type: String,
@@ -68,7 +68,7 @@ const migrateIcareMembers = new ValidatedMethod({
   run({data}) {
     if (Meteor.isServer) {
       const {country} = data;
-      const result = ESFuncs.migrateICareMembers(country);
+      const result = ESFuncs.migrateToElastic(country);
       return result;
     }
   }
@@ -77,7 +77,7 @@ const migrateIcareMembers = new ValidatedMethod({
 const BotsMethods = {
   testBots,
   elastic,
-  migrateIcareMembers,
+  migrateToElastic,
 };
 
 export default BotsMethods

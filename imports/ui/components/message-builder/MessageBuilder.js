@@ -3,11 +3,7 @@
  */
 import React, {Component, PropTypes} from 'react';
 
-// Fields
-import {Fields, FieldsGroups} from '/imports/api/fields';
-
 import {
-  Dialog,
   FormInput,
   Label,
   Button,
@@ -112,9 +108,8 @@ class MessageBuilder extends Component {
 
   _addRow(e) {
     e.preventDefault();
-    const {variables} = this.state;
-    variable = this._getDefaultVariable()
-    ;
+    const {variables} = this.state,
+    variable = this._getDefaultVariable();
     variables.push(variable);
 
     return this.setState({
@@ -177,7 +172,7 @@ class MessageBuilder extends Component {
   }
 
   render() {
-    const {variables, messageTemplate, disableAdd} = this.state;
+    const {variables, messageTemplate} = this.state;
     let {handlers, readonly} = this.props;
     if (_.isEmpty(handlers)) {
       handlers = this.getDefaultHandlers();

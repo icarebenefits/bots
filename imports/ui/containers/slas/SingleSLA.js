@@ -35,7 +35,7 @@ class SingleSLA extends Component {
 
 
     if (mode === 'view') {
-      const {name = '', description = '', workplace = '', frequency = {}, status, conditions, message} = SLA;
+      const {name = '', description = '', workplace = '', frequency = {}, conditions, message} = SLA;
       return (
         <div className="col-md-12">
           {/* Information */}

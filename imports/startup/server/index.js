@@ -16,7 +16,6 @@ import '/imports/startup/server/routes';
 // import '../imports/api/api.js';
 
 import _ from 'lodash';
-import {later} from 'meteor/mrt:later';
 import {Countries} from '/imports/api/collections/countries';
 import JobServer from '/imports/api/jobs';
 import {Logger} from '/imports/api/logger';
@@ -48,7 +47,7 @@ Meteor.startup(function () {
               priority: 'high',
               freqText: frequency[country],
               info: {
-                method: 'bots.migrateIcareMembers',
+                method: 'bots.migrateToElastic',
                 country,
               }
             };

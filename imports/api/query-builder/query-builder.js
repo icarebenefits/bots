@@ -1,14 +1,17 @@
-import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
-
-import {Operators, FieldsGroups} from '/imports/api/fields';
-
+import {Operator, Field} from '/imports/api/fields';
+import Query from './query';
 
 // list of supported operators
-const operators = Object.keys(Operators);
+const operators = Object.keys(Operator());
 // support for compound conditions
 operators.push('(');
 operators.push(')');
+
+const getField = (group, fieldId) => {
+  const {field} = Field()[group]().field()[fieldId]().elastic();
+  return field;
+};
 
 /**
  * Function convert conditions object to array of conditions
@@ -17,7 +20,7 @@ operators.push(')');
  */
 export const makeExpression = (conditions) => {
   const stack = [];
-  conditions.map((condition, idx) => {
+  conditions.map((condition) => {
     const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
     if (not) {
       stack.push('not');
@@ -27,12 +30,10 @@ export const makeExpression = (conditions) => {
       parens.map(p => stack.push(p));
     }
     if (!_.isEmpty(field)) {
-      const {ESField} = FieldsGroups[group].fields[field]().props;
-      stack.push(ESField);
+      stack.push({group, name: getField(group, field)});
     } else {
       if (!_.isEmpty(filter)) {
-        const {ESField} = FieldsGroups[group].fields[filter]().props;
-        stack.push(ESField);
+        stack.push({group, name: getField(group, filter)});
       }
     }
     if (!_.isEmpty(operator)) {
@@ -88,7 +89,7 @@ const isOperator = (e) => {
  * @param expression
  * @return {Array}
  */
-const infixToPostfix = (expression) => {
+export const infixToPostfix = (expression) => {
   const stack = [];
   const queue = [];
 
@@ -125,6 +126,11 @@ const infixToPostfix = (expression) => {
   return queue;
 };
 
+/**
+ * Function check an object is a query object or not
+ * @param q
+ * @return {boolean}
+ */
 const isQueryObject = (q) => {
   if (!_.isEmpty(q.query))
     return true;
@@ -157,49 +163,54 @@ export const validateConditions = (conditions, expression) => {
 };
 
 /**
- * Function validate the aggregations
- * @param aggregations
- * @return {{}}
- */
-const validateAggregations = (aggregations) => {
-  return {};
-};
-
-/**
  * Function build Elastic query from conditions with Polish Notation Algorithm
  * @param conditions
- * @return {string}
+ * @param aggregation
+ * @return {*}
  */
-const queryBuilder = (conditions) => {
+const polishNotation = (conditions, aggregation) => {
+
   /* get expression */
   const expression = makeExpression(conditions);
   /* validate conditions */
   const {error: condErr} = validateConditions(conditions, expression);
   if(condErr) return {error: condErr};
 
+  const {
+    summaryType: aggType,
+    group,
+    field,
+  } = aggregation;
+
+  const {type: indexType} = Field()[group]().elastic();
+
   /* build elastic query */
   const polishNotation = infixToPostfix(expression);
   const stack = [];
   let query = {};
 
+  // console.log('conditions', conditions);
+  // console.log('expression', expression);
+  // console.log('polishNotaion', polishNotation);
+  // console.log('aggregation', aggregation);
+
   polishNotation.map(p => {
     if (isOperator(p)) {
+      const params = {
+        aggGroup: group
+      };
       switch (p) {
         case 'not':
         {
           // only build query with 1 param
           const param = stack.pop();
           if (isQueryObject(param)) {
-            // build query from a previous query
-            const {query: preQuery} = param;
-            query = Operators[p]().buildQuery(preQuery);
-
-            stack.push(query);
-            break;
+            params.query = param.query;
           } else {
             // build new query
             return {error: "can't build 'not' query from a non query object!!!"};
           }
+          break;
         }
         case 'and':
         {
@@ -212,14 +223,9 @@ const queryBuilder = (conditions) => {
           if (!isQueryObject(param1) || !isQueryObject(param2)) {
             return {error: "can't build 'and' query from a non query object!!!"};
           }
-          const
-            {query: preQuery1} = param1,
-            {query: preQuery2} = param2
-            ;
 
-          query = Operators[p]().buildQuery(preQuery1, preQuery2);
+          params.queries = [param1.query, param2.query];
 
-          stack.push(query);
           break;
         }
         case 'or':
@@ -231,17 +237,11 @@ const queryBuilder = (conditions) => {
 
           // verify params type
           if (!isQueryObject(param1) || !isQueryObject(param2)) {
-            console.log("can't build 'or' query from a non query object!!!");
-            return {};
+            return {error: "can't build 'or' query from a non query object!!!"};
           }
-          const
-            {query: preQuery1} = param1,
-            {query: preQuery2} = param2
-            ;
 
-          query = Operators[p]().buildQuery(preQuery1, preQuery2);
+          params.queries = [param1.query, param2.query];
 
-          stack.push(query);
           break;
         }
         default:
@@ -252,20 +252,50 @@ const queryBuilder = (conditions) => {
             field = stack.pop()
             ;
 
-          query = Operators[p]().buildQuery(field, values);
-
-          stack.push(query);
+          params.field = field;
+          params.values = values;
         }
       }
+
+      query = Query().buildQuery({params, operator: p});
+
+      stack.push(query);
     } else {
       stack.push(p);
     }
   });
+  
+  // build aggregation here
+  // todo
 
   return {query};
 };
 
-export default queryBuilder
+/**
+ *
+ * @param type
+ * @return {{build: (function())}}
+ * @constructor
+ */
+const QueryBuilder = (type = 'conditions') => {
+  let build = () => {};
+  switch (type) {
+    case 'conditions': {
+      build = polishNotation;
+      break;
+    }
+    case 'aggregation': {
+      build = Query().buildAggregation;
+      break;
+    }
+    default: {
+      build = Query().buildNormalQuery;
+    }
+  }
+  return {build};
+};
+
+export default QueryBuilder
 
 /**
  * Testing
@@ -319,4 +349,15 @@ export default queryBuilder
 //   console.log(JSON.stringify(query, null, 2));
 // }
 
+
+/* Test data */
+// const {SLAs} = require('../collections/slas');
+// const SLA = SLAs.findOne({_id: "ZkY73hbBmXCtfAigy"});
+// const {conditions, message} = SLA;
+// const {error, query} = queryBuilder(conditions);
+// if(error) {
+//   console.log('error', error);
+// } else {
+//   console.log(JSON.stringify(query));
+// }
 
