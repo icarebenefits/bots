@@ -10,7 +10,7 @@ const iCareMember = () => ({
     id: 'magento_customer_id',
     parent: 'customer',
     type: 'icare_member',
-    child: ['sales_order', 'loan'],
+    child: ['sales_order', 'loan', 'ticket'],
   }),
   field: () => ({
     icmName: () => Object.assign(

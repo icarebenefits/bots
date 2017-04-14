@@ -14,7 +14,7 @@ const Customer = () => ({
     id: 'netsuite_customer_id',
     type: 'customer',
     child: ['icare_member'],
-    grandChild: ['sales_order', 'loan'],
+    grandChild: ['sales_order', 'loan', 'ticket'],
   }),
   field: () => ({
     name: () => Object.assign(
