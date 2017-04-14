@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {Operators, FieldsGroups, Operator, Field} from '/imports/api/fields';
+import {Operator, Field} from '/imports/api/fields';
 import Query from './query';
 
 // list of supported operators
@@ -163,26 +163,26 @@ export const validateConditions = (conditions, expression) => {
 };
 
 /**
- * Function validate the aggregations
- * @param aggregations
- * @return {{}}
- */
-// const validateAggregations = (aggregations) => {
-//   return {};
-// };
-
-/**
  * Function build Elastic query from conditions with Polish Notation Algorithm
  * @param conditions
- * @return {string}
+ * @param aggregation
+ * @return {*}
  */
-const queryBuilder = (conditions) => {
+const polishNotation = (conditions, aggregation) => {
 
   /* get expression */
   const expression = makeExpression(conditions);
   /* validate conditions */
   const {error: condErr} = validateConditions(conditions, expression);
   if(condErr) return {error: condErr};
+
+  const {
+    summaryType: aggType,
+    group,
+    field,
+  } = aggregation;
+
+  const {type: indexType} = Field()[group]().elastic();
 
   /* build elastic query */
   const polishNotation = infixToPostfix(expression);
@@ -192,10 +192,13 @@ const queryBuilder = (conditions) => {
   // console.log('conditions', conditions);
   // console.log('expression', expression);
   // console.log('polishNotaion', polishNotation);
+  // console.log('aggregation', aggregation);
 
   polishNotation.map(p => {
     if (isOperator(p)) {
-      const params = {};
+      const params = {
+        aggGroup: group
+      };
       switch (p) {
         case 'not':
         {
@@ -254,18 +257,45 @@ const queryBuilder = (conditions) => {
         }
       }
 
-      query = Query({params, operator: p});
+      query = Query().buildQuery({params, operator: p});
 
       stack.push(query);
     } else {
       stack.push(p);
     }
   });
+  
+  // build aggregation here
+  // todo
 
   return {query};
 };
 
-export default queryBuilder
+/**
+ *
+ * @param type
+ * @return {{build: (function())}}
+ * @constructor
+ */
+const QueryBuilder = (type = 'conditions') => {
+  let build = () => {};
+  switch (type) {
+    case 'conditions': {
+      build = polishNotation;
+      break;
+    }
+    case 'aggregation': {
+      build = Query().buildAggregation;
+      break;
+    }
+    default: {
+      build = Query().buildNormalQuery;
+    }
+  }
+  return {build};
+};
+
+export default QueryBuilder
 
 /**
  * Testing
@@ -321,13 +351,13 @@ export default queryBuilder
 
 
 /* Test data */
-const {SLAs} = require('../collections/slas');
-const SLA = SLAs.findOne({_id: "ZkY73hbBmXCtfAigy"});
-const {conditions, message} = SLA;
-const {error, query} = queryBuilder(conditions);
-if(error) {
-  console.log('error', error);
-} else {
-  console.log(JSON.stringify(query));
-}
+// const {SLAs} = require('../collections/slas');
+// const SLA = SLAs.findOne({_id: "ZkY73hbBmXCtfAigy"});
+// const {conditions, message} = SLA;
+// const {error, query} = queryBuilder(conditions);
+// if(error) {
+//   console.log('error', error);
+// } else {
+//   console.log(JSON.stringify(query));
+// }
 
