@@ -28,7 +28,7 @@ const customers = ({country}) => {
           index: `etl_${alias}`,
           types: {
             business_units: 'business_unit',
-            sales_orders: 'sales_order',
+            sales_order: 'sales_order',
             items: 'item',
             shipment: 'shipment',
             ticket_customer: 'ticket_customer',
