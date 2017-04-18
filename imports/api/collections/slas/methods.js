@@ -5,7 +5,9 @@ import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
 
 // query builder
-import {queryBuilder} from '/imports/api/query-builder';
+import {QueryBuilder} from '/imports/api/query-builder';
+// fields
+import {Field} from '/imports/api/fields';
 
 const Methods = {};
 
@@ -183,22 +185,82 @@ Methods.validateConditions = new ValidatedMethod({
     "conditions.$.bitwise": {
       type: String,
       optional: true,
+    },
+    variables: {
+      type: [Object],
+    },
+    "variables.$.summaryType": {
+      type: String,
+      optional: true,
+    },
+    "variables.$.group": {
+      type: String,
+      optional: true,
+    },
+    "variables.$.field": {
+      type: String,
+      optional: true,
+    },
+    "variables.$.name": {
+      type: String,
+      optional: true,
+    },
+    country: {
+      type: String
     }
   }).validator(),
-  run({conditions}) {
+  run({conditions, variables, country}) {
     if(!this.isSimulation) {
+      const name = 'validateConditionsAndMessage';
       const {Elastic} = require('/imports/api/elastic');
-      const {error, query} = queryBuilder(conditions);
-      if(error) {
-        console.log(error);
-      } else {
-        // console.log(JSON.stringify(query, null, 2));
-        const result = Elastic.indices.validateQuery({body: query});
-        const {valid} = result;
-        
-        console.log('result', result);
-        return valid;
-      }
+      let isValid = true, queries = [];
+
+      variables.map(aggregation => {
+        const
+          {summaryType: aggType, group, field, name} = aggregation,
+          {type} = Field()[group]().elastic();
+        const
+          {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
+          index = `${indexPrefix}_${country}_${env}`;
+
+        const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
+        const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(aggregation);
+
+        // console.log('query', JSON.stringify(query))
+
+        if (error || aggsErr) {
+          // return {error: {name, message: JSON.stringify(error)}};
+          throw new Meteor.Error(name, JSON.stringify(error));
+        } else {
+          // build the query
+          const ESQuery = {
+            query,
+            aggs,
+            size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+          };
+
+          queries.push({index, type, ESQuery});
+
+          // validate query before run
+          try {
+            const {valid} = Elastic.indices.validateQuery({
+              index,
+              type,
+              body: {query}
+            });
+            if (!valid) {
+              throw new Meteor.Error(name, JSON.stringify(query));
+              // return {error: {name, message: JSON.stringify(query)}};
+            } else {
+              isValid = isValid && valid;
+            }
+          } catch (e) {
+            throw new Meteor.Error(name, JSON.stringify(e));
+          }
+        }
+      });
+
+      return {result: {name, isValid}};
     }
   }
 });
