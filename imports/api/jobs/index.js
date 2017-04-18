@@ -98,6 +98,16 @@ const JobServer = (country) => {
           callback(null, res);
         });
       },
+      readyJob: ({name}, callback = () => {}) => {
+        const params = {
+          type: `${country}-${name}`,
+        };
+        server.call('controllers.ready', params, (err, res) => {
+          if(err) callback(err, null);
+
+          callback(null, res);
+        });
+      },
       removeJob: ({name}, callback = () => {}) => {
         const params = {
           type: `${country}-${name}`,
