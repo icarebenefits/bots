@@ -126,10 +126,11 @@ class MessageBuilder extends Component {
 
     if (key === 'field') {
       const {groupId, value: val} = value;
-      newVar = {...variable, [`${key}`]: val, group: groupId};
-      if (val === 'total') {
+      if (val.split('-').indexOf('total') !== -1) {
+        newVar = {...variable, [`${key}`]: 'total', group: groupId};
         this.setState({disableAdd: true});
       } else {
+        newVar = {...variable, [`${key}`]: val, group: groupId};
         this.setState({disableAdd: false});
       }
     } else {
