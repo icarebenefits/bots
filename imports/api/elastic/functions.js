@@ -18,7 +18,11 @@ const migrateToElastic = (country = 'kh') => {
       {Logger} = require('/imports/api/logger')
       ;
 
-    customers({country});
+    try {
+      customers({country}); }
+    catch (e) {
+      throw new Meteor.Error('migrateToElastic', JSON.stringify(e));
+    }
   }
 };
 

@@ -369,6 +369,7 @@ class SLAs extends Component {
         if (err) {
           Notify.error({title, message: JSON.stringify(err)});
         } else if (res) {
+          const {error, result} = res;
           if(error) {
             Notify.error({title, message: JSON.stringify(error)});
           } else {
