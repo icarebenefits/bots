@@ -133,8 +133,6 @@ class MessageBuilder extends Component {
         newVar = {...variable, [`${key}`]: val, group: groupId};
         this.setState({disableAdd: false});
       }
-
-      console.log(newVar)
     } else {
       newVar = {...variable, [`${key}`]: value};
     }
