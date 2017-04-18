@@ -231,7 +231,7 @@ const checkSLA = (slaId) => {
             }
             const {value} = agg[`agg_${aggType}_${ESField}`];
 
-            vars[name] = Number(value) === 0 ? 'no' : accounting.formatNumber(value, 0);
+            vars[name] = accounting.formatNumber(value, 0);
           }
         }
       }
