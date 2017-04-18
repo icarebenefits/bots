@@ -254,14 +254,14 @@ class MessageBuilder extends Component {
                      value="Ex: There are {icm} customers who has less than 110 iCare Members."/>
             </div>
           </div>
-          {readonly ? null :
+          {/*readonly ? null :
             < div className="col-md-2">
               <Button
                 className="green"
                 onClick={e => this.handleCheck(e)}
               >Preview</Button>
             </div>
-          }
+          */}
         </div>
 
       </div>

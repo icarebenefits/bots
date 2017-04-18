@@ -38,7 +38,7 @@ const elastic = new ValidatedMethod({
     }
   }).validator(),
   run({data}) {
-    if (Meteor.isServer) {
+    if (!this.isSimulation) {
       const {slaId} = data;
       const result = Bots.checkSLA(slaId);
       return result;
