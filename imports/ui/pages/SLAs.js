@@ -354,22 +354,29 @@ class SLAs extends Component {
 
   _validateAndPreview() {
     const
+      title = 'Validate SLA',
       {name, workplace, frequency, conditions, message} = this.refs.SLA.getData(),
       {country} = this.props
       ;
     // validate SLA data
     this._validateData({SLA: {name, workplace, conditions, frequency, country, message}, mode: 'edit'}, ({error}) => {
       if (error) {
-        Notify.error({title: 'Validate SLA', message: error});
+        Notify.error({title, message: error});
         return this.setState({action: null});
       }
-      Methods.validateConditions.call({conditions}, (err, res) => {
+      /* skip it for now */
+      Methods.validateConditions.call({conditions, variables: message.variables, country}, (err, res) => {
         if (err) {
-          Notify.error({title: 'Validate conditions', message: 'Invalid.'});
+          Notify.error({title, message: JSON.stringify(err)});
         } else if (res) {
-          Notify.info({title: 'Validate conditions', message: 'Good.'});
+          const {error, result} = res;
+          if(error) {
+            Notify.error({title, message: JSON.stringify(error)});
+          } else {
+            Notify.info({title, message: JSON.stringify(result)});
+          }
         } else {
-          Notify.warning({title: 'Validate conditions', message: 'Invalid.'});
+          Notify.warning({title, message: 'Invalid.'});
         }
         return this.setState({action: null});
       });
@@ -742,7 +749,8 @@ class SLAs extends Component {
       ;
 
     switch (mode) {
-      case 'add':{
+      case 'add':
+      {
         actions.buttons = [
           {
             id: 'validate', label: 'Validate',
