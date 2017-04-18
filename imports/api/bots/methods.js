@@ -68,7 +68,12 @@ const migrateToElastic = new ValidatedMethod({
   run({data}) {
     if (Meteor.isServer) {
       const {country} = data;
-      const result = ESFuncs.migrateToElastic(country);
+      let result = {};
+      try {
+        result = ESFuncs.migrateToElastic(country);
+      } catch (e) {
+        throw  new Meteor.Error('methods.migrateToElastic', JSON.stringify(e));
+      }
       return result;
     }
   }
