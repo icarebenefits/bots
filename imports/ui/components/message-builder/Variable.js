@@ -37,7 +37,7 @@ export class Variable extends Component {
           const {id: name, name: label} = Fields()[f]().props();
           return {name, label};
         });
-      options.splice(0, 0, {name: 'total', label: 'total'});
+      options.splice(0, 0, {name: `${group}-total`, label: 'total'});
       return {name, label, options};
     });
 
@@ -54,7 +54,7 @@ export class Variable extends Component {
     const
       {
         id,
-        variable: {summaryType = '', field = '', name = ''},
+        variable: {summaryType = '', group = '', field = '', name = ''},
         handlers: {
           handleFieldChange,
           handleRemoveRow,
@@ -87,7 +87,7 @@ export class Variable extends Component {
             ? field
             : (<SelectboxGrouped
             className="form-control"
-            value={field}
+            value={field === 'total' ? `${group}-total` : field}
             grpOptions={filters}
             handleOnChange={value => handleFieldChange(id, 'field', value)}
           />)
