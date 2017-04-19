@@ -307,17 +307,30 @@ const customers = ({country}) => {
 
     const updateAliases = ETL.updateAliases({alias, removes, adds});
     if (updateAliases.error) {
-
       message = `${message} \n ### Error - Update Bots Elastic Alias \n \`\`\` \n ${JSON.stringify({
         error: updateAliases.error,
         runtime: updateAliases.runTime
       }, null, 2)} \n \`\`\` **`;
     } else {
-
       message = `${message} \n ### Success - Update Bots Elastic Alias \n \`\`\` \n ${JSON.stringify({
         result: updateAliases.result.name,
         runtime: updateAliases.runTime
       }, null, 2)} \n \`\`\``;
+      // delete expired index
+      if(!_.isEmpty(removes)) {
+        const deleteIndices = ETL.deleteIndices({indices: removes});
+        if(deleteIndices.error) {
+          message = `${message} \n ### Error - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n \`\`\` \n ${JSON.stringify({
+            error: deleteIndices.error,
+            runtime: deleteIndices.runTime
+          }, null, 2)} \n \`\`\` **`;
+        } else {
+          message = `${message} \n ### Success - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n \`\`\` \n ${JSON.stringify({
+            result: updateAliases.result.name,
+            runtime: updateAliases.runTime
+          }, null, 2)} \n \`\`\``;
+        }
+      }
     }
 
     /**
