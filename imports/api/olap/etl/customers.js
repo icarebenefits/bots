@@ -320,14 +320,14 @@ const customers = ({country}) => {
       if(!_.isEmpty(removes)) {
         const deleteIndices = ETL.deleteIndices({indices: removes});
         if(deleteIndices.error) {
-          message = `${message} \n ### Error - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n \`\`\` \n ${JSON.stringify({
+          message = `${message} \n ### Error - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n ${JSON.stringify({
             error: deleteIndices.error,
             runtime: deleteIndices.runTime
           }, null, 2)} \n \`\`\` **`;
         } else {
-          message = `${message} \n ### Success - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n \`\`\` \n ${JSON.stringify({
-            result: updateAliases.result.name,
-            runtime: updateAliases.runTime
+          message = `${message} \n ### Success - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n ${JSON.stringify({
+            result: deleteIndices.result.name,
+            runtime: deleteIndices.runTime
           }, null, 2)} \n \`\`\``;
         }
       }
@@ -359,7 +359,7 @@ const customers = ({country}) => {
       runtime: etlNumberICMs.runTime
     }, null, 2)} \n \`\`\``;
 
-    message = `${message} \n **Powered by** [iCare-bots](bots.stage.icbsys.net)`;
+    message = `${message} \n **Powered by** [iCare-bots](${Meteor.settings.public.domain})`;
     /* Post ETL result to admin workplace */
     const wpRequest = new FbRequest();
     wpRequest.post(personalId, adminWorkplace, message);
