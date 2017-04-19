@@ -788,6 +788,23 @@ const updateAliases = ({alias, removes, adds}) => {
   return {...res, runTime};
 };
 
+const deleteIndices = ({indices}) => {
+  const
+    start = new Date(),
+    name = `deleteIndices`;
+  const res = {};
+
+
+  try {
+    const deleteIndices = Elastic.indices.delete({index: indices});
+    res.result = {name, deleteIndices};
+  } catch (e) {
+    res.error = {name, message: getMessage(e)};
+  }
+  const runTime = getRunTime(start);
+  return {...res, runTime};
+};
+
 /**
  * Calculate the number of iCare members from netsuite_customer_id
  * @param source
@@ -834,6 +851,7 @@ const ETL = {
   getAliasIndices,
   getMessage,
   updateAliases,
+  deleteIndices,
   calculateNumberICMs,
 };
 
