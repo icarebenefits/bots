@@ -5,3 +5,4 @@ client/*
 #!build/jobs.js
 private/*
 public/*
+imports/api/notifications/index.js

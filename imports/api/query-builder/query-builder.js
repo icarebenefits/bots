@@ -177,12 +177,8 @@ const polishNotation = (conditions, aggregation) => {
   if(condErr) return {error: condErr};
 
   const {
-    summaryType: aggType,
     group,
-    field,
   } = aggregation;
-
-  const {type: indexType} = Field()[group]().elastic();
 
   /* build elastic query */
   const polishNotation = infixToPostfix(expression);
@@ -264,9 +260,6 @@ const polishNotation = (conditions, aggregation) => {
       stack.push(p);
     }
   });
-  
-  // build aggregation here
-  // todo
 
   return {query};
 };

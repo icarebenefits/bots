@@ -1,5 +1,6 @@
 import {Meteor} from 'meteor/meteor';
 import moment from 'moment';
+import _ from 'lodash';
 
 import {ETL} from '/imports/api/olap';
 import scripts from './scripts';
@@ -259,27 +260,27 @@ const customers = ({country}) => {
     message = `${message} \n ## Progress `;
     message = `${message} \n **Customer** \n \`\`\` \n ${JSON.stringify({
       name: reindexCustomers.error ? reindexCustomers.error.name : reindexCustomers.result.name,
-      total: JSON.parse(reindexCustomers.result.message).total,
+      total: (reindexCustomers.result.message) && JSON.parse(reindexCustomers.result.message).total,
       runtime: reindexCustomers.runTime
     }, null, 2)} \n \`\`\``;
     message = `${message} \n **iCare Member** \n\`\`\` \n ${JSON.stringify({
       name: reindexICMs.error ? reindexICMs.error.name : reindexICMs.result.name,
-      total: JSON.parse(reindexICMs.result.message).total,
+      total: (reindexICMs.result.message) && JSON.parse(reindexICMs.result.message).total,
       runtime: reindexICMs.runTime
     }, null, 2)} \n \`\`\``;
     message = `${message} \n **iCM Sales Order** \n\`\`\` \n ${JSON.stringify({
       name: reindexSOs.error ? reindexSOs.error.name : reindexSOs.result.name,
-      total: JSON.parse(reindexSOs.result.message).total,
+      total: (reindexSOs.result.message) && JSON.parse(reindexSOs.result.message).total,
       runtime: reindexSOs.runTime
     }, null, 2)} \n \`\`\``;
     message = `${message} \n **iCM Loan** \n\`\`\` \n ${JSON.stringify({
       name: reindexLoan.error ? reindexLoan.error.name : reindexLoan.result.name,
-      total: JSON.parse(reindexLoan.result.message).total,
+      total: (reindexLoan.result.message) && JSON.parse(reindexLoan.result.message).total,
       runtime: reindexLoan.runTime
     }, null, 2)} \n \`\`\``;
     message = `${message} \n **iCM Ticket** \n\`\`\` \n ${JSON.stringify({
       name: reindexTicket.error ? reindexTicket.error.name : reindexTicket.result.name,
-      total: JSON.parse(reindexTicket.result.message).total,
+      total: (reindexTicket.result.message) && JSON.parse(reindexTicket.result.message).total,
       runtime: reindexTicket.runTime
     }, null, 2)} \n \`\`\``;
 
@@ -316,21 +317,6 @@ const customers = ({country}) => {
         result: updateAliases.result.name,
         runtime: updateAliases.runTime
       }, null, 2)} \n \`\`\``;
-      // delete expired index
-      if(!_.isEmpty(removes)) {
-        const deleteIndices = ETL.deleteIndices({indices: removes});
-        if(deleteIndices.error) {
-          message = `${message} \n ### Error - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n ${JSON.stringify({
-            error: deleteIndices.error,
-            runtime: deleteIndices.runTime
-          }, null, 2)} \n \`\`\` **`;
-        } else {
-          message = `${message} \n ### Success - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n ${JSON.stringify({
-            result: deleteIndices.result.name,
-            runtime: deleteIndices.runTime
-          }, null, 2)} \n \`\`\``;
-        }
-      }
     }
 
     /**

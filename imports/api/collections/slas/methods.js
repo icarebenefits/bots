@@ -1,9 +1,10 @@
-import SLAs from './slas';
+import {Meteor} from 'meteor/meteor';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
 
+import SLAs from './slas';
 // query builder
 import {QueryBuilder} from '/imports/api/query-builder';
 // fields
@@ -217,7 +218,7 @@ Methods.validateConditions = new ValidatedMethod({
 
       variables.map(aggregation => {
         const
-          {summaryType: aggType, group, field, name} = aggregation,
+          {group, name} = aggregation,
           {type} = Field()[group]().elastic();
         const
           {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
