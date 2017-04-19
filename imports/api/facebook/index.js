@@ -38,7 +38,7 @@ FbRequest.prototype = {
       request(options, function (error, response, body) {
         if (error) throw new Error(error);
 
-        console.log('postfb', JSON.stringify({error, response, body}));
+        // console.log('postfb', JSON.stringify({error, response, body}));
       });
     });
   },
