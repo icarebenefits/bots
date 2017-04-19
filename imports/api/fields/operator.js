@@ -267,7 +267,8 @@ const Operator = () => ({
         .build();
     },
     getParams: (field, values) => {
-      const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+      const date1 = moment(new Date(values[0].value)).format('YYYY-MM-DD');
+      const date2 = moment(new Date(values[1].value)).format('YYYY-MM-DD');
       return {type: 'range', field, value: {gte: date1, lte: date2}};
     },
   }),

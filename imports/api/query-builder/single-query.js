@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
 import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
@@ -163,11 +164,11 @@ const formatNestedInput = ({operator, fieldGroup, value}) => {
    */
 
   const {group, name} = fieldGroup;
-  const {parent, child} = Field()[group]().elastic();
+  const {parent, } = Field()[group]().elastic();
 
   const input = createInput({
-    field: parent ? `${field}.${name}` : name,
-    parent: `${field}`,
+    field: parent ? `${group}.${name}` : name,
+    parent: `${group}`,
     operator, value
   }, []);
 
@@ -306,7 +307,7 @@ const buildParentChildQuery = ({aggGroup, operator, fieldGroup, value}) => {
  * @param fieldGroup
  * @param value
  */
-const buildNormalQuery = ({operator, fieldGroup, value}) => {
+const buildNormalQuery = () => {
 };
 
 /**

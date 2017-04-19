@@ -119,6 +119,9 @@ const reindex = ({actions, source, dest, script, options}) => {
     start = new Date();
   let
     params = {
+      refresh: true,
+      waitForCompletion: true,
+      timeout: '10m',
       body: {
         source,
         dest
@@ -655,11 +658,6 @@ const etlICMs = ({indices}) => {
   return {...result, runTime};
 };
 
-const etlTotalICMs = ({indices}) => {
-  // get all customers
-
-};
-
 /**
  *
  * @param {Object} source {index, type}
@@ -813,6 +811,7 @@ const deleteIndices = ({indices}) => {
  */
 const calculateNumberICMs = (source, netsuite_customer_id) => {
   const
+    start = new Date(),
     name = 'calculateNumberICMs',
     {index, type} = source,
     body = bodybuilder()

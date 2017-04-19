@@ -8,9 +8,6 @@ import { describe, it } from 'meteor/practicalmeteor:mocha';
 describe('Polish-Notation', function() {
   describe('getElasticField()', function() {
     it("should return a specific elastic field", function() {
-      const 
-        group = "",
-        fieldName = "name";
       
     });
   });
