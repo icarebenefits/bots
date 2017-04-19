@@ -317,21 +317,6 @@ const customers = ({country}) => {
         result: updateAliases.result.name,
         runtime: updateAliases.runTime
       }, null, 2)} \n \`\`\``;
-      // delete expired index
-      if(!_.isEmpty(removes)) {
-        const deleteIndices = ETL.deleteIndices({indices: removes});
-        if(deleteIndices.error) {
-          message = `${message} \n ### Error - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n ${JSON.stringify({
-            error: deleteIndices.error,
-            runtime: deleteIndices.runTime
-          }, null, 2)} \n \`\`\` **`;
-        } else {
-          message = `${message} \n ### Success - Delete expired indices \n \`\`\` \n ${JSON.stringify(removes, null, 2)} \n ${JSON.stringify({
-            result: deleteIndices.result.name,
-            runtime: deleteIndices.runTime
-          }, null, 2)} \n \`\`\``;
-        }
-      }
     }
 
     /**
