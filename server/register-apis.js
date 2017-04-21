@@ -22,7 +22,7 @@ import '/imports/api/fields';
  * Modules
  */
 // workplaces
-import '/imports/api/facebook/index';
+import '/imports/api/facebook-graph/index.old';
 
 /**
  * Clients

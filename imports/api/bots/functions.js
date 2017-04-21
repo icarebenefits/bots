@@ -7,7 +7,7 @@ import {SLAs} from '../collections/slas';
 // fields
 import {Field} from '/imports/api/fields';
 // functions
-import {FbRequest} from '../facebook';
+import {FbRequest} from '../facebook-graph';
 import {QueryBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';

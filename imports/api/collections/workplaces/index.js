@@ -5,7 +5,7 @@
 import {Meteor} from 'meteor/meteor';
 import {Mongo} from 'meteor/mongo';
 import {check} from 'meteor/check';
-import {FbRequest} from '/imports/api/facebook'
+import {FbRequest} from '/imports/api/facebook-graph'
 
 export const WorkplaceGroups = new Mongo.Collection('workplaces');
 
