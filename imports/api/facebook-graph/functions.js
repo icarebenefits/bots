@@ -23,9 +23,30 @@ const Facebook = () => {
         throw new Meteor.Error('getAccessToken', JSON.stringify(e));
       }
     },
+    addMember: async(groupId) => {
+      /* check arguments */
+      check(groupId, Number);
+
+      const {bots: member} = Meteor.settings.facebook;
+      try {
+        const accessToken = await Facebook().getAccessToken();
+        const request = {
+          method: 'POST',
+          url: prefixUrl + groupId + "/members?email=" + encodeURIComponent(member),
+          // url: prefixUrl + groupId + "/members",
+          headers: {
+            authorization: 'Bearer ' + accessToken
+          }
+        };
+        const result = await RequestPromise(request);
+        return result;
+      } catch (e) {
+        throw new Meteor.Error('addMember', JSON.stringify(e));
+      }
+    },
     postMessage: async(groupId, message) => {
       /* check arguments */
-      check(groupId, String);
+      check(groupId, Number);
       check(message, String);
 
       try {
@@ -45,23 +66,29 @@ const Facebook = () => {
         };
         const result = await RequestPromise(request);
         return result;
-      } catch(e) {
+      } catch (e) {
         throw new Meteor.Error('postMessage', JSON.stringify(e));
       }
     },
-    fetchGroups: async () => {
+    fetchGroups: async(next) => {
       try {
+        let url = '';
+        if (next) {
+          url = next;
+        } else {
+          url = prefixUrl + "/community/groups";
+        }
         const accessToken = await Facebook().getAccessToken();
         const request = {
           method: 'GET',
-          url: prefixUrl + "/community/groups",
+          url,
           headers: {
             authorization: 'Bearer ' + accessToken
           }
         };
         const result = await RequestPromise(request);
         return result;
-      } catch(e) {
+      } catch (e) {
         throw new Meteor.Error('postMessage', JSON.stringify(e));
       }
     }
