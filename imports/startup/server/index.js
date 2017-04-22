@@ -54,7 +54,7 @@ Meteor.startup(function () {
             JobServer(country).createJob(params, (err, res) => {
               if (err) {
                 Logger.error({name: 'CREATE_MIGRATION_JOBS', message: {error: err.reason}});
-                throw new Meteor.Error('CREATE_TEST_JOB_FAILED', err.reason);
+                throw new Meteor.Error('CREATE_MIGRATION_FAILED', err.reason);
               }
               if (res) {
                 Logger.info({name: 'CREATE_MIGRATION_JOBS', message: `job run with schedule: ${params.freqText}`});
@@ -66,5 +66,37 @@ Meteor.startup(function () {
         });
       });
     }
+  }
+  /* Create index suggesters job */
+  if(Meteor.settings.elastic.indexSuggests.enable) {
+    const {frequency: {workplace: freqText}} = Meteor.settings.elastic.indexSuggests;
+
+    JobServer('admin').getJobs({name: 'indexSuggests'}, (err, res) => {
+      if (err) {
+        Logger.error({name: 'GET_INDEX_SUGGESTS_JOBS', message: {error: err.reason}});
+        throw new Meteor.Error('GET_INDEX_SUGGESTS_JOBS_FAILED', err.reason);
+      }
+      if (res && _.isEmpty(res)) {
+        const params = {
+          name: 'indexSuggests',
+          priority: 'normal',
+          freqText,
+          info: {
+            method: 'bots.indexSuggests',
+          }
+        };
+        JobServer('admin').createJob(params, (err, res) => {
+          if (err) {
+            Logger.error({name: 'CREATE_INDEX_SUGGESTS_JOBS', message: {error: err.reason}});
+            throw new Meteor.Error('CREATE_INDEX_SUGGESTS_FAILED', err.reason);
+          }
+          if (res) {
+            Logger.info({name: 'CREATE_INDEX_SUGGESTS_JOBS', message: `job run with schedule: ${params.freqText}`});
+          }
+        });
+      } else {
+        Logger.info({name: 'INDEX_SUGGESTS_JOBS', message: 'EXISTS'});
+      }
+    });
   }
 });

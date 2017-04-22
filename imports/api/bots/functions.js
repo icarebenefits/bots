@@ -189,7 +189,7 @@ const addWorkplaceSuggester = (next, total = 0) => {
           Facebook().postMessage(adminWorkplace, message);
         } else {
           /* index suggester */
-          const {suggester: {index, type}} = Meteor.settings.elastic;
+          const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
           total += ESFuncs.indexSuggests({index, type, data});
           if(next) {
             addWorkplaceSuggester(next, total);
