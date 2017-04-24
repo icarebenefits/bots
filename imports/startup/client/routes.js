@@ -10,6 +10,7 @@ import {
 
 // pages
 import {
+  LoginPage,
   CountriesPage,
   WorkplacesPage,
   SLAsPage,
@@ -48,6 +49,19 @@ FlowRouter.route('/', {
   }
 });
 
+FlowRouter.route('/login', {
+  name: 'login',
+  action() {
+    mount(MainLayout, {
+      content() {
+        return (
+          <Login />
+        );
+      }
+    })
+  }
+});
+
 FlowRouter.route('/setup/:country', {
   name: 'SLAs',
   action(params, queryParams) {
@@ -56,20 +70,24 @@ FlowRouter.route('/setup/:country', {
       {tab} = queryParams
       ;
     let slogan = '';
-    switch(country) {
-      case 'vn': {
+    switch (country) {
+      case 'vn':
+      {
         slogan = 'Vietnam';
         break;
       }
-      case 'kh': {
+      case 'kh':
+      {
         slogan = 'Cambodia';
         break;
       }
-      case 'la': {
+      case 'la':
+      {
         slogan = 'Laos';
         break;
       }
-      default: {
+      default:
+      {
         slogan = '';
       }
     }

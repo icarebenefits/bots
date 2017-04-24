@@ -1,10 +1,16 @@
 import {Meteor} from 'meteor/meteor';
+
+/* Collections */
+import {AccessList} from '/imports/api/collections/access-list';
+
 // This defines a starting set of data to be loaded if the app is loaded with an empty db.
-import '/imports/startup/server/fixtures.js';
+import './fixtures.js';
 
 // This defines the route for path on server side
-import '/imports/startup/server/routes';
+import './routes';
 
+// This defines the access control for user login
+import './access-control';
 // This file configures the Accounts package to define the UI of the reset password email.
 // import '../imports/startup/server/reset-password-email.js';
 
@@ -21,6 +27,7 @@ import JobServer from '/imports/api/jobs';
 import {Logger} from '/imports/api/logger';
 
 Meteor.startup(function () {
+  /* Initiation data for countries */
   if (Countries.find().count() === 0) {
     Countries.insert({code: 'vn', name: 'Vietnam', status: 'active'});
     Countries.insert({code: 'kh', name: 'Cambodia', status: 'active'});
@@ -66,5 +73,14 @@ Meteor.startup(function () {
         });
       });
     }
+  }
+
+  /* Initiation data for administrators */
+  if(!Boolean(AccessList.find().count())) {
+    const {administrators} = Meteor.settings.access_control;
+    /* create administrators */
+    administrators.map(email => {
+      AccessList.insert({email, role: 'admin'});
+    });
   }
 });
