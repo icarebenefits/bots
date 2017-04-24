@@ -4,7 +4,8 @@ export {default as BlankPage} from './Blank';
 // Main Pages
 export {default as HomePage} from './Home';
 export {default as CountriesPage} from './Countries';
-export {default as WorkplacesPage} from './Workplaces';
+export {default as WorkplacesPage} from './Workplaces.new';
+// export {default as WorkplacesPage} from './Workplaces';
 export {default as SLAsPage} from './SLAs';
 
 // Error Pages
