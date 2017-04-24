@@ -1,8 +1,10 @@
+import {Meteor} from 'meteor/meteor';
 import React from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
 import {Session} from 'meteor/session';
 import {Accounts} from 'meteor/accounts-base';
+import {Roles} from 'meteor/alanning:roles';
 
 // layouts
 import {
@@ -30,17 +32,24 @@ import {
 
 /* Redirect afterLogin */
 Accounts.onLogin(() => {
+  // logout other clients
+  Meteor.logoutOtherClients();
+  Session.set('loggedIn', true);
+
+  Session.set('isSuperAdmin', true);
+  
   const redirect = Session.get('redirectAfterLogin');
   if(redirect) {
-    if(redirect !== '/') {
-      FlowRouter.go(redirect);
-    }
+    FlowRouter.go(redirect);
   }
 });
 
 /* Redirect afterLogout */
 Accounts.onLogout(() => {
-  FlowRouter.go('home')
+  Session.set('redirectAfterLogin', FlowRouter.path('home'));
+  Session.set('loggedIn', false);
+  Session.set('isSuperAdmin', false);
+  FlowRouter.go('home');
 });
 
 
