@@ -1,6 +1,8 @@
 import React from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
+import {Session} from 'meteor/session';
+import {Accounts} from 'meteor/accounts-base';
 
 // layouts
 import {
@@ -10,21 +12,37 @@ import {
 
 // pages
 import {
-  LoginPage,
   CountriesPage,
   WorkplacesPage,
   SLAsPage,
 
-  // BlankPage,
+  // Discover,
 
   ErrorPage,
-
-  Discover,
-  ConditionBuilderTree,
-  // Redux,
 } from '../../ui/pages';
-import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
-import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
+// triggers
+import {
+  ensureSignedIn,
+  ensureIsAdmin,
+} from './triggers';
+// import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
+// import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
+
+/* Redirect afterLogin */
+Accounts.onLogin(() => {
+  const redirect = Session.get('redirectAfterLogin');
+  if(redirect) {
+    if(redirect !== '/') {
+      FlowRouter.go(redirect);
+    }
+  }
+});
+
+/* Redirect afterLogout */
+Accounts.onLogout(() => {
+  FlowRouter.go('home')
+});
+
 
 FlowRouter.notFound = {
   action() {
@@ -36,8 +54,12 @@ FlowRouter.notFound = {
   }
 };
 
-FlowRouter.route('/', {
-  name: 'countries',
+const publicRoutes = FlowRouter.group({
+  name: 'publicRoutes',
+});
+
+publicRoutes.route('/', {
+  name: 'home',
   action() {
     mount(MainLayout, {
       content() {
@@ -49,20 +71,13 @@ FlowRouter.route('/', {
   }
 });
 
-FlowRouter.route('/login', {
-  name: 'login',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return (
-          <Login />
-        );
-      }
-    })
-  }
+const userRoutes = FlowRouter.group({
+  name: 'userRoutes',
+  prefix: '/app',
+  triggersEnter: [ensureSignedIn]
 });
 
-FlowRouter.route('/setup/:country', {
+userRoutes.route('/setup/:country', {
   name: 'SLAs',
   action(params, queryParams) {
     const
@@ -122,8 +137,14 @@ FlowRouter.route('/setup/:country', {
       }
     });
   }
-})
+});
 
+const adminRoutes = FlowRouter.group({
+  prefix: '/admin',
+  triggersEnter: [ensureSignedIn, ensureIsAdmin]
+});
+
+/*
 const examplesRoutes = FlowRouter.group({
   name: 'examples',
   prefix: '/examples'
@@ -187,3 +208,4 @@ examplesRoutes.route('/schedule-builder', {
     });
   }
 });
+*/

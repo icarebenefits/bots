@@ -1,7 +1,13 @@
 import {Meteor} from 'meteor/meteor';
+import _ from 'lodash';
 
 /* Collections */
 import {AccessList} from '/imports/api/collections/access-list';
+
+/* Deny all client-side updates to user documents */
+Meteor.users.deny({
+  update() { return true; }
+});
 
 /* Validation for new user */
 Accounts.validateNewUser(user => {
