@@ -36,8 +36,6 @@ class Home extends Component {
     });
 
     if (ready) {
-
-      console.log('roles', Roles.userIsInRole(Meteor.userId(), 'super-admin'))
       return (
         <div className="page-content-col">
           {/* Page Content goes here */}
@@ -109,8 +107,6 @@ const HomeContainer = createContainer((props) => {
     SLAs = SLAsCollection.find({status: {$nin: ['inactive', 'draft']}}).fetch(),
     showAdminBox = loggedIn && isSuperAdmin;
   let activeUsers = 0;
-
-  console.log(loggedIn, isSuperAdmin);
 
   if(showAdminBox) {
     activeUsers = Meteor.users.find().count();

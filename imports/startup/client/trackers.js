@@ -2,10 +2,13 @@ import {Meteor} from 'meteor/meteor';
 import {Tracker} from 'meteor/tracker';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {Roles} from 'meteor/alanning:roles';
+import {Session} from 'meteor/session';
+
+/* Methods */
+import {Methods} from '/imports/api/collections/logger';
 
 FlowRouter.wait();
 
-console.log('roles', Roles.userIsInRole(Meteor.userId(), 'admin'))
 Tracker.autorun(() => {
   /* Tracker for user roles */
   // if the roles subscription is ready, start routing
@@ -23,12 +26,12 @@ Tracker.autorun(() => {
 
       FlowRouter.go(FlowRouter.path('home'));
     }
-  } else {
-    Session.set('loggedIn', false);
   }
 
   if(Roles.subscription.ready() && Meteor.userId()) {
-    if (Roles.userIsInRole(Meteor.userId(), ['super-admin'])) {
+    const {role} = Meteor.settings.public.access_control;
+    if (Roles.userIsInRole(Meteor.userId(), role)) {
+      Methods.create.call({name: 'user', action: 'login', status: 'success', created_by: Meteor.userId(), details: {role}});
       Session.set('isSuperAdmin', true);
     } else {
       Session.set('isSuperAdmin', false);

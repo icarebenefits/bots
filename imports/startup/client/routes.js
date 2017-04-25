@@ -6,6 +6,9 @@ import {Session} from 'meteor/session';
 import {Accounts} from 'meteor/accounts-base';
 import {Roles} from 'meteor/alanning:roles';
 
+/* Methods */
+import {Methods} from '/imports/api/collections/logger';
+
 // layouts
 import {
   MainLayout,
@@ -27,16 +30,17 @@ import {
   ensureSignedIn,
   ensureIsAdmin,
 } from './triggers';
+
+import './trackers';
 // import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
 // import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
 
 /* Redirect afterLogin */
 Accounts.onLogin(() => {
   // logout other clients
-  Meteor.logoutOtherClients();
+  // Meteor.logoutOtherClients();
+  Methods.create.call({name: 'user', action: 'login', status: 'success', created_by: Meteor.userId()});
   Session.set('loggedIn', true);
-
-  Session.set('isSuperAdmin', true);
   
   const redirect = Session.get('redirectAfterLogin');
   if(redirect) {
@@ -46,9 +50,9 @@ Accounts.onLogin(() => {
 
 /* Redirect afterLogout */
 Accounts.onLogout(() => {
+  Methods.create.call({name: 'user', action: 'logout', status: 'success', created_by: Meteor.userId()});
   Session.set('redirectAfterLogin', FlowRouter.path('home'));
   Session.set('loggedIn', false);
-  Session.set('isSuperAdmin', false);
   FlowRouter.go('home');
 });
 

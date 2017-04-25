@@ -1,7 +1,6 @@
 import { Mongo } from 'meteor/mongo';
-import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 
-class AccessListCollection extends Mongo.Collection {
+class LoggerCollection extends Mongo.Collection {
   insert(doc, callback) {
     // add created and updated Date for document
     doc.createdAt = doc.updatedAt = new Date();
@@ -24,7 +23,7 @@ class AccessListCollection extends Mongo.Collection {
   }
 }
 
-// AccessList collection
-const AccessList = new AccessListCollection('access_list');
+// Logger collection
+const Logger = new LoggerCollection('logger');
 
-export default AccessList
+export default Logger
