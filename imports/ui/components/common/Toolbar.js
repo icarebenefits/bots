@@ -5,7 +5,7 @@ import {Button} from '../elements';
 import {Search} from './';
 
 const Toolbar = (props) => {
-  const {buttons, tools, toolLabel, hasSearch, handleOnChange} = props;
+  const {buttons, tools, toolLabel, hasSearch, searchPlaceHolder, handleOnChange} = props;
 
   return (
     <div className="table-toolbar">
@@ -30,6 +30,7 @@ const Toolbar = (props) => {
         <div className="col-md-5" style={{marginTop: 2, paddingRight: 0}}>
           <Search
             className="pull-right"
+            placeHolder={searchPlaceHolder}
             handleOnChange={value => handleOnChange('search', value)}
           />
         </div>

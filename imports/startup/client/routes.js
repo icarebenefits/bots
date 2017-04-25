@@ -1,6 +1,13 @@
+import {Meteor} from 'meteor/meteor';
 import React from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
+import {Session} from 'meteor/session';
+import {Accounts} from 'meteor/accounts-base';
+import {Roles} from 'meteor/alanning:roles';
+
+/* Methods */
+import {Methods} from '/imports/api/collections/logger';
 
 // layouts
 import {
@@ -13,17 +20,43 @@ import {
   CountriesPage,
   WorkplacesPage,
   SLAsPage,
+  AccessListPage,
 
-  // BlankPage,
+  // Discover,
 
   ErrorPage,
-
-  Discover,
-  ConditionBuilderTree,
-  // Redux,
 } from '../../ui/pages';
-import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
-import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
+// triggers
+import {
+  ensureSignedIn,
+  ensureIsAdmin,
+} from './triggers';
+
+import './trackers';
+// import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
+// import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
+
+/* Redirect afterLogin */
+Accounts.onLogin(() => {
+  // logout other clients
+  // Meteor.logoutOtherClients();
+  Methods.create.call({name: 'user', action: 'login', status: 'success', createdBy: Meteor.userId()});
+  Session.set('loggedIn', true);
+
+  const redirect = Session.get('redirectAfterLogin');
+  if (redirect) {
+    FlowRouter.go(redirect);
+  }
+});
+
+/* Redirect afterLogout */
+Accounts.onLogout(() => {
+  Methods.create.call({name: 'user', action: 'logout', status: 'success', createdBy: Meteor.userId()});
+  Session.set('redirectAfterLogin', FlowRouter.path('home'));
+  Session.set('loggedIn', false);
+  FlowRouter.go('home');
+});
+
 
 FlowRouter.notFound = {
   action() {
@@ -35,8 +68,12 @@ FlowRouter.notFound = {
   }
 };
 
-FlowRouter.route('/', {
-  name: 'countries',
+const publicRoutes = FlowRouter.group({
+  name: 'publicRoutes',
+});
+
+publicRoutes.route('/', {
+  name: 'home',
   action() {
     mount(MainLayout, {
       content() {
@@ -48,7 +85,13 @@ FlowRouter.route('/', {
   }
 });
 
-FlowRouter.route('/setup/:country', {
+const userRoutes = FlowRouter.group({
+  name: 'userRoutes',
+  prefix: '/app',
+  triggersEnter: [ensureSignedIn]
+});
+
+userRoutes.route('/setup/:country', {
   name: 'SLAs',
   action(params, queryParams) {
     const
@@ -56,20 +99,24 @@ FlowRouter.route('/setup/:country', {
       {tab} = queryParams
       ;
     let slogan = '';
-    switch(country) {
-      case 'vn': {
+    switch (country) {
+      case 'vn':
+      {
         slogan = 'Vietnam';
         break;
       }
-      case 'kh': {
+      case 'kh':
+      {
         slogan = 'Cambodia';
         break;
       }
-      case 'la': {
+      case 'la':
+      {
         slogan = 'Laos';
         break;
       }
-      default: {
+      default:
+      {
         slogan = '';
       }
     }
@@ -104,68 +151,89 @@ FlowRouter.route('/setup/:country', {
       }
     });
   }
-})
-
-const examplesRoutes = FlowRouter.group({
-  name: 'examples',
-  prefix: '/examples'
 });
 
-examplesRoutes.route('/conditions-builder/:style', {
-  name: 'conditions-builder',
-  action(params) {
-    const {style} = params;
-    mount(MainLayout, {
-      content() {
-        switch (style) {
-          case 'tree':
-          {
-            return (
-              <ConditionBuilderTree />
-            );
-          }
-          case 'netsuite':
-          {
-            return (
-              <ConditionGroup />
-            );
-          }
-        }
-      }
-    })
-  }
+const adminRoutes = FlowRouter.group({
+  prefix: '/admin',
+  triggersEnter: [ensureSignedIn, ensureIsAdmin]
 });
 
-examplesRoutes.route('/discovery', {
-  name: 'discovery',
+adminRoutes.route('/access-list', {
+  name: 'access-list',
   action() {
     mount(MainLayout, {
+      slogan: 'administration',
       content() {
         return (
-          <Discover />
+          <AccessListPage />
         );
       }
     });
   }
 });
 
-examplesRoutes.route('/schedule-builder', {
-  name: 'schedule-builder',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return (
-          <ScheduleBuilder
-            frequency={{
-              preps: 'on the',
-              range: 'first',
-              unit: 'day of the week',
-              preps2: '',
-              range2: '',
-            }}
-          />
-        );
-      }
-    });
-  }
-});
+/*
+ const examplesRoutes = FlowRouter.group({
+ name: 'examples',
+ prefix: '/examples'
+ });
+
+ examplesRoutes.route('/discovery', {
+ name: 'discovery',
+ action() {
+ mount(MainLayout, {
+ content() {
+ return (
+ <Discover />
+ );
+ }
+ });
+ }
+ });
+ /*
+ examplesRoutes.route('/conditions-builder/:style', {
+ name: 'conditions-builder',
+ action(params) {
+ const {style} = params;
+ mount(MainLayout, {
+ content() {
+ switch (style) {
+ case 'tree':
+ {
+ return (
+ <ConditionBuilderTree />
+ );
+ }
+ case 'netsuite':
+ {
+ return (
+ <ConditionGroup />
+ );
+ }
+ }
+ }
+ })
+ }
+ });
+
+ examplesRoutes.route('/schedule-builder', {
+ name: 'schedule-builder',
+ action() {
+ mount(MainLayout, {
+ content() {
+ return (
+ <ScheduleBuilder
+ frequency={{
+ preps: 'on the',
+ range: 'first',
+ unit: 'day of the week',
+ preps2: '',
+ range2: '',
+ }}
+ />
+ );
+ }
+ });
+ }
+ });
+ */
