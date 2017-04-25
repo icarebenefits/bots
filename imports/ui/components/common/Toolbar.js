@@ -10,8 +10,8 @@ const Toolbar = (props) => {
   return (
     <div className="table-toolbar">
       {!_.isEmpty(buttons) && (
-        <div className="col-md-5">
-          <div className="btn-group pull-left">
+        <div className="col-md-5 pull-left">
+          <div className="btn-group">
             {buttons.map(btn => {
               const {id, className, icon, label, handleOnClick} = btn;
               return (
@@ -27,9 +27,9 @@ const Toolbar = (props) => {
         </div>
       )}
       {hasSearch && (
-        <div className="col-md-5" style={{marginTop: 2, paddingRight: 0}}>
+        <div className="col-md-5 pull-right" style={{marginTop: 2, paddingRight: 0}}>
           <Search
-            className="pull-right"
+            className=""
             placeHolder={searchPlaceHolder}
             handleOnChange={value => handleOnChange('search', value)}
           />

@@ -46,4 +46,17 @@ Accounts.validateNewUser(user => {
 
 /* Validation for user login */
 // will be use for feature: disable user login
-// Accounts.validateLoginAttempt();
+Accounts.validateLoginAttempt(object => {
+  const {type, user} = object;
+  const {email} = user.services[type];
+  /* verify user access list */
+  if(email) {
+    const isAllowed = Boolean(AccessList.find({email}).count());
+    if(!isAllowed) {
+      Logger.insert({name: 'user', action: 'login', status: 'failed', createdBy: 'validateLoginAttempt', details: {user, reason: 'Email denied'}});
+      throw new Meteor.Error(403, `Permission denied for email "${email}"!`);
+    }
+  }
+  
+  return object;
+});

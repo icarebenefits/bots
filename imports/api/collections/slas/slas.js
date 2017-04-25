@@ -152,7 +152,7 @@ SLAs.schema = new SimpleSchema({
   }
 });
 
-// SLAs.attachSchema(SLAs.schema);
+SLAs.attachSchema(SLAs.schema);
 
 /**
  * Helpers

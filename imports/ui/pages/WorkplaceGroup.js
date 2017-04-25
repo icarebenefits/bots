@@ -5,7 +5,7 @@ import React, {Component, PropTypes} from 'react';
 import ReactDOM from 'react-dom';
 import {createContainer} from 'meteor/react-meteor-data';
 import {Meteor} from 'meteor/meteor';
-import {WorkplaceGroups} from '../../api/collections/facebook'
+import {WorkplaceGroups} from '../../api/collections/facebook-graph'
 import Group from './Group'
 
 class WorkplaceGroup extends Component {
