@@ -44,6 +44,25 @@ const Facebook = () => {
         throw new Meteor.Error('addMember', JSON.stringify(e));
       }
     },
+    getGroup: async(groupId) => {
+      /* check arguments */
+      check(groupId, Number);
+
+      try {
+        const accessToken = await Facebook().getAccessToken();
+        const request = {
+          method: 'GET',
+          url: prefixUrl + groupId,
+          headers: {
+            authorization: 'Bearer ' + accessToken
+          }
+        };
+        const result = await RequestPromise(request);
+        return result;
+      } catch (e) {
+        throw new Meteor.Error('getGroup', JSON.stringify(e));
+      }
+    },
     postMessage: async(groupId, message) => {
       /* check arguments */
       check(groupId, Number);

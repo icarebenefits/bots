@@ -4,3 +4,5 @@ export {ClientRaw as ElasticClient} from './client';
 export {default as Elastic} from './client';
 // Functions
 export {default as ESFuncs} from './functions';
+// Methods
+export {default as ESMethods} from './methods';
