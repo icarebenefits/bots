@@ -4,14 +4,14 @@ import classnames from 'classnames';
 class Search extends Component {
 
   render() {
-    const {className, handleOnChange} = this.props;
+    const {className, placeHolder = "Search ...", handleOnChange} = this.props;
 
     return (
       <div className={classnames(className)}>
         <input
           type="search"
           className={classnames("form-control")}
-          placeholder="Search ..."
+          placeholder={placeHolder}
           onChange={e => handleOnChange(e.target.value)}
         />
       </div>

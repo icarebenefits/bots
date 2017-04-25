@@ -5,6 +5,7 @@ export {default as BlankPage} from './Blank';
 export {default as CountriesPage} from './Home';
 export {default as WorkplacesPage} from './Workplaces';
 export {default as SLAsPage} from './SLAs';
+export {default as AccessListPage} from './AccessList';
 
 // Error Pages
 export {default as ErrorPage} from './Error';

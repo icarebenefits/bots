@@ -10,3 +10,4 @@ export {default as Dialog} from './Dialog';
 export {default as FormInput} from './FormInput';
 export {default as Form} from './Form';
 export {default as FormActions} from './FormActions';
+export {default as FormDialog} from './FormDialog';

@@ -20,6 +20,7 @@ import {
   CountriesPage,
   WorkplacesPage,
   SLAsPage,
+  AccessListPage,
 
   // Discover,
 
@@ -41,9 +42,9 @@ Accounts.onLogin(() => {
   // Meteor.logoutOtherClients();
   Methods.create.call({name: 'user', action: 'login', status: 'success', createdBy: Meteor.userId()});
   Session.set('loggedIn', true);
-  
+
   const redirect = Session.get('redirectAfterLogin');
-  if(redirect) {
+  if (redirect) {
     FlowRouter.go(redirect);
   }
 });
@@ -157,68 +158,82 @@ const adminRoutes = FlowRouter.group({
   triggersEnter: [ensureSignedIn, ensureIsAdmin]
 });
 
+adminRoutes.route('/access-list', {
+  name: 'access-list',
+  action() {
+    mount(MainLayout, {
+      slogan: 'administration',
+      content() {
+        return (
+          <AccessListPage />
+        );
+      }
+    });
+  }
+});
+
 /*
-const examplesRoutes = FlowRouter.group({
-  name: 'examples',
-  prefix: '/examples'
-});
+ const examplesRoutes = FlowRouter.group({
+ name: 'examples',
+ prefix: '/examples'
+ });
 
-examplesRoutes.route('/conditions-builder/:style', {
-  name: 'conditions-builder',
-  action(params) {
-    const {style} = params;
-    mount(MainLayout, {
-      content() {
-        switch (style) {
-          case 'tree':
-          {
-            return (
-              <ConditionBuilderTree />
-            );
-          }
-          case 'netsuite':
-          {
-            return (
-              <ConditionGroup />
-            );
-          }
-        }
-      }
-    })
-  }
-});
+ examplesRoutes.route('/discovery', {
+ name: 'discovery',
+ action() {
+ mount(MainLayout, {
+ content() {
+ return (
+ <Discover />
+ );
+ }
+ });
+ }
+ });
+ /*
+ examplesRoutes.route('/conditions-builder/:style', {
+ name: 'conditions-builder',
+ action(params) {
+ const {style} = params;
+ mount(MainLayout, {
+ content() {
+ switch (style) {
+ case 'tree':
+ {
+ return (
+ <ConditionBuilderTree />
+ );
+ }
+ case 'netsuite':
+ {
+ return (
+ <ConditionGroup />
+ );
+ }
+ }
+ }
+ })
+ }
+ });
 
-examplesRoutes.route('/discovery', {
-  name: 'discovery',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return (
-          <Discover />
-        );
-      }
-    });
-  }
-});
-
-examplesRoutes.route('/schedule-builder', {
-  name: 'schedule-builder',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return (
-          <ScheduleBuilder
-            frequency={{
-              preps: 'on the',
-              range: 'first',
-              unit: 'day of the week',
-              preps2: '',
-              range2: '',
-            }}
-          />
-        );
-      }
-    });
-  }
-});
-*/
+ examplesRoutes.route('/schedule-builder', {
+ name: 'schedule-builder',
+ action() {
+ mount(MainLayout, {
+ content() {
+ return (
+ <ScheduleBuilder
+ frequency={{
+ preps: 'on the',
+ range: 'first',
+ unit: 'day of the week',
+ preps2: '',
+ range2: '',
+ }}
+ />
+ );
+ }
+ });
+ }
+ });
+ */
