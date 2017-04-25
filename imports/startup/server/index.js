@@ -88,20 +88,20 @@ Meteor.startup(function () {
   administrators.map(email => {
     /* add into access list */
     if (!Boolean(AccessList.find({email}).count())) {
-      DBLogger.insert({name: 'accessList', action: 'grant', status: 'success', created_by: 'system', details: {email, role}});
+      DBLogger.insert({name: 'accessList', action: 'grant', status: 'success', createdBy: 'system', details: {email, role}});
       AccessList.insert({email});
     }
     /* add into super-admin role */
     if (Boolean(Accounts.users.find({"services.google.email": email}).count())) {
       const {_id} = Accounts.users.findOne({"services.google.email": email});
-      DBLogger.insert({name: 'role', action: 'grant', status: 'success', created_by: 'system', details: {email, role}});
+      DBLogger.insert({name: 'role', action: 'grant', status: 'success', createdBy: 'system', details: {email, role}});
       Roles.addUsersToRoles(_id, role);
     }
   });
   /* remove user from super admin role */
   currentAdmins.map(({_id, email}) => {
     if(!administrators.includes(email)) {
-      DBLogger.insert({name: 'role', action: 'revoke', status: 'success', created_by: 'system', details: {email, role}});
+      DBLogger.insert({name: 'role', action: 'revoke', status: 'success', createdBy: 'system', details: {email, role}});
       Roles.removeUsersFromRoles(_id, role);
     }
   });

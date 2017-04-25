@@ -31,7 +31,7 @@ Tracker.autorun(() => {
   if(Roles.subscription.ready() && Meteor.userId()) {
     const {role} = Meteor.settings.public.access_control;
     if (Roles.userIsInRole(Meteor.userId(), role)) {
-      Methods.create.call({name: 'user', action: 'login', status: 'success', created_by: Meteor.userId(), details: {role}});
+      Methods.create.call({name: 'user', action: 'login', status: 'success', createdBy: Meteor.userId(), details: {role}});
       Session.set('isSuperAdmin', true);
     } else {
       Session.set('isSuperAdmin', false);

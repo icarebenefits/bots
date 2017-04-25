@@ -39,7 +39,7 @@ import './trackers';
 Accounts.onLogin(() => {
   // logout other clients
   // Meteor.logoutOtherClients();
-  Methods.create.call({name: 'user', action: 'login', status: 'success', created_by: Meteor.userId()});
+  Methods.create.call({name: 'user', action: 'login', status: 'success', createdBy: Meteor.userId()});
   Session.set('loggedIn', true);
   
   const redirect = Session.get('redirectAfterLogin');
@@ -50,7 +50,7 @@ Accounts.onLogin(() => {
 
 /* Redirect afterLogout */
 Accounts.onLogout(() => {
-  Methods.create.call({name: 'user', action: 'logout', status: 'success', created_by: Meteor.userId()});
+  Methods.create.call({name: 'user', action: 'logout', status: 'success', createdBy: Meteor.userId()});
   Session.set('redirectAfterLogin', FlowRouter.path('home'));
   Session.set('loggedIn', false);
   FlowRouter.go('home');
