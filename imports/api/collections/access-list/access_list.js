@@ -5,6 +5,7 @@ class AccessListCollection extends Mongo.Collection {
   insert(doc, callback) {
     // add created and updated Date for document
     doc.createdAt = doc.updatedAt = new Date();
+    doc.createdBy = doc.updatedBy = this.userId;
     // add default status of SLA
     // if(!doc.status) {
     //   doc.status = SLAs.status.active;
@@ -19,12 +20,13 @@ class AccessListCollection extends Mongo.Collection {
       modifier['$set'] = {};
     }
     modifier['$set'].updatedAt = new Date();
+    modifier['$set'].updatedBy = this.userId;
 
     return super.update(selector, modifier);
   }
 }
 
-// AccessList collection
+// AccessListComponent collection
 const AccessList = new AccessListCollection('access_list');
 
 export default AccessList

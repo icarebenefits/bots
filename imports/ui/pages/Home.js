@@ -62,7 +62,7 @@ class Home extends Component {
           {(showAdminBox) && (
             <div className="row">
               <div key='admin' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
-                   onClick={() => {FlowRouter.go('adminPage')}}
+                   onClick={() => {FlowRouter.go('access-list')}}
               >
                 <DashboardStat
                   title={"Administration"}
@@ -71,7 +71,7 @@ class Home extends Component {
                   stat={activeUsers}
                   description="active Users"
                   label="Setup"
-                  moreHref={FlowRouter.path('adminPage')}
+                  moreHref={FlowRouter.path('access-list')}
                 />
               </div>
             </div>
