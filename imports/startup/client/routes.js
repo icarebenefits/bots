@@ -17,7 +17,7 @@ import {
 
 // pages
 import {
-  CountriesPage,
+  HomePage,
   WorkplacesPage,
   SLAsPage,
   AccessListPage,
@@ -78,7 +78,7 @@ publicRoutes.route('/', {
     mount(MainLayout, {
       content() {
         return (
-          <CountriesPage />
+          <HomePage />
         );
       }
     });
