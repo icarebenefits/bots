@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import {COUNTRIES} from '/imports/utils/defaults';
@@ -6,6 +7,7 @@ class SLAsCollection extends Mongo.Collection {
   insert(doc, callback) {
     // add created and updated Date for document
     doc.createdAt = doc.updatedAt = new Date();
+    doc.createdBy = doc.updatedBy = Meteor.userId();
     // add default status of SLA
     // if(!doc.status) {
     //   doc.status = SLAs.status.active;
@@ -20,6 +22,7 @@ class SLAsCollection extends Mongo.Collection {
       modifier['$set'] = {};
     }
     modifier['$set'].updatedAt = new Date();
+    modifier['$set'].updatedBy = Meteor.userId();
 
     return super.update(selector, modifier);
   }
@@ -134,8 +137,14 @@ SLAs.schema = new SimpleSchema({
   createdAt: {
     type: Date,
   },
+  createdBy: {
+    type: String,
+  },
   updatedAt: {
     type: Date,
+  },
+  updatedBy: {
+    type: String,
   },
   lastExecutedAt: {
     type: Date,

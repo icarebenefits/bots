@@ -1,0 +1,1 @@
+/* Unit test for access control validation */
