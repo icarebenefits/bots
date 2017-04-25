@@ -7,11 +7,13 @@ import {SLAs} from '../collections/slas';
 // fields
 import {Field} from '/imports/api/fields';
 // functions
-import {FbRequest} from '../facebook';
+import {Facebook} from '../facebook-graph';
 import {QueryBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';
-import {Elastic} from '../elastic';
+import {Elastic, ESFuncs} from '../elastic';
+// utils
+import {formatMessage} from '/imports/utils/defaults';
 
 /**
  * Function for checking operation of bot
@@ -152,9 +154,9 @@ const checkSLA = (slaId) => {
     // message = `${message} \n\n **@Powered by** [iCare-bots](bots.stage.icbsys.net)`;
 
     /* Send message to workplace */
-    const wpRequest = new FbRequest();
-    const {personalId} = Meteor.settings.facebook;
-    wpRequest.post(personalId, workplace, message);
+    Facebook().postMessage(workplace, message)
+      .then(res => console.log('postMessage', JSON.stringify(res)))
+      .catch(e => console.log('postMessageError', JSON.stringify(e)));
     Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
 
     return {
@@ -171,9 +173,51 @@ const checkSLA = (slaId) => {
   }
 };
 
+const addWorkplaceSuggester = (next, total = 0) => {
+  /* Fetch groups from fb@work */
+  const {adminWorkplace} = Meteor.settings.facebook;
+  Facebook().fetchGroups(next)
+    .then(
+      res => {
+        const {data, paging: {next}} = JSON.parse(res);
+        if(_.isEmpty(data)) {
+          const message = formatMessage({
+            message: '',
+            heading1: 'addWorkplaceSuggester.NoGroupFound',
+            code: res
+          });
+          Facebook().postMessage(adminWorkplace, message);
+        } else {
+          /* index suggester */
+          const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
+          total += ESFuncs.indexSuggests({index, type, data});
+          if(next) {
+            addWorkplaceSuggester(next, total);
+          } else {
+            const message = formatMessage({
+              message: '',
+              heading1: 'addWorkplaceSuggester.IndexedSuggests',
+              code: {total}
+            });
+            Facebook().postMessage(adminWorkplace, message);
+          }
+        }
+      }
+    )
+    .catch(e => {
+      const message = formatMessage({
+        message: '',
+        heading1: 'addWorkplaceSuggester.Error',
+        code: e
+      });
+      Facebook().postMessage(adminWorkplace, message);
+    })
+};
+
 const Bots = {
   fistSLACheck,
   checkSLA,
+  addWorkplaceSuggester,
 };
 
 /* Test checking SLA */
