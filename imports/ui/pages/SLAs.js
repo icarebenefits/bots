@@ -699,31 +699,42 @@ class SLAs extends Component {
       };
 
     const list = this._getSLAsList(filter, search);
-    listSLAsProps.list.data = list.map(s => ({
-      _id: s._id, row: [
-        {id: 'name', type: 'input', value: s.name},
-        {
-          id: 'workplace',
-          type: 'input',
-          value: s.workplace ? Workplaces.filter(w => w.id === s.workplace)[0].name : ''
-        },
-        {
-          id: 'frequency',
-          type: 'input',
-          value: (s.frequency.preps === 'at' && _.isEmpty(s.frequency.preps2))
-            ? `${this.getScheduleText(s.frequency)} daily`
-            : this.getScheduleText(s.frequency)
-        },
-        {
-          id: 'lastExecution',
-          type: 'input',
-          value: s.lastExecutedAt
-            ? moment(new Date(s.lastExecutedAt)).format('LLL')
-            : (s.status === 'draft' ? 'pending' : 'waiting')
-        },
-        {id: 'status', type: 'input', value: s.status},
-      ]
-    }));
+    listSLAsProps.list.data = list.map(s => {
+      let wpName = '';
+      if(s.workplace) {
+        const wp = Workplaces.filter(w => w.id === s.workplace);
+        if(!_.isEmpty(wp)) {
+          wpName = wp[0].name;
+        } else {
+          wpName = '';
+        }
+      }
+      return {
+        _id: s._id, row: [
+          {id: 'name', type: 'input', value: s.name},
+          {
+            id: 'workplace',
+            type: 'input',
+            value: wpName
+          },
+          {
+            id: 'frequency',
+            type: 'input',
+            value: (s.frequency.preps === 'at' && _.isEmpty(s.frequency.preps2))
+              ? `${this.getScheduleText(s.frequency)} daily`
+              : this.getScheduleText(s.frequency)
+          },
+          {
+            id: 'lastExecution',
+            type: 'input',
+            value: s.lastExecutedAt
+              ? moment(new Date(s.lastExecutedAt)).format('LLL')
+              : (s.status === 'draft' ? 'pending' : 'waiting')
+          },
+          {id: 'status', type: 'input', value: s.status},
+        ]
+      }
+    });
 
     return (
       <ListSLAs
@@ -902,8 +913,6 @@ const SLAsContainer = createContainer(() => {
     Workplaces = WorkplaceGroups.find({country}).fetch(),
     SLAsList = SLAsCollection.find({country}).fetch()
     ;
-
-  console.log('Workplaces', Workplaces);
 
   return {
     ready,
