@@ -8,7 +8,7 @@ class Suggest extends Component {
   
   render() {
     const 
-      {options, value, defaultValue, className, handleOnChange} = this.props,
+      {options, value, placeHolder, className, handleOnChange} = this.props,
       randomId = Math.random().toString(16).substring(2)
     ;
     
@@ -17,7 +17,7 @@ class Suggest extends Component {
         <input 
           list={randomId}
           value={value}
-          defaultValue={defaultValue}
+          placeholder={placeHolder}
           ref="lowLevelInput"
           className={className}
           onChange={e => handleOnChange(e.target.value)}

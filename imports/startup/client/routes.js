@@ -6,6 +6,9 @@ import {Session} from 'meteor/session';
 import {Accounts} from 'meteor/accounts-base';
 import {Roles} from 'meteor/alanning:roles';
 
+/* Notify */
+import * as Notify from '/imports/api/notifications';
+
 /* Methods */
 import {Methods} from '/imports/api/collections/logger';
 
@@ -42,6 +45,7 @@ Accounts.onLogin(() => {
   // Meteor.logoutOtherClients();
   Methods.create.call({name: 'user', action: 'login', status: 'success', createdBy: Meteor.userId()});
   Session.set('loggedIn', true);
+  Notify.info({title: 'Welcome to iCare Bots!'});
 
   const redirect = Session.get('redirectAfterLogin');
   if (redirect) {
@@ -54,6 +58,7 @@ Accounts.onLogout(() => {
   Methods.create.call({name: 'user', action: 'logout', status: 'success', createdBy: Meteor.userId()});
   Session.set('redirectAfterLogin', FlowRouter.path('home'));
   Session.set('loggedIn', false);
+  Notify.warning({title: 'See you next time!'});
   FlowRouter.go('home');
 });
 

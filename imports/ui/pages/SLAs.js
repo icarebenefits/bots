@@ -903,6 +903,8 @@ const SLAsContainer = createContainer(() => {
     SLAsList = SLAsCollection.find({country}).fetch()
     ;
 
+  console.log('Workplaces', Workplaces);
+
   return {
     ready,
     country,
