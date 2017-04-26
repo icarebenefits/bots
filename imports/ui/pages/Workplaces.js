@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
+import _ from 'lodash';
 import moment from 'moment';
 import S from 'string';
 
@@ -34,7 +35,7 @@ class Workplaces extends Component {
       search: '',
       currentSuggest: '',
       suggests: [],
-      enableAdd: false,
+      workplace: null,
     };
 
     // render handlers
@@ -86,28 +87,26 @@ class Workplaces extends Component {
       },
       size: 1,
     }, (err, res) => {
-      if(err) {
+      if (err) {
         return Notify.warning({title: 'Search workplace', message: `Failed: ${JSON.stringify(err)}`});
       }
       else {
         let suggests = [];
-        if(_.isEmpty(res) && !_.isEmpty(suggestText)) {
-          if(!isNaN(Number(suggestText))) {
+        if (_.isEmpty(res) && !_.isEmpty(suggestText)) {
+          if (!isNaN(Number(suggestText))) {
             Meteor.call('groups.getName', Number(suggestText), (err, res) => {
-              if(err) {
-                return Notify.warning({title: 'Search workplace', message: `Failed: ${JSON.stringify(err)}`});
-              } else {
-                if(res.error) {
-                  Notify.warning({title: 'Search workplace', message: `Failed: ${JSON.stringify(res.error)}`});
-                  return this.setState({enableAdd: false});
-                }
-                this.setState({enableAdd: true});
+              if (err || res.err) {
+                suggests = [{name: suggestText, label: 'No workplace found.'}];
+                this.setState({workplace: null});
               }
+              const {id, privacy, name} = res;
+              this.setState({workplace: {id, name, privacy}});
+
             });
           } else {
             // no result for groupId
             suggests = [{name: suggestText, label: 'No workplace found.'}];
-            this.setState({enableAdd: false});
+            this.setState({workplace: null});
           }
         } else {
           suggests = res
@@ -127,12 +126,12 @@ class Workplaces extends Component {
       {country} = this.props,
       groupId = Number(this.refs.suggest.getValue());
     Meteor.call('groups.getName', groupId, (err, res) => {
-      if(err) {
+      if (err) {
         return Notify.error({title: `Add workplace`, message: `Failed: ${JSON.stringify(err)}`});
       } else {
         const {name: groupName, id: groupId} = res;
         Meteor.call('groups.insert', {groupId, groupName, country}, (err) => {
-          if(err) {
+          if (err) {
             return Notify.error({title: `Add workplace`, message: `Failed: ${JSON.stringify(err)}`});
           } else {
             Notify.info({title: `Add workplace`, message: `Success.`});
@@ -145,7 +144,7 @@ class Workplaces extends Component {
 
   _removeWP(_id) {
     Meteor.call('groups.remove', {_id}, (err) => {
-      if(err) {
+      if (err) {
         return Notify.error({title: `Remove workplace`, message: `Failed: ${JSON.stringify(err)}`});
       } else {
         Notify.info({title: `Remove workplace`, message: 'Success.'});
@@ -173,7 +172,16 @@ class Workplaces extends Component {
   }
 
   _renderAddWP() {
-    const {suggests, currentSuggest, enableAdd} = this.state;
+    const {suggests, currentSuggest, workplace} = this.state;
+    let hasWP = false;
+    if(!_.isEmpty(workplace)) {
+      if(!_.isEmpty(workplace.id)) {
+        hasWP = true;
+      } else {
+        hasWP = false;
+      }
+    }
+
     return (
       <div className="col-md-12">
         <div className="portlet light bordered">
@@ -204,7 +212,7 @@ class Workplaces extends Component {
                       <Button
                         id="add"
                         className="bold green"
-                        disabled={!enableAdd}
+                        disabled={!hasWP}
                         onClick={this.handleAddWP}
                       >Add{' '}<i className="fa fa-plus"/></Button>
                     </div>
@@ -212,6 +220,16 @@ class Workplaces extends Component {
                 </div>
               </div>
             </div>
+            {hasWP && (
+              <div className="row">
+                <div className="alert alert-info">
+                  <strong className="uppercase">Details</strong><br/>
+                  <strong>{'ID: '}</strong>{workplace.id}<br/>
+                  <strong>{'Name: '}</strong>{workplace.name}<br/>
+                  <strong>{'Privacy: '}</strong>{workplace.privacy}<br/>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -274,27 +292,27 @@ class Workplaces extends Component {
     }));
 
     return (
-    <div className="col-md-12">
-      <div className="portlet light bordered">
-        <div className="portlet-body">
-          <div className="row" style={{marginBottom: 20}}>
-            <div className="col-md-12">
-              <Label
-                className="col-md-4 bold uppercase pull-left"
-                value="List workplaces: "
-              />
+      <div className="col-md-12">
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <div className="row" style={{marginBottom: 20}}>
+              <div className="col-md-12">
+                <Label
+                  className="col-md-4 bold uppercase pull-left"
+                  value="List workplaces: "
+                />
+              </div>
             </div>
-          </div>
-          <div className="row">
-            <div className="col-md-12">
-              <ListPlace
-                {...listWPProps}
-              />
+            <div className="row">
+              <div className="col-md-12">
+                <ListPlace
+                  {...listWPProps}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     );
   }
 
