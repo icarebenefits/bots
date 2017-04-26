@@ -11,7 +11,6 @@ export const WorkplaceGroups = new Mongo.Collection('workplaces');
 WorkplaceGroups.schema = new SimpleSchema({
   id: {
     type: Number,
-    unique: true,
   },
   name: {
     type: String
