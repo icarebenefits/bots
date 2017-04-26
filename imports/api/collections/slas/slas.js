@@ -22,7 +22,9 @@ class SLAsCollection extends Mongo.Collection {
       modifier['$set'] = {};
     }
     modifier['$set'].updatedAt = new Date();
-    modifier['$set'].updatedBy = Meteor.userId();
+    if(Meteor.userId()) {
+      modifier['$set'].updatedBy = Meteor.userId();
+    }
 
     return super.update(selector, modifier);
   }
@@ -97,7 +99,16 @@ SLAs.schema = new SimpleSchema({
     type: String,
   },
   "conditions.$.values": {
-    type: [String]
+    type: [Object],
+    optional: true,
+  },
+  "conditions.$.values.$.type": {
+    type: String,
+    optional: true,
+  },
+  "conditions.$.values.$.value": {
+    type: String,
+    optional: true,
   },
   "conditions.$.closeParens": {
     type: String,
@@ -110,24 +121,31 @@ SLAs.schema = new SimpleSchema({
   message: {
     type: Object
   },
-  "message.summaryType": {
-    type: String,
+  "message.variables": {
+    type: [Object],
   },
-  "message.group": {
+  "message.variables.$.summaryType": {
     type: String,
+    optional: true,
   },
-  "message.field": {
+  "message.variables.$.group": {
     type: String,
+    optional: true,
   },
-  "message.varName": {
+  "message.variables.$.field": {
     type: String,
+    optional: true,
   },
-  "message.template": {
+  "message.variables.$.name": {
+    type: String,
+    optional: true,
+  },
+  "message.messageTemplate": {
     type: String,
   },
   status: {
-    type: Number,
-    allowedValues: ['draft', 'active', 'paused', 'resumed', 'restarted'],
+    type: String,
+    allowedValues: ['draft', 'active', 'inactive'],
     defaultValue: 'draft',
   },
   country: {
@@ -139,9 +157,11 @@ SLAs.schema = new SimpleSchema({
   },
   createdBy: {
     type: String,
+    optional: true,
   },
   updatedAt: {
     type: Date,
+    optional: true,
   },
   updatedBy: {
     type: String,
