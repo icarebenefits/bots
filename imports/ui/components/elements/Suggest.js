@@ -8,7 +8,7 @@ class Suggest extends Component {
   
   render() {
     const 
-      {options, defaultValue, className} = this.props,
+      {options, value, placeHolder, className, handleOnChange} = this.props,
       randomId = Math.random().toString(16).substring(2)
     ;
     
@@ -16,15 +16,17 @@ class Suggest extends Component {
       <div>
         <input 
           list={randomId}
-          defaultValue={defaultValue}
+          value={value}
+          placeholder={placeHolder}
           ref="lowLevelInput"
           className={className}
+          onChange={e => handleOnChange(e.target.value)}
         />
         <datalist
           id={randomId}
         >
-          {options.map((item, idx) => (
-            <option value={item} key={idx} />
+          {options.map(item => (
+            <option value={item.name} key={item.name}>{item.label}</option>
           ))}
         </datalist>
       </div>
@@ -34,7 +36,10 @@ class Suggest extends Component {
 
 Suggest.propTypes = {
   options: PropTypes.arrayOf(
-    PropTypes.string
+    PropTypes.shape({
+      name: PropTypes.string,
+      label: PropTypes.string,
+    })
   ),
   defaultValue: PropTypes.string,
 };
