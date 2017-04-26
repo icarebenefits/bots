@@ -1,7 +1,7 @@
 import React from 'react';
 
 // components
-import {Button} from '../../components/elements';
+import {Button, Suggest} from '../../components/elements';
 
 const Discover = () => (
       <div>
@@ -9,6 +9,15 @@ const Discover = () => (
           Welcome to the Icare bots
         </h1>
 
+        <h2>Suggest</h2>
+        <Suggest
+          options={[
+          {name: 'vn', label: 'Vietnam'},
+          {name: 'vk', label: 'Vietkey'},
+          {name: 'kh', label: 'Cambodia'},
+          {name: 'la', label: 'Laos'}
+          ]}
+        />
         <h2>Buttons</h2>
         <div>Button with onClick:
           <Button

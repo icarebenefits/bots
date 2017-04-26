@@ -3,6 +3,7 @@ import _ from 'lodash';
 
 import {
   Logo,
+  TopBarActions,
   Tabs,
 } from './';
 
@@ -14,7 +15,8 @@ const Header = (props) => {
       <nav className="navbar mega-menu" role="navigation">
         <div className="container-fluid">
           <div className="clearfix navbar-fixed-top">
-            <Logo slogan={slogan} />
+            <Logo slogan={slogan}/>
+            <TopBarActions />
           </div>
           {!_.isEmpty(tabs) && (
             <Tabs

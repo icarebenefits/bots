@@ -79,10 +79,39 @@ const migrateToElastic = new ValidatedMethod({
   }
 });
 
+/**
+ * Method called by job server for executing the job index suggests
+ * @param {String} slaId
+ */
+const indexSuggests = new ValidatedMethod({
+  name: 'bots.indexSuggests',
+  validate: new SimpleSchema({
+    data: {
+      type: Object,
+    },
+    'data.method': {
+      type: String,
+      allowedValues: ['bots.indexSuggests'],
+    }
+  }).validator(),
+  run({data}) {
+    if (Meteor.isServer) {
+      let result = {};
+      try {
+        result = Bots.addWorkplaceSuggester();
+      } catch (e) {
+        throw  new Meteor.Error('methods.indexSuggests', JSON.stringify(e));
+      }
+      return result;
+    }
+  }
+});
+
 const BotsMethods = {
   testBots,
   elastic,
   migrateToElastic,
+  indexSuggests,
 };
 
 export default BotsMethods
