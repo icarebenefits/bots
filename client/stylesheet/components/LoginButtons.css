@@ -1,0 +1,28 @@
+#login-buttons .login-button {
+  background: #e7505a !important;
+  border: 1px solid #e7505a !important;
+}
+
+#login-buttons-image-google {
+  background-image: url(/img/social/google.png) !important;
+}
+
+#login-buttons-image-google-tmp {
+  position: relative !important;
+}
+
+#login-buttons-image-google-tmp:before {
+  font-family: FontAwesome;
+  content: "\f0d5";
+  position:absolute;
+  left: -5px;
+  top:0;
+}
+
+#login-buttons .login-display-name {
+  color: white;
+}
+
+.accounts-dialog .login-button {
+  background: #e7505a !important;
+}

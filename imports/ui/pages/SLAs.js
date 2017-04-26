@@ -235,9 +235,9 @@ class SLAs extends Component {
         }
       }
 
-      Methods.create.call(SLA, (error, slaId) => {
-        if (error) {
-          Notify.error({title: 'Add SLA', message: 'Name of SLA had been exists'});
+      Methods.create.call(SLA, (err, slaId) => {
+        if (err) {
+          Notify.error({title: 'Add SLA', message: JSON.stringify(err)});
           return this.setState({action: null});
         }
         else {
@@ -249,7 +249,7 @@ class SLAs extends Component {
                 info: {method: 'bots.elastic', slaId}
               }, (err) => {
                 if (err) {
-                  Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
+                  Notify.error({title: 'Add SLA', message: `Set Frequency failed: ${JSON.stringify(err)}`});
                   Methods.setStatus.call({_id: slaId, status: 'draft'});
                 }
 
@@ -261,7 +261,7 @@ class SLAs extends Component {
                 return this.setState({mode: 'list', action: null});
               });
             } catch (e) {
-              Notify.error({title: 'Add SLA', message: 'Setup frequency failed.'});
+              Notify.error({title: 'Add SLA', message: `Set Frequency failed: ${JSON.stringify(err)}`});
               Methods.setStatus.call({_id: slaId, status: 'draft'});
               return this.setState({mode: 'list', action: null});
             }
@@ -299,15 +299,15 @@ class SLAs extends Component {
 
       if (error) {
         if (action === 'draft') {
-          Notify.warning({title: 'Edit SLA', message: error});
+          Notify.warning({title: 'Edit SLA', message: JSON.stringify(error)});
         } else {
-          Notify.error({title: 'Edit SLA', message: error});
+          Notify.error({title: 'Edit SLA', message: JSON.stringify(error)});
           return this.setState({action: null});
         }
       }
-      Methods.edit.call(newSLA, (error) => {
-        if (error) {
-          Notify.error({title: 'Edit SLA', message: error.reason});
+      Methods.edit.call(newSLA, (err) => {
+        if (err) {
+          Notify.error({title: 'Edit SLA', message: JSON.stringify(err)});
           return this.setState({action: null});
         }
         else {
@@ -319,7 +319,7 @@ class SLAs extends Component {
               },
               (err) => {
                 if (err) {
-                  Notify.error({title: 'Edit SLA', message: err.reason});
+                  Notify.error({title: 'Edit SLA', message: JSON.stringify(err)});
                   return this.setState({action: null});
                 }
               });
@@ -339,7 +339,7 @@ class SLAs extends Component {
               freqText: this.getScheduleText(frequency),
               info: {method: 'bots.elastic', slaId: _id}
             }, (err) => {
-              if (err) Notify.error({title: 'Start SLA', message: err.reason});
+              if (err) Notify.error({title: 'Start SLA', message: JSON.stringify(err)});
               else {
                 Notify.info({title: 'Start SLA', message: 'success'});
               }
@@ -391,7 +391,7 @@ class SLAs extends Component {
 
     this._validateData({SLA, mode: 'list'}, ({error}) => {
       if (error) {
-        Notify.error({title: 'Activate SLA', message: error});
+        Notify.error({title: 'Activate SLA', message: JSON.stringify(error)});
         return this.setState({action: null});
       }
       try {
@@ -401,7 +401,7 @@ class SLAs extends Component {
           info: {method: 'bots.elastic', slaId}
         }, (err) => {
           if (err) {
-            Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
+            Notify.error({title: 'Activate SLA', message: `Setup frequency failed: ${JSON.stringify(err)}`});
             return Methods.setStatus.call({_id: slaId, status: 'draft'});
           }
           Methods.setStatus.call({_id: slaId, status: 'active'});
@@ -409,7 +409,7 @@ class SLAs extends Component {
           return this.setState({mode: 'list', action: null});
         });
       } catch (e) {
-        Notify.error({title: 'Activate SLA', message: 'Setup frequency failed.'});
+        Notify.error({title: 'Activate SLA', message: `Setup frequency failed: ${JSON.stringify(e)}`});
         Methods.setStatus.call({_id: slaId, status: 'draft'});
         return this.setState({mode: 'list', action: null});
       }
@@ -422,11 +422,11 @@ class SLAs extends Component {
       {country} = this.props;
 
     JobServer(country).cancelJob({name}, (err) => {
-      if (err) Notify.error({title: 'Inactivate SLA', message: err.reason});
+      if (err) Notify.error({title: 'Inactivate SLA', message: JSON.stringify(err)});
       else {
         Methods.setStatus.call({_id, status: 'inactive'}, (error) => {
           if (error) {
-            Notify.error({title: 'Inactivate SLA', message: error.reason});
+            Notify.error({title: 'Inactivate SLA', message: JSON.stringify(err)});
           }
           else {
             Notify.info({title: 'Inactivate SLA', message: 'success'});
@@ -448,14 +448,14 @@ class SLAs extends Component {
     const
       {_id, name} = this.props.SLAsList.filter(s => s._id === id)[0],
       {country} = this.props;
-    Methods.remove.call({_id}, (error) => {
-      if (error) {
-        Notify.error({title: 'Remove SLA', message: error.reason});
+    Methods.remove.call({_id}, (err) => {
+      if (err) {
+        Notify.error({title: 'Remove SLA', message: JSON.stringify(err)});
       }
       else {
         JobServer(country).removeJob({name}, (err) => {
           if (err) {
-            Notify.error({title: 'Remove SLA', message: err.reason});
+            Notify.error({title: 'Remove SLA', message: JSON.stringify(err)});
           }
         });
         Notify.info({title: 'Remove SLA', message: 'success'});
@@ -699,31 +699,42 @@ class SLAs extends Component {
       };
 
     const list = this._getSLAsList(filter, search);
-    listSLAsProps.list.data = list.map(s => ({
-      _id: s._id, row: [
-        {id: 'name', type: 'input', value: s.name},
-        {
-          id: 'workplace',
-          type: 'input',
-          value: s.workplace ? Workplaces.filter(w => w.id === s.workplace)[0].name : ''
-        },
-        {
-          id: 'frequency',
-          type: 'input',
-          value: (s.frequency.preps === 'at' && _.isEmpty(s.frequency.preps2))
-            ? `${this.getScheduleText(s.frequency)} daily`
-            : this.getScheduleText(s.frequency)
-        },
-        {
-          id: 'lastExecution',
-          type: 'input',
-          value: s.lastExecutedAt
-            ? moment(new Date(s.lastExecutedAt)).format('LLL')
-            : (s.status === 'draft' ? 'pending' : 'waiting')
-        },
-        {id: 'status', type: 'input', value: s.status},
-      ]
-    }));
+    listSLAsProps.list.data = list.map(s => {
+      let wpName = '';
+      if(s.workplace) {
+        const wp = Workplaces.filter(w => w.id === s.workplace);
+        if(!_.isEmpty(wp)) {
+          wpName = wp[0].name;
+        } else {
+          wpName = '';
+        }
+      }
+      return {
+        _id: s._id, row: [
+          {id: 'name', type: 'input', value: s.name},
+          {
+            id: 'workplace',
+            type: 'input',
+            value: wpName
+          },
+          {
+            id: 'frequency',
+            type: 'input',
+            value: (s.frequency.preps === 'at' && _.isEmpty(s.frequency.preps2))
+              ? `${this.getScheduleText(s.frequency)} daily`
+              : this.getScheduleText(s.frequency)
+          },
+          {
+            id: 'lastExecution',
+            type: 'input',
+            value: s.lastExecutedAt
+              ? moment(new Date(s.lastExecutedAt)).format('LLL')
+              : (s.status === 'draft' ? 'pending' : 'waiting')
+          },
+          {id: 'status', type: 'input', value: s.status},
+        ]
+      }
+    });
 
     return (
       <ListSLAs

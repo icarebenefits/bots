@@ -1,162 +1,369 @@
-import React, {Component, PropTypes} from 'react';
-
-import ReactDOM from 'react-dom';
-import {createContainer} from 'meteor/react-meteor-data';
 import {Meteor} from 'meteor/meteor';
-import {WorkplaceGroups} from '../../api/collections/workplaces'
-import Group from './Group'
-import {FlowRouter} from 'meteor/kadira:flow-router';
+import React, {Component, PropTypes} from 'react';
+import {createContainer} from 'meteor/react-meteor-data';
+import _ from 'lodash';
+import moment from 'moment';
+import S from 'string';
+
+/* Methods */
+import ESMethods from '/imports/api/elastic/methods';
+
+/* Notify */
+import * as Notify from '/imports/api/notifications';
+
+/* Collections */
+import {WorkplaceGroups} from '/imports/api/collections/workplaces';
+
+/* Components */
+import {ListPlace} from '../containers';
+import {PageSideBar} from '../components';
+import {Button, Suggest} from '../components/elements';
 
 import {
-  PageSideBar
-} from '../components';
+  Label,
+  FormInput,
+  FormActions,
+} from '../components/elements';
+
 
 class Workplaces extends Component {
+
   constructor(props) {
     super(props);
+
     this.state = {
-      country: FlowRouter.getParam("country"),
-      showName: true
+      search: '',
+      currentSuggest: '',
+      suggests: [],
+      workplace: null,
     };
+
+    // render handlers
+    this._renderWorkplaces = this._renderWorkplaces.bind(this);
+    this._renderAddWP = this._renderAddWP.bind(this);
+
+    // functions
+    this._getWPList = this._getWPList.bind(this);
+
+    // handlers
+    this._handleSuggestWP = this._handleSuggestWP.bind(this);
+    this.handleToolbarChange = this.handleToolbarChange.bind(this);
+    this.handleActionWP = this.handleActionWP.bind(this);
+    this.handleAddWP = this.handleAddWP.bind(this);
   }
 
-  renderFbGroups() {
-    let filteredGroups = this.props.groups;
-    return filteredGroups.map((group) => {
-      return (
-        <Group key={group._id} group={group}/>
-      );
-
-    })
-  }
-
-  showName(value) {
-    this.setState({
-      showName: value
-    });
-  }
-
-  handleCheck(event) {
+  handleActionWP(event, action, _id) {
     event.preventDefault();
-    const inputId = ReactDOM.findDOMNode(this.refs.groupId);
-    const inputName = ReactDOM.findDOMNode(this.refs.groupName);
-    const groupId = inputId.value;
+    switch (action) {
+      case 'remove':
+      {
+        return this._removeWP(_id);
+      }
+      default:
+      {
+        return Notify.error({title: `Access list action ${action}`, message: 'Unsupported.'})
+      }
+    }
+  }
 
-    Meteor.call('groups.getName', groupId, function (error, result) {
-      if (result.error) {
-        console.log('error', result.error, result.message);
-        alert(result.message);
-        // Clear form
-        inputId.value = '';
-        inputName.value = '';
+  handleToolbarChange(type, value) {
+    return this.setState({search: value.toLowerCase()});
+  }
+
+  _handleSuggestWP(text) {
+    const suggestText = text.toString().toLowerCase();
+    ESMethods.suggest.call({
+      index: 'suggester',
+      type: 'wp_group',
+      body: {
+        suggest: {
+          wp_group: {
+            prefix: suggestText,
+            completion: {
+              field: "suggest"
+            }
+          }
+        }
+      },
+      size: 1,
+    }, (err, res) => {
+      if (err) {
+        return Notify.warning({title: 'Search workplace', message: `Failed: ${JSON.stringify(err)}`});
       }
       else {
-        inputName.value = result.name;
+        let suggests = [];
+        if (_.isEmpty(res) && !_.isEmpty(suggestText)) {
+          if (!isNaN(Number(suggestText))) {
+            Meteor.call('groups.getName', Number(suggestText), (err, res) => {
+              if (err || res.err) {
+                suggests = [{name: suggestText, label: 'No workplace found.'}];
+                this.setState({workplace: null});
+              }
+              const {id, privacy, name} = res;
+              this.setState({workplace: {id, name, privacy}});
+
+            });
+          } else {
+            // no result for groupId
+            suggests = [{name: suggestText, label: 'No workplace found.'}];
+            this.setState({workplace: null});
+          }
+        } else {
+          suggests = res
+            .map(s => ({
+              name: s.id,
+              label: s.name,
+            }));
+        }
+        return this.setState({suggests});
       }
     });
-    // this.showName(true);
   }
 
-  handleSubmit(event) {
+  handleAddWP(event) {
     event.preventDefault();
-    const country = this.state.country;
-    const inputId = ReactDOM.findDOMNode(this.refs.groupId);
-    const inputName = ReactDOM.findDOMNode(this.refs.groupName);
-    const groupId = inputId.value;
-    const groupName = inputName.value;
-
-    Meteor.call('groups.insert', {groupId, groupName, country});
-    // Clear form
-    inputId.value = '';
-    inputName.value = '';
-    // this.showName(false);
+    const
+      {country} = this.props,
+      groupId = Number(this.refs.suggest.getValue());
+    Meteor.call('groups.getName', groupId, (err, res) => {
+      if (err) {
+        return Notify.error({title: `Add workplace`, message: `Failed: ${JSON.stringify(err)}`});
+      } else {
+        const {name: groupName, id: groupId} = res;
+        Meteor.call('groups.insert', {groupId, groupName, country}, (err) => {
+          if (err) {
+            return Notify.error({title: `Add workplace`, message: `Failed: ${JSON.stringify(err)}`});
+          } else {
+            Notify.info({title: `Add workplace`, message: `Success.`});
+            return this.setState({search: ''});
+          }
+        });
+      }
+    });
   }
 
-  render() {
-    // const fields = [
-    //   {
-    //     id: 'name', label: 'Group name', type: 'string', value: '',
-    //     className: 'form-control',
-    //     handleOnChange: (value) => console.log('input value: ', value)
-    //   },
-    //   {
-    //     id: 'id', label: 'Group ID', type: 'string', value: '',
-    //     className: 'form-control',
-    //     handleOnChange: (value) => console.log('input value: ', value)
-    //   }
-    // ];
-    const show = {
-      'display': this.state.showName ? 'block' : 'none'
-    };
+  _removeWP(_id) {
+    Meteor.call('groups.remove', {_id}, (err) => {
+      if (err) {
+        return Notify.error({title: `Remove workplace`, message: `Failed: ${JSON.stringify(err)}`});
+      } else {
+        Notify.info({title: `Remove workplace`, message: 'Success.'});
+        return this.setState({currentSuggest: ''});
+      }
+    });
+  }
 
+  _getWPList(search) {
+    const {WPList} = this.props;
+    let list = WPList;
+
+    // fields search: id, name
+    if (!_.isEmpty(search)) {
+      list = list
+        .filter(item => {
+          return (
+            S(item.name.toLowerCase()).contains(search)
+            || S(item.id.toString().toLowerCase()).contains(search)
+          );
+        });
+    }
+
+    return list;
+  }
+
+  _renderAddWP() {
+    const {suggests, currentSuggest, workplace} = this.state;
+    let hasWP = false;
+    if(!_.isEmpty(workplace)) {
+      if(!_.isEmpty(workplace.id)) {
+        hasWP = true;
+      } else {
+        hasWP = false;
+      }
+    }
 
     return (
-      <div className="page-content-row">
-        <PageSideBar
-          options={[]}
-          active="work"
-        />
-        <div className="page-content-col">
-          <div className="row">
-            <div className="col-md-4">
-              <div className="form-group">
-                <label htmlFor="groupId">
-                  GroupId
-                </label>
-                <div className="input-group">
-                  <input name="groupId"
-                         type="text"
-                         ref="groupId"
-                         placeholder="workplace groupId..."
-                  />
-                  <button className="btn-link" onClick={this.handleCheck.bind(this)}>GetName
-                  </button>
-                </div>
+      <div className="col-md-12">
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <div className="row" style={{marginBottom: 20}}>
+              <div className="col-md-12">
+                <Label
+                  className="col-md-4 bold uppercase pull-left"
+                  value="Add workplace: "
+                />
               </div>
-
-              <div className="form-group" style={show}>
-                <label htmlFor="groupName">
-                  GroupName
-                </label>
-                <div className="input-group">
-
-                  <input name="groupName" ref="groupName" type="text" readOnly="readOnly"/>
-                  <button className="btn-success" onClick={this.handleSubmit.bind(this)}>Save
-                  </button>
-                </div>
-              </div>
-
             </div>
-            <div className="col-md-8">
-              <h2>Workplace groups </h2>
-              <table className="table-bordered table">
-                <thead className="bg-info">
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th className="text-center">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {this.renderFbGroups()}
-                </tbody>
-              </table>
+            <div className="row">
+              <div className="col-md-12">
+                <div className="table-toolbar">
+                  <div className="col-md-6 pull-left" style={{marginTop: 2, paddingRight: 0}}>
+                    <Suggest
+                      ref="suggest"
+                      className="form-control"
+                      options={suggests}
+                      defaultValue={currentSuggest}
+                      placeHolder="Enter Id or search by name..."
+                      handleOnChange={value => this._handleSuggestWP(value)}
+                    />
+                  </div>
+                  <div className="col-md-3 pull-left">
+                    <div className="btn-group">
+                      <Button
+                        id="add"
+                        className="bold green"
+                        disabled={!hasWP}
+                        onClick={this.handleAddWP}
+                      >Add{' '}<i className="fa fa-plus"/></Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {hasWP && (
+              <div className="row">
+                <div className="alert alert-info">
+                  <strong className="uppercase">Details</strong><br/>
+                  <strong>{'ID: '}</strong>{workplace.id}<br/>
+                  <strong>{'Name: '}</strong>{workplace.name}<br/>
+                  <strong>{'Privacy: '}</strong>{workplace.privacy}<br/>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  _renderWorkplaces() {
+    const
+      {search} = this.state,
+      listWPProps = {
+        toolbar: {
+          buttons: [
+            // {
+            //   id: 'add',
+            //   className: 'bold green',
+            //   icon: 'fa fa-plus',
+            //   label: 'Add',
+            //   handleOnClick: this.handleAddWP
+            // }
+          ],
+          toolLabel: `tool Label`,
+          tools: [],
+          hasSearch: true,
+          searchPlaceHolder: 'Search by id/name...',
+          handleOnChange: this.handleToolbarChange,
+        },
+        list: {
+          headers: ['ID', 'Name', 'Created at'],
+          data: [[]],
+          readonly: true,
+          actions: [
+            {
+              id: 'remove', label: '',
+              icon: 'fa fa-times', className: 'btn-danger',
+              handleAction: this.handleActionWP
+            },
+          ],
+          handleDoubleClick: () => {
+          },
+        },
+      };
+
+    const list = this._getWPList(search);
+    listWPProps.list.data = list.map(item => ({
+      _id: item._id,
+      row: [
+        {id: 'id', type: 'input', value: item.id},
+        {
+          id: 'name',
+          type: 'input',
+          value: item.name
+        },
+        {
+          id: 'createdAt',
+          type: 'input',
+          value: moment(item.createdAt).format('LLL')
+        },
+        {}
+      ]
+    }));
+
+    return (
+      <div className="col-md-12">
+        <div className="portlet light bordered">
+          <div className="portlet-body">
+            <div className="row" style={{marginBottom: 20}}>
+              <div className="col-md-12">
+                <Label
+                  className="col-md-4 bold uppercase pull-left"
+                  value="List workplaces: "
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-md-12">
+                <ListPlace
+                  {...listWPProps}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
     );
   }
+
+  render() {
+    const {ready} = this.props;
+    if (ready) {
+      return (
+        <div className="page-content-row">
+          <PageSideBar
+            options={[]}
+            active="work"
+          />
+          <div className="page-content-col">
+            <div className="note note-info">
+              <h2>
+                <span className="label label-primary uppercase"> {`Workplaces`} </span>
+              </h2>
+            </div>
+            <div className="row">
+              {this._renderAddWP()}
+            </div>
+            <div className="row">
+              {this._renderWorkplaces()}
+            </div>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          Loading...
+        </div>
+      );
+    }
+  }
 }
 
-Workplaces.propTypes = {
-  groups: PropTypes.array.isRequired,
-};
+Workplaces.propTypes = {};
 
+const WorkplacesContainer = createContainer(() => {
+  const
+    sub = Meteor.subscribe('groups'),
+    ready = sub.ready(),
+    country = FlowRouter.getParam('country'),
+    WPList = WorkplaceGroups.find({country}).fetch();
 
-export default createContainer(() => {
-  Meteor.subscribe('groups');
   return {
-    groups: WorkplaceGroups.find({country: FlowRouter.getParam("country")}, {sort: {createdAt: -1}}).fetch(),
+    ready,
+    country,
+    WPList,
   };
 }, Workplaces);
+
+export default WorkplacesContainer
