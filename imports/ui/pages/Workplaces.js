@@ -357,7 +357,7 @@ const WorkplacesContainer = createContainer(() => {
     sub = Meteor.subscribe('groups'),
     ready = sub.ready(),
     country = FlowRouter.getParam('country'),
-    WPList = WorkplaceGroups.find().fetch();
+    WPList = WorkplaceGroups.find({country}).fetch();
 
   return {
     ready,
