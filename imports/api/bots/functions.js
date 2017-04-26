@@ -156,7 +156,7 @@ const checkSLA = (slaId) => {
     /* Send message to workplace */
     Facebook().postMessage(workplace, message)
       .then(res => console.log('postMessage', JSON.stringify(res)))
-      .catch(e => console.log('postMessageError', JSON.stringify(e)));
+      .catch(e => console.log('postMessage.Error', JSON.stringify(e)));
     Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
 
     return {
