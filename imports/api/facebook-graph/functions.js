@@ -65,8 +65,8 @@ const Facebook = () => {
     },
     postMessage: async(groupId, message) => {
       /* check arguments */
-      check(groupId, Number);
-      check(message, String);
+      // check(groupId, Number);
+      // check(message, String);
 
       try {
         const accessToken = await Facebook().getAccessToken();

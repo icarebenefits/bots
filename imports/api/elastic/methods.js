@@ -11,15 +11,19 @@ Methods.suggest = new ValidatedMethod({
       const {Elastic} = require('/imports/api/elastic');
       try {
         const result = Elastic.search({index, type, size, sort, body});
-        const {suggest: {wp_group}} = result;
-        const {options} = wp_group[0];
+        if(result.suggest) {
+          const {suggest: {wp_group}} = result;
+          const {options} = wp_group[0];
 
-        return options
-        .map(({_source: s}) => ({
-          id: s.id,
-          name: s.name,
-          privacy: s.privacy,
-        }));
+          return options
+            .map(({_source: s}) => ({
+              id: s.id,
+              name: s.name,
+              privacy: s.privacy,
+            }));
+        } else {
+          return [];
+        }
       } catch (e) {
         throw new Meteor.Error('SEARCH_ERROR', JSON.stringify(e));
       }

@@ -23,7 +23,12 @@ Methods.create = new ValidatedMethod({
   name: 'slas.create',
   validate: null,
   run({name, description, workplace, frequency, conditions, message, status, country}) {
-    return SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
+    try {
+      const result = SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
+      return result;
+    } catch(e) {
+      throw new Meteor.Error('slas.create', JSON.stringify(e));
+    }
   }
 });
 
@@ -46,7 +51,12 @@ Methods.setStatus = new ValidatedMethod({
       modifier = {status}
       ;
 
-    return SLAs.update(selector, {$set: modifier});
+    try {
+      const result = SLAs.update(selector, {$set: modifier});
+      return result;
+    } catch(e) {
+      throw new Meteor.Error('slas.setStatus', JSON.stringify(e));
+    }
   }
 });
 
@@ -70,7 +80,13 @@ Methods.setLastExecutedAt = new ValidatedMethod({
       modifier = {lastExecutedAt}
       ;
 
-    return SLAs.update(selector, {$set: modifier});
+    try {
+      const result = SLAs.update(selector, {$set: modifier});
+      return result;
+    } catch(e) {
+      console.log('error', e);
+      throw new Meteor.Error('slas.setLastExecutedAt', JSON.stringify(e));
+    }
   }
 });
 
@@ -99,7 +115,13 @@ Methods.edit = new ValidatedMethod({
     (!_.isEmpty(status) || status === 0) && (modifier.status = status);
     !_.isEmpty(country) && (modifier.country = country);
     !_.isEmpty(message) && (modifier.message = message);
-    return SLAs.update(selector, {$set: modifier});
+
+    try {
+      const result = SLAs.update(selector, {$set: modifier});
+      return result;
+    } catch(e) {
+      throw new Meteor.Error('slas.edit', JSON.stringify(e));
+    }
   }
 });
 
@@ -277,7 +299,13 @@ Methods.remove = new ValidatedMethod({
     ...IDValidator
   }).validator(),
   run({_id}) {
-    return SLAs.remove({_id});
+
+    try {
+      const result = SLAs.remove({_id});
+      return result;
+    } catch(e) {
+      throw new Meteor.Error('slas.remove', JSON.stringify(e));
+    }
   }
 });
 
