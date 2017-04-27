@@ -1,6 +1,7 @@
 /**
  * ETL functions for bots Elastic index
  */
+import {Meteor} from 'meteor/meteor';
 import moment from 'moment';
 import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
@@ -8,7 +9,8 @@ import _ from 'lodash';
 import {check} from 'meteor/check';
 
 import {Logger} from '/imports/api/logger';
-import {Elastic} from '../../elastic';
+// import {Elastic} from '../../elastic';
+import {ElasticClient as Elastic} from '../../elastic';
 
 /**
  * Get etl action name
@@ -74,34 +76,68 @@ const handleResponse = (res, mess) => {
 };
 
 /**
- * get the total documents of an Elastic query
- * @param actions
+ * Verify the reindex process is finished
  * @param index
  * @param type
- * @param body
- * @return {{runTime: String}}
+ * @param total
+ * @param created
+ * @param COUNT
+ * @return {*}
  */
-// const getTotalDocuments = ({actions, index, type, body}) => {
-//   const
-//     name = getName(actions),
-//     start = new Date();
-//   let totalDocs = {};
-//   try {
-//     const {hits: {total}} = Elastic.search({
-//       index,
-//       type,
-//       body,
-//       size: 0,
-//     });
-//     totalDocs.result = {total}
-//   } catch (e) {
-//     totalDocs.error = {name, message: getMessage(e)};
-//   }
-//
-//   const runTime = getRunTime(start);
-//   handleResponse(totalDocs);
-//   return {...totalDocs, runTime};
-// };
+const isReindexFinish = async({index, type, total, created = 0, COUNT = 0}) => {
+  const {debug, CHECK_LIMIT, secondSleep} = Meteor.settings.elastic.reindex;
+  let result = {runTimes: COUNT, total, created};
+
+  /* Verify reindex task */
+  const {nodes} = await Elastic.tasks.list({detailed: true, actions: '*reindex'});
+  /* No task, indexing finished */
+  if (_.isEmpty(nodes)) {
+    return {...result, finish: true};
+  }
+
+  /* Task exists --> indexing running */
+  try {
+    const {count: current} = await Elastic.count({index, type, body: {query: {match_all: {}}}});
+    result = {...result, current};
+    debug && console.log(`isReindexFinished.${COUNT}`, {result});
+
+    if (total === current || total <= current) {
+      /* Number document of dest index is equal to source index --> indexing finished */
+      return result;
+    } else if (current >= created && current < total) {
+      if (COUNT === CHECK_LIMIT) {  // total check time is not over 3 hours (CHECK_LIMIT * millisecondSleep) ms
+        debug && console.log('REACH CHECK_LIMIT', COUNT);
+        /* Number of check times is greater than CHECK_LIMIT --> indexing failed */
+        throw new Meteor.Error('IS_REINDEX_FINISHED', {
+          detail: result,
+          runTimes: `CHECK_LIMIT is reached ${CHECK_LIMIT}!`
+        });
+      }
+      /* Log the listening process */
+      if (COUNT === 0) {
+        debug && console.log('start listener', new Date());
+      } else {
+        debug && console.log(`listener run on ${COUNT} times`, new Date());
+      }
+
+      Meteor.sleep(secondSleep * 1000); // sleep server in secondSleep seconds
+      COUNT++;
+      try {
+        const res = await isReindexFinish({index, type, total, created: current, COUNT});
+        debug && console.log(`IS_REINDEX_FINISH.${COUNT}.RESPONSE`, res);
+        return res;
+      } catch (e) {
+        throw new Meteor.Error('IS_REINDEX_FINISHED', {detail: e, runTimes: COUNT});
+      }
+    } else {
+      debug && console.log('else', {total, current, created});
+      throw new Meteor.Error('IS_REINDEX_FINISHED', {detail: result, runTimes: COUNT});
+    }
+    // return result;
+  } catch (e) {
+    throw new Meteor.Error('IS_REINDEX_FINISHED', {detail: e, runTimes: COUNT});
+  }
+};
 
 /**
  * Elastic reindex
@@ -143,6 +179,34 @@ const reindex = ({actions, source, dest, script, options}) => {
   handleResponse(reindex, {runTime});
   return {...reindex, runTime};
 };
+
+const asyncReindex = async({actions, source, dest, script, options}) => {
+  const
+    {debug} = Meteor.settings.elastic.reindex,
+    name = getName(actions),
+    start = new Date();
+
+  try {
+    /* Get total source documents */
+    const {index, type} = source;
+    const {count: total} = await Elastic.count({index, type, body: {query: {match_all: {}}}});
+    debug && console.log('total', total);
+    /* Reindex source index */
+    let created = 0;
+    const reindexResult = await Elastic.reindex({...options, ignore: [408, 504], body: {source, dest, script}});
+    debug && console.log('reindexResult', reindexResult);
+    if (reindexResult) {
+      created = reindexResult.created || 0;
+    }
+    /* Verify reindex process is finished */
+    const isFinished = await isReindexFinish({index: dest.index, type: dest.type, total, created});
+    debug && console.log('isFinished', isFinished);
+    return isFinished;
+  } catch (e) {
+    throw new Meteor.Error('TOTAL_DOCUMENT', e);
+  }
+};
+
 
 /**
  * etl nested index into parent
@@ -412,13 +476,10 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
  * @return {*}
  */
 const etlField = ({
-  actions, source, dest, field, options = {batches: 1000}, calculator = () => {
+  actions, source, dest, field, options = {batches: 1000}, calculator = async () => {
 }
 }) => {
-  const
-    name = getName(actions),
-    start = new Date(),
-    {batches} = options;
+  const {batches} = options;
 
   // get total source docs
   const
@@ -460,7 +521,7 @@ const etlField = ({
       hits.map(({_id}) => {
         // calculate field value
         const {error, result} = calculator(source, _id);
-        if(error) {
+        if (error) {
           return {error: {name, message: getMessage(error)}};
         }
         const doc = {
@@ -505,249 +566,32 @@ const etlField = ({
 };
 
 /**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlItems = () => {
-
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlShipment = () => {
-
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlSalesOrders = ({indices}) => {
-  const
-    start = new Date(),
-    actions = ['icare_members', 'sales_orders'],
-    source = {
-      index: indices.new.index,
-      type: indices.new.types.sales_orders,
-    },
-    dest = {
-      index: indices.new.index,
-      type: indices.new.types.icare_members,
-    },
-    key = 'magento_customer_id',
-    field = 'sales_orders',
-    removedFields = ['@timestamp', '@version', 'country', 'type'];
-
-  const result = etl({actions, source, dest, key, field, removedFields});
-
-  const runTime = getRunTime(start);
-  handleResponse(result, {runTime});
-  return {...result, runTime};
-
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlTicketsICMs = ({indices}) => {
-  const
-    start = new Date(),
-    actions = ['icare_members', 'tickets'],
-    source = {
-      index: indices.etl.index,
-      type: indices.etl.types.tickets_icare_members,
-    },
-    dest = {
-      index: indices.new.index,
-      type: indices.new.types.icare_members,
-    },
-    key = 'magento_customer_id',
-    field = 'tickets',
-    removedFields = ['@timestamp', '@version', 'country', 'type', 'from'];
-
-  const result = etl({actions, source, dest, key, field, removedFields});
-
-  const runTime = getRunTime(start);
-  handleResponse(result, {runTime});
-  return {...result, runTime};
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlMifos = ({indices}) => {
-  const
-    start = new Date(),
-    actions = ['icare_members', 'mifos'],
-    source = {
-      index: indices.base.index,
-      type: indices.base.types.mifos,
-    },
-    dest = {
-      index: indices.new.index,
-      type: indices.new.types.icare_members,
-    },
-    key = 'clientExternalId',
-    fields = {
-      loans: 'loans',
-      ddp: 'dpdInfo',
-      saving: 'totalSavingBalance',
-      due_installments: 'dueInstallments',
-    };
-
-  const result = etlFields({actions, source, dest, key, fields});
-
-  const runTime = getRunTime(start);
-  handleResponse(result, {runTime});
-  return {...result, runTime};
-
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlICMs = ({indices}) => {
-  const
-    start = new Date(),
-    actions = ['business_units', 'icare_members'],
-    source = {
-      index: indices.new.index,
-      type: indices.new.types.icare_members,
-    },
-    dest = {
-      index: indices.new.index,
-      type: indices.new.types.business_units,
-    },
-    key = 'netsuite_business_unit_id',
-    field = 'icare_members',
-    removedFields = ['@timestamp', '@version', 'country', 'type', 'from'];
-
-  const result = etl({actions, source, dest, key, field, removedFields});
-
-  const runTime = getRunTime(start);
-  handleResponse(result, {runTime});
-  return {...result, runTime};
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlTicketsCustomers = ({indices}) => {
-  const
-    start = new Date(),
-    actions = ['customers', 'tickets'],
-    source = {
-      index: indices.etl.index,
-      type: indices.etl.types.tickets_customers,
-    },
-    dest = {
-      index: indices.new.index,
-      type: indices.new.types.customers,
-    },
-    key = 'netsuite_customer_id',
-    field = 'tickets',
-    removedFields = ['@timestamp', '@version', 'country', 'type', 'from'];
-
-  const result = etl({actions, source, dest, key, field, removedFields});
-
-  const runTime = getRunTime(start);
-  handleResponse(result, {runTime});
-  return {...result, runTime};
-};
-
-/**
- *
- * @param {Object} source {index, type}
- * @param {Object} dest {index, type}
- * @param {Object} script {lang, inline}
- * @param {Object} options {}
- * @return {Object} error | result
- */
-const etlBusinessUnits = ({indices}) => {
-  const
-    start = new Date(),
-    actions = ['customers', 'business_units'],
-    source = {
-      index: indices.new.index,
-      type: indices.new.types.business_units,
-    },
-    dest = {
-      index: indices.new.index,
-      type: indices.new.types.customers,
-    },
-    key = 'netsuite_customer_id',
-    field = 'business_units',
-    removedFields = ['@timestamp', '@version', 'country', 'type'];
-
-  const result = etl({actions, source, dest, key, field, removedFields});
-
-  const runTime = getRunTime(start);
-  handleResponse(result, {runTime});
-  return {...result, runTime};
-};
-
-/**
  * get the indices name of a alias
  * @param {String} index - A comma-separated list of index names to filter aliases
  * @param {String} alias - A comma-separated list of alias names to return
  * @return {error, result, runTime}
  */
-const getAliasIndices = ({index, alias}) => {
-  const
-    start = new Date(),
-    name = `getAliasIndices.${alias}`;
+const getAliasIndices = async ({index, alias}) => {
   const
     res = {},
     params = {
       ignoreUnavailable: true,
+      ignore: [404],
       name: alias
     };
 
   if (index) params.index = index;
 
   try {
-    const getIndices = Elastic.indices.getAlias(params);
-    const indices = Object.keys(getIndices);
-    res.result = {name, indices};
+    let indices = [];
+    const getIndices = await Elastic.indices.getAlias(params);
+    if(!getIndices.error) {
+      indices = Object.keys(getIndices);
+    }
+    return {indices};
   } catch (e) {
-    res.error = {name, message: getMessage(e)};
+    throw new Meteor.Error('GET_ALIAS_INDICES', {detail: e});
   }
-  const runTime = getRunTime(start);
-  return {...res, runTime};
 };
 
 /**
@@ -757,10 +601,7 @@ const getAliasIndices = ({index, alias}) => {
  * @param {Array} adds - list of added indices
  * @return {error, result, runTime}
  */
-const updateAliases = ({alias, removes, adds}) => {
-  const
-    start = new Date(),
-    name = `updateAliases`;
+const updateAliases = async ({alias, removes, adds}) => {
   const
     res = {},
     body = {
@@ -777,13 +618,11 @@ const updateAliases = ({alias, removes, adds}) => {
   });
 
   try {
-    const updateAlias = Elastic.indices.updateAliases({body});
-    res.result = {name, updateAlias};
+    const updateAlias = await Elastic.indices.updateAliases({body});
+    return updateAlias;
   } catch (e) {
-    res.error = {name, message: getMessage(e)};
+    throw new Meteor.Error('UPDATE_ALIASES', {detail: e});
   }
-  const runTime = getRunTime(start);
-  return {...res, runTime};
 };
 
 const deleteIndices = ({indices}) => {
@@ -809,10 +648,8 @@ const deleteIndices = ({indices}) => {
  * @param netsuite_customer_id
  * @return {{}}
  */
-const calculateNumberICMs = (source, netsuite_customer_id) => {
+const calculateNumberICMs = async (source, netsuite_customer_id) => {
   const
-    start = new Date(),
-    name = 'calculateNumberICMs',
     {index, type} = source,
     body = bodybuilder()
       .query('term', 'netsuite_customer_id', netsuite_customer_id)
@@ -821,39 +658,26 @@ const calculateNumberICMs = (source, netsuite_customer_id) => {
       .build(),
     response = {};
   try {
-    const {hits: {total}} = Elastic.search({index, type, body});
-    response.result = {name, numberICMs: total};
+    const {count: total} = await Elastic.count({index, type, body});
+    return {numberICMs: total};
   } catch (e) {
-    const
-      runTime = getRunTime(start),
-      res = {error: {name, message: getMessage(e)}},
-      mess = {runTime, message: getMessage({index, type, body})};
-    handleResponse(res, mess);
-    response.error = {name, message: getMessage(e)};
+    throw new Meteor.Error('CALCULATE_NUMBER_ICM', {detail: e});
   }
-
-  return response;
 };
 
-const ETL = {
+const Functions = () => ({
+  getMessage,
+  getRunTime,
   reindex,
+  asyncReindex,
   etl,
   etlField,
-  etlItems,
-  etlShipment,
-  etlSalesOrders,
-  etlTicketsICMs,
-  etlMifos,
-  etlICMs,
-  etlBusinessUnits,
-  etlTicketsCustomers,
   getAliasIndices,
-  getMessage,
   updateAliases,
   deleteIndices,
   calculateNumberICMs,
-};
+});
 
-export default ETL
+export default Functions
 
 
