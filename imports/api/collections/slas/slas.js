@@ -41,7 +41,6 @@ SLAs.status = {
 SLAs.schema = new SimpleSchema({
   name: {
     type: String,
-    unique: true,
   },
   description: {
     type: String,
