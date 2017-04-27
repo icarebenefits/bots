@@ -249,18 +249,19 @@ const ETL = (country) => {
         /* Customer - number_iCMs (calculate the number of iCare members) */
         actions = ['customer', 'number_iCMs'];
         source = {
-          index: indices.new.index,
+          // index: indices.new.index,
+          index: 'bots_vn_stage',
           type: indices.new.types.icare_member
         };
         dest = {
-          index: indices.new.index,
+          // index: indices.new.index,
+          index: 'bots_vn_stage',
           type: indices.new.types.customer,
         };
         script = {};
-        const
-          field = 'number_iCMs',
-          calculator = Functions().calculateNumberICMs;
-        const etlNumberICMs = await Functions().etlField({actions, source, dest, field, calculator});
+        const field = 'number_iCMs';
+        const etlNumberICMs = await Functions().etlField({actions, source, dest, field});
+        console.log('etlNumberICMs', etlNumberICMs)
 
         /* Consume result into message */
         const totalTime = Functions().getRunTime(runDate);
@@ -272,13 +273,13 @@ const ETL = (country) => {
         message = formatMessage({message, bold: 'iCM Sales Order', code: {reindexSO}});
         message = formatMessage({message, bold: 'iCM Loan', code: {reindexLoan}});
         message = formatMessage({message, bold: 'iCM Ticket', code: {reindexTicket}});
-        // message = formatMessage({message, bold: 'Customer number_iCMs', code: {reindexCustomer}});
+        message = formatMessage({message, bold: 'Customer - number_iCMs', code: {etlNumberICMs}});
         message = formatMessage({message, bold: 'Get Bots Elastic Alias', code: {getAliasIndices}});
         message = formatMessage({message, bold: 'Update Bots Elastic Alias', code: {updateAliases}});
         
         return {message};
       } catch (e) {
-        throw new Meteor.Error('IS_REINDEX_FINISHED', {detail: {actions, source, dest, script}, error: e});
+        throw new Meteor.Error('REINDEX_CUSTOMER_INDEX', {detail: {actions, source, dest, script}, error: e});
       }
     }
   };
@@ -291,11 +292,13 @@ const {Facebook} = require('/imports/api/facebook-graph');
 const {facebook: {adminWorkplace}} = Meteor.settings;
 ETL('vn').customer()
   .then(res => {
+    // console.log('res', res);
     /* Post result to Workplace */
     const {message} = res;
     Facebook().postMessage(adminWorkplace, message);
   })
   .catch(err => {
+    // console.log('err', err);
     const message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: err}});
     Facebook().postMessage(adminWorkplace, message);
   });

@@ -7,10 +7,14 @@ import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
 import _ from 'lodash';
 import {check} from 'meteor/check';
+import {Promise} from 'meteor/promise';
 
 import {Logger} from '/imports/api/logger';
 // import {Elastic} from '../../elastic';
 import {ElasticClient as Elastic} from '../../elastic';
+
+/* CONSTANTS */
+const {debug, CHECK_LIMIT, secondSleep} = Meteor.settings.elastic.reindex;
 
 /**
  * Get etl action name
@@ -85,7 +89,6 @@ const handleResponse = (res, mess) => {
  * @return {*}
  */
 const isReindexFinish = async({index, type, total, created = 0, COUNT = 0}) => {
-  const {debug, CHECK_LIMIT, secondSleep} = Meteor.settings.elastic.reindex;
   let result = {runTimes: COUNT, total, created};
 
   /* Verify reindex task */
@@ -181,11 +184,6 @@ const reindex = ({actions, source, dest, script, options}) => {
 };
 
 const asyncReindex = async({actions, source, dest, script, options}) => {
-  const
-    {debug} = Meteor.settings.elastic.reindex,
-    name = getName(actions),
-    start = new Date();
-
   try {
     /* Get total source documents */
     const {index, type} = source;
@@ -203,7 +201,7 @@ const asyncReindex = async({actions, source, dest, script, options}) => {
     debug && console.log('isFinished', isFinished);
     return isFinished;
   } catch (e) {
-    throw new Meteor.Error('TOTAL_DOCUMENT', e);
+    throw new Meteor.Error('REINDEX', {detail: e});
   }
 };
 
@@ -475,10 +473,7 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
  * @param {Func} calculator(index, id) - function execute calculation for value of field
  * @return {*}
  */
-const etlField = ({
-  actions, source, dest, field, options = {batches: 1000}, calculator = async () => {
-}
-}) => {
+const etlField = async({source, dest, field, options = {batches: 1000}}) => {
   const {batches} = options;
 
   // get total source docs
@@ -486,83 +481,44 @@ const etlField = ({
     {index, type} = dest,
     body = bodybuilder()
       .query('match_all', {})
-      .size(0)
       .build();
-  let
-    totalSourceDocs = 0,
-    stats = []
-    ;
+  let stats = [];
   try {
-    const result = Elastic.search({index, type, body});
-    totalSourceDocs = result.hits.total;
-  } catch (e) {
-    const
-      runTime = getRunTime(start),
-      res = {error: {name: getName([name, 'COUNT_TOTAL_DEST_DOCS']), message: getMessage(e)}},
-      mess = {runTime, message: getMessage({index, type, body})};
-    handleResponse(res, mess);
-  }
+    let count = 0;
+    const {count: total} = await Elastic.count({index, type, body});
+    for (let i = 0; i < total; i += batches) {
+      body.from = i;
+      body.size = batches;
+      body._source = false;
 
-  if (totalSourceDocs <= 0) {
-    // finish adding field cause no source documents found
-    const
-      runTime = getRunTime(start),
-      result = {name: getName([name, 'NO_DEST_DOC_FOUND']), message: getMessage(stats)};
-    return {result, runTime};
-  }
-
-  for (let i = 0; i < totalSourceDocs; i += batches) {
-    body.from = i;
-    body.size = batches;
-    body._source = false;
-
-    try {
-      const {hits: {hits}} = Elastic.search({index, type, body});
-      hits.map(({_id}) => {
+      const {hits: {hits}} = await Elastic.search({index, type, body});
+      await Promise.all(hits.map(async ({_id}) => {
         // calculate field value
-        const {error, result} = calculator(source, _id);
-        if (error) {
-          return {error: {name, message: getMessage(error)}};
-        }
+        const {numberICMs} = await Functions().countNumberICMs(source, _id);
         const doc = {
-          [`${field}`]: result.numberICMs
+          [`${field}`]: numberICMs
         };
 
         // add field into dest
-        try {
-          const {index, type} = dest;
-          const addField = Elastic.update({
-            index,
-            type,
-            id: _id,
-            body: {doc}
-          });
+        const {index, type} = dest;
+        const addField = await Elastic.update({
+          index,
+          type,
+          id: _id,
+          body: {doc}
+        });
 
-          stats.push({[`${_id}`]: result.numberICMs})
-          const
-            runTime = getRunTime(start),
-            res = {result: {name: getName([name, `update/${_id}`]), message: getMessage(addField)}},
-            mess = {runTime, message: getMessage({index, type, body, doc})};
-          handleResponse(res, mess);
-        } catch (e) {
-          const
-            runTime = getRunTime(start),
-            res = {error: {name: getName([name, `update/${_id}`]), message: getMessage(e)}},
-            mess = {runTime, message: getMessage({index, type, body, doc})};
-          handleResponse(res, mess);
-        }
-      });
-    } catch (e) {
-      const
-        runTime = getRunTime(start),
-        res = {error: {name: getName([name, 'GET_DEST_DOC_DATA']), message: getMessage(e)}},
-        mess = {runTime, message: getMessage({index, type, body})};
-      handleResponse(res, mess);
+        stats.push({[`${_id}`]: numberICMs, addField});
+
+      }));
     }
+
+    debug && console.log('ETL_ADDITIONAL_FIELD', stats);
+
+    return {total, updated: stats.length};
+  } catch (e) {
+    throw new Meteor.Error('ETL_ADDITIONAL_FIELD', {detail: e});
   }
-
-  return {result: {name, message: getMessage({total: stats.length, stats})}};
-
 };
 
 /**
@@ -571,7 +527,7 @@ const etlField = ({
  * @param {String} alias - A comma-separated list of alias names to return
  * @return {error, result, runTime}
  */
-const getAliasIndices = async ({index, alias}) => {
+const getAliasIndices = async({index, alias}) => {
   const
     res = {},
     params = {
@@ -585,7 +541,7 @@ const getAliasIndices = async ({index, alias}) => {
   try {
     let indices = [];
     const getIndices = await Elastic.indices.getAlias(params);
-    if(!getIndices.error) {
+    if (!getIndices.error) {
       indices = Object.keys(getIndices);
     }
     return {indices};
@@ -601,7 +557,7 @@ const getAliasIndices = async ({index, alias}) => {
  * @param {Array} adds - list of added indices
  * @return {error, result, runTime}
  */
-const updateAliases = async ({alias, removes, adds}) => {
+const updateAliases = async({alias, removes, adds}) => {
   const
     res = {},
     body = {
@@ -648,20 +604,19 @@ const deleteIndices = ({indices}) => {
  * @param netsuite_customer_id
  * @return {{}}
  */
-const calculateNumberICMs = async (source, netsuite_customer_id) => {
+const countNumberICMs = async(source, netsuite_customer_id) => {
   const
     {index, type} = source,
     body = bodybuilder()
       .query('term', 'netsuite_customer_id', netsuite_customer_id)
       .query('term', 'inactivate', false)
-      .size(0)
       .build(),
     response = {};
   try {
     const {count: total} = await Elastic.count({index, type, body});
     return {numberICMs: total};
   } catch (e) {
-    throw new Meteor.Error('CALCULATE_NUMBER_ICM', {detail: e});
+    throw new Meteor.Error('COUNT_NUMBER_ICM', {detail: e});
   }
 };
 
@@ -675,7 +630,7 @@ const Functions = () => ({
   getAliasIndices,
   updateAliases,
   deleteIndices,
-  calculateNumberICMs,
+  countNumberICMs,
 });
 
 export default Functions
