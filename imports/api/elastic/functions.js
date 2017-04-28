@@ -2,17 +2,19 @@ import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
 import {Promise} from 'meteor/promise';
 
-import {customers} from '/imports/api/olap';
+import {ETL} from '/imports/api/olap';
 import {Elastic} from '/imports/api/elastic';
 
 /**
  * Function
  * @param country
  */
-const migrateToElastic = (country = 'kh') => {
+const migrateToElastic = async (country = 'kh') => {
   if(Meteor.isServer) {
     try {
-      customers({country}); }
+      const result = await ETL(country).customer();
+      return result; 
+    }
     catch (e) {
       throw new Meteor.Error('migrateToElastic', JSON.stringify(e));
     }
