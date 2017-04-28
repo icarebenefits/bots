@@ -18,7 +18,7 @@ export const COUNTRIES = [
  * @param code
  * @return {*}
  */
-export const formatMessage = ({message, heading1, heading2, bold, link, code}) => {
+export const formatMessage = ({message = '', heading1, heading2, bold, link, code}) => {
   let newMess = message;
 
   (heading1) && (newMess = `${newMess} \n ## ${heading1}`);
