@@ -1,4 +1,4 @@
-const scripts = {
+const Scripts = () => ({
   lang: "painless",
   bots: {
     customer: {
@@ -62,6 +62,6 @@ const scripts = {
       type: "ctx._source.remove(\"type\")",
     }
   }
-};
+});
 
-export default scripts
+export default Scripts
