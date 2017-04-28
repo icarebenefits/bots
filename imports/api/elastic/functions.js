@@ -4,27 +4,16 @@ import {Promise} from 'meteor/promise';
 
 import {ETL} from '/imports/api/olap';
 import {Elastic} from '/imports/api/elastic';
-import {Facebook} from '/imports/api/facebook-graph';
 
 /**
  * Function
  * @param country
  */
-const migrateToElastic = (country = 'kh') => {
+const migrateToElastic = async (country = 'kh') => {
   if(Meteor.isServer) {
     try {
-      const {facebook: {adminWorkplace}} = Meteor.settings;
-      ETL(country).customer()
-        .then(res => {
-          /* Post result to Workplace */
-          const {message} = res;
-          Facebook().postMessage(adminWorkplace, message);
-        })
-        .catch(err => {
-          const message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: err}});
-          Facebook().postMessage(adminWorkplace, message);
-        });
-
+      const result = await ETL(country).customer();
+      return result; 
     }
     catch (e) {
       throw new Meteor.Error('migrateToElastic', JSON.stringify(e));

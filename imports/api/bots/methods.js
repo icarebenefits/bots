@@ -3,6 +3,8 @@ import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import Bots from './functions';
 import {ESFuncs} from '/imports/api/elastic';
+import {Facebook} from '/imports/api/facebook-graph';
+import {formatMessage} from '/imports/utils/defaults';
 
 /**
  * Method called by job server for testing the job check SLA
@@ -65,16 +67,20 @@ const migrateToElastic = new ValidatedMethod({
       allowedValues: ['kh', 'vn', 'la'],
     }
   }).validator(),
-  run({data}) {
+  async run({data}) {
     if (Meteor.isServer) {
       const {country} = data;
-      let result = {};
+      const {facebook: {adminWorkplace}} = Meteor.settings;
+      let message = '';
       try {
-        result = ESFuncs.migrateToElastic(country);
-      } catch (e) {
-        throw  new Meteor.Error('methods.migrateToElastic', JSON.stringify(e));
+        const result = await ESFuncs.migrateToElastic(country);
+        message = result.message;
+      } catch(e) {
+        message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: e}});
       }
-      return result;
+
+      await Facebook().postMessage(adminWorkplace, message);
+      console.log('message', message);
     }
   }
 });

@@ -134,7 +134,7 @@ const isReindexFinish = async({index, type, total, created = 0, COUNT = 0}) => {
       }
     } else {
       debug && console.log('else', {total, current, created});
-      throw new Meteor.Error('IS_REINDEX_FINISHED', {detail: result, runTimes: COUNT});
+      throw new Meteor.Error('IS_REINDEX_FINISHED.ERROR', {detail: result, runTimes: COUNT});
     }
     // return result;
   } catch (e) {
