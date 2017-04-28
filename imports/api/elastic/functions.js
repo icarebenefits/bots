@@ -2,8 +2,9 @@ import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
 import {Promise} from 'meteor/promise';
 
-import {customers} from '/imports/api/olap';
+import {ETL} from '/imports/api/olap';
 import {Elastic} from '/imports/api/elastic';
+import {Facebook} from '/imports/api/facebook-graph';
 
 /**
  * Function
@@ -12,7 +13,19 @@ import {Elastic} from '/imports/api/elastic';
 const migrateToElastic = (country = 'kh') => {
   if(Meteor.isServer) {
     try {
-      customers({country}); }
+      const {facebook: {adminWorkplace}} = Meteor.settings;
+      ETL(country).customer()
+        .then(res => {
+          /* Post result to Workplace */
+          const {message} = res;
+          Facebook().postMessage(adminWorkplace, message);
+        })
+        .catch(err => {
+          const message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: err}});
+          Facebook().postMessage(adminWorkplace, message);
+        });
+
+    }
     catch (e) {
       throw new Meteor.Error('migrateToElastic', JSON.stringify(e));
     }

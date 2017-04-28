@@ -288,17 +288,17 @@ const ETL = (country) => {
 export default ETL
 
 /* Test */
-const {Facebook} = require('/imports/api/facebook-graph');
-const {facebook: {adminWorkplace}} = Meteor.settings;
-ETL('vn').customer()
-  .then(res => {
-    // console.log('res', res);
-    /* Post result to Workplace */
-    const {message} = res;
-    Facebook().postMessage(adminWorkplace, message);
-  })
-  .catch(err => {
-    // console.log('err', err);
-    const message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: err}});
-    Facebook().postMessage(adminWorkplace, message);
-  });
+// const {Facebook} = require('/imports/api/facebook-graph');
+// const {facebook: {adminWorkplace}} = Meteor.settings;
+// ETL('vn').customer()
+//   .then(res => {
+//     // console.log('res', res);
+//     /* Post result to Workplace */
+//     const {message} = res;
+//     Facebook().postMessage(adminWorkplace, message);
+//   })
+//   .catch(err => {
+//     // console.log('err', err);
+//     const message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: err}});
+//     Facebook().postMessage(adminWorkplace, message);
+//   });
