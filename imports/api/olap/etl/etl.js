@@ -250,18 +250,18 @@ const ETL = (country) => {
         actions = ['customer', 'number_iCMs'];
         source = {
           // index: indices.new.index,
-          index: 'bots_vn_stage',
+          index: indices.new.index,
           type: indices.new.types.icare_member
         };
         dest = {
           // index: indices.new.index,
-          index: 'bots_vn_stage',
+          index: indices.new.index,
           type: indices.new.types.customer,
         };
         script = {};
         const field = 'number_iCMs';
         const etlNumberICMs = await Functions().etlField({actions, source, dest, field});
-        console.log('etlNumberICMs', etlNumberICMs)
+        debug && console.log('etlNumberICMs', etlNumberICMs)
 
         /* Consume result into message */
         const totalTime = Functions().getRunTime(runDate);
