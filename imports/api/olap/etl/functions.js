@@ -191,7 +191,7 @@ const asyncReindex = async({actions, source, dest, script, options}) => {
     debug && console.log('total', total);
     /* Reindex source index */
     let created = 0;
-    const reindexResult = await Elastic.reindex({...options, ignore: [408, 504], body: {source, dest, script}});
+    const reindexResult = await Elastic.reindex({...options, ignore: [408, 504, 400], body: {source, dest, script}});
     debug && console.log('reindexResult', reindexResult);
     if (reindexResult) {
       created = reindexResult.created || 0;
