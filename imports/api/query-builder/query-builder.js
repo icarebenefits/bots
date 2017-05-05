@@ -51,11 +51,7 @@ export const makeExpression = (conditions) => {
     }
   });
 
-  if (!_.isEmpty(stack)) {
-    return stack;
-  } else {
-    return [];
-  }
+  return stack;
 };
 
 /**
@@ -146,18 +142,20 @@ const isQueryObject = (q) => {
  */
 export const validateConditions = (conditions, expression) => {
   // number of open parens have to equal to number of close parens
-  const noOfOpenParens = expression.filter(e => e === '(').length;
-  const noOfCloseParens = expression.filter(e => e === ')').length;
-  if(noOfOpenParens !== noOfCloseParens)
-    return {error: 'The number of open Parens and close Parens mismatched!!'};
-  // the last condition can't have bitwise
-  const e = expression[expression.length - 1];
-  if(['and', 'or'].indexOf(e) > -1)
-    return {error: 'The last condition can not have And/Or operator!!'};
-  // the number of bitwise have to be the number of conditions - 1
-  const noOfBitwise = expression.filter(e => (e === 'and' || e === 'or')).length;
-  if(noOfBitwise !== (conditions.length - 1))
-    return {error: 'The number of And/Or is unacceptable!!'};
+  if(!_.isEmpty(conditions) && !_.isEmpty(expression)) {
+    const noOfOpenParens = expression.filter(e => e === '(').length;
+    const noOfCloseParens = expression.filter(e => e === ')').length;
+    if(noOfOpenParens !== noOfCloseParens)
+      return {error: 'The number of open Parens and close Parens mismatched!!'};
+    // the last condition can't have bitwise
+    const e = expression[expression.length - 1];
+    if(['and', 'or'].indexOf(e) > -1)
+      return {error: 'The last condition can not have And/Or operator!!'};
+    // the number of bitwise have to be the number of conditions - 1
+    const noOfBitwise = expression.filter(e => (e === 'and' || e === 'or')).length;
+    if(noOfBitwise !== (conditions.length - 1))
+      return {error: 'The number of And/Or is unacceptable!!'};
+  }
 
   return {};
 };
@@ -169,6 +167,21 @@ export const validateConditions = (conditions, expression) => {
  * @return {*}
  */
 const polishNotation = (conditions, aggregation) => {
+  let query = {};
+
+  /* Query with no condition */
+  if(_.isEmpty(conditions)) {
+    query = {query: {match_all: {}}};
+    return {query};
+  }
+  /* Query has only 1 condition and it is empty */
+  if(conditions.length === 1) {
+    const {group, filter, operator, values} = conditions[0];
+    if(_.isEmpty(group) || _.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
+      query = {query: {match_all: {}}};
+      return {query};
+    }
+  }
 
   /* get expression */
   const expression = makeExpression(conditions);
@@ -183,7 +196,6 @@ const polishNotation = (conditions, aggregation) => {
   /* build elastic query */
   const polishNotation = infixToPostfix(expression);
   const stack = [];
-  let query = {};
 
   // console.log('conditions', conditions);
   // console.log('expression', expression);
