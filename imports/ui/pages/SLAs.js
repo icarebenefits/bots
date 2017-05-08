@@ -104,83 +104,75 @@ class SLAs extends Component {
         if (this._validateSchedule(frequency) !== -1) {
           callback({error: `Schedule is invalid.`});
         } else {
-          if (_.isEmpty(conditions)) {
-            callback({error: `Conditions of SLA is required.`});
+          if (_.isEmpty(message)) {
+            callback({error: `Message of SLA is required.`});
           } else {
-            const {filter, operator, values} = conditions[0];
-            if (_.isEmpty(filter) || _.isEmpty(operator) || _.isEmpty(values)) {
-              callback({error: `Conditions of SLA is required.`});
+            const {messageTemplate, variables} = message;
+            if (_.isEmpty(messageTemplate)) {
+              callback({error: `Message template is required.`});
             } else {
-              if (_.isEmpty(message)) {
-                callback({error: `Message of SLA is required.`});
-              } else {
-                const {messageTemplate, variables} = message;
-                if (_.isEmpty(messageTemplate)) {
-                  callback({error: `Message template is required.`});
-                } else {
-                  const countLeft = (messageTemplate.match(/{/g) || []).length;
-                  const countRight = (messageTemplate.match(/}/g) || []).length;
-                  if (countLeft !== countRight || countLeft === 0 || countRight === 0) {
-                    callback({error: `Message template is INVALID.`});
+              const countLeft = (messageTemplate.match(/{/g) || []).length;
+              const countRight = (messageTemplate.match(/}/g) || []).length;
+              if (countLeft !== countRight || countLeft === 0 || countRight === 0) {
+                callback({error: `Message template is INVALID.`});
+              }
+              else {
+                const values = {};
+                let numOfValues = 0;
+                let hasInvalidVariable = false;
+                let isUnused = false;
+                let isDuplicated = false;
+                let errMsg = '';
+                variables.map((v) => {
+                  const {summaryType, field, name} =v;
+                  if (messageTemplate.indexOf('{' + name + '}') >= 0) {
+                    if (values[name] === undefined) {
+                      values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
+                      numOfValues++;
+                    }
+                    else {
+                      // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
+                      errMsg = `Variable "${name}" is duplicated.`;
+                      isDuplicated = true;
+                    }
                   }
                   else {
-                    const values = {};
-                    let numOfValues = 0;
-                    let hasInvalidVariable = false;
-                    let isUnused = false;
-                    let isDuplicated = false;
-                    let errMsg = '';
-                    variables.map((v) => {
-                      const {summaryType, field, name} =v;
-                      if (messageTemplate.indexOf('{' + name + '}') >= 0) {
-                        if (values[name] === undefined) {
-                          values[name] = Math.floor(Math.random() * (1000 + 1) + 12);
-                          numOfValues++;
-                        }
-                        else {
-                          // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is duplicated.`});
-                          errMsg = `Variable "${name}" is duplicated.`;
-                          isDuplicated = true;
-                        }
-                      }
-                      else {
-                        // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
-                        errMsg = `Variable "${name}" is not used.`;
-                        isUnused = true;
-                      }
-                      if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
-                        hasInvalidVariable = true;
-                    });
+                    // Notify.warning({title: 'Message invalid:', message: `Variable "${name}" is not used.`});
+                    errMsg = `Variable "${name}" is not used.`;
+                    isUnused = true;
+                  }
+                  if (_.isEmpty(summaryType) || _.isEmpty(field) || _.isEmpty(name))
+                    hasInvalidVariable = true;
+                });
 
-                    if (isUnused || isDuplicated) {
-                      callback({error: errMsg});
-                    } else if (hasInvalidVariable) {
-                      callback({error: `Message has INVALID variable`});
-                    } else if (variables.length != numOfValues || numOfValues != countLeft) {
-                      callback({error: `Message template DO NOT match with given variables`});
-                    } else {
-                      // validate conditions
-                      const {error} = validateConditions(conditions, makeExpression(conditions));
-                      if (error) {
-                        callback({error});
-                      } else {
-                        if (mode === 'add') {
-                          Methods.validateName.call({name, country}, (error, result) => {
-                            if (error) {
-                              callback({error: error.reason});
-                            } else {
-                              const {error} = result;
-                              if (error) {
-                                callback({error});
-                              } else {
-                                callback({});
-                              }
-                            }
-                          });
+                if (isUnused || isDuplicated) {
+                  callback({error: errMsg});
+                } else if (hasInvalidVariable) {
+                  callback({error: `Message has INVALID variable`});
+                } else if (variables.length != numOfValues || numOfValues != countLeft) {
+                  callback({error: `Message template DO NOT match with given variables`});
+                } else {
+                  // validate conditions
+                  const {error} = validateConditions(conditions, makeExpression(conditions));
+                  console.log('error', error);
+                  if (error) {
+                    callback({error});
+                  } else {
+                    if (mode === 'add') {
+                      Methods.validateName.call({name, country}, (error, result) => {
+                        if (error) {
+                          callback({error: error.reason});
                         } else {
-                          callback({});
+                          const {error} = result;
+                          if (error) {
+                            callback({error});
+                          } else {
+                            callback({});
+                          }
                         }
-                      }
+                      });
+                    } else {
+                      callback({});
                     }
                   }
                 }
@@ -378,8 +370,19 @@ class SLAs extends Component {
         } else {
           Notify.warning({title, message: 'Invalid.'});
         }
-        return this.setState({action: null});
       });
+    });
+    const newSLAsList = this.state.SLAsList.map(sla => {
+      if (sla._id === row) {
+        return {...sla, conditions};
+      } else {
+        return sla;
+      }
+    });
+
+    return this.setState({
+      action: null,
+      SLAsList: newSLAsList
     });
   }
 
@@ -522,7 +525,7 @@ class SLAs extends Component {
     switch (action) {
       case 'cancel':
       {
-        return this.setState({mode: 'list', action: null});
+        return this.setState({mode: 'list', action: null, SLAsList: this.props.SLAsList});
       }
       case 'remove':
       {
@@ -539,8 +542,7 @@ class SLAs extends Component {
       case 'validate':
       {
         // Notify.info({title: 'Validate conditions', message: 'looks great.'});
-        this._validateAndPreview();
-        return this.setState({action});
+        return this._validateAndPreview();
       }
       case 'draft':
       {
@@ -751,8 +753,8 @@ class SLAs extends Component {
    */
   _renderSingleSLA(mode) {
     const
-      {Workplaces, SLAsList} = this.props,
-      {row: _id} = this.state,
+      {Workplaces} = this.props,
+      {row: _id, SLAsList} = this.state,
       actions = {
         buttons: [],
         position: 'col-md-offset-1 col-md-9'
