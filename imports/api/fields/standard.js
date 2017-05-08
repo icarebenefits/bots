@@ -26,6 +26,7 @@ const Standard = () => ({
       is: Object.assign({}, Operator().is()),
       contains: Object.assign({}, Operator().contains()),
       startsWith: Object.assign({}, Operator().startsWith()),
+      match: Object.assign({}, Operator().match()),
     })
   }),
   Number: () => ({
