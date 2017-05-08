@@ -74,7 +74,8 @@ SLAs.schema = new SimpleSchema({
     optional: true,
   },
   conditions: {
-    type: [Object]
+    type: [Object],
+    optional: true,
   },
   "conditions.$.not": {
     type: Boolean,
@@ -86,9 +87,11 @@ SLAs.schema = new SimpleSchema({
   },
   "conditions.$.group": {
     type: String,
+    optional: true,
   },
   "conditions.$.filter": {
     type: String,
+    optional: true,
   },
   "conditions.$.field": {
     type: String,
@@ -96,6 +99,7 @@ SLAs.schema = new SimpleSchema({
   },
   "conditions.$.operator": {
     type: String,
+    optional: true,
   },
   "conditions.$.values": {
     type: [Object],

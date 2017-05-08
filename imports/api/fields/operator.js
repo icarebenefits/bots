@@ -63,12 +63,6 @@ const Operator = () => ({
       type: 'bool',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const bool = Boolean(values[0].value);
-      return bodybuilder()
-        .query('term', field, bool)
-        .build();
-    },
     getParams: (field, values) => {
       const bool = Boolean(values[0].value);
       return {type: 'term', field, value: bool};
@@ -81,12 +75,6 @@ const Operator = () => ({
       type: 'gender',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const str = values[0].value.toString();
-      return bodybuilder()
-        .query('term', field, str)
-        .build();
-    },
     getParams: (field, values) => {
       const str = values[0].value.toString();
       return {type: 'term', field, value: str};
@@ -98,11 +86,6 @@ const Operator = () => ({
       name: 'in',
       type: 'array',
     }),
-    buildQuery: (field, values) => {
-      return bodybuilder()
-        .query('terms', field, values)
-        .build();
-    },
     getParams: (field, values) => {
       const str = values[0].value.toString();
       return {type: 'term', field, value: str};
@@ -133,12 +116,6 @@ const Operator = () => ({
       type: 'string',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const str = values[0].value.toString();
-      return bodybuilder()
-        .query('wildcard', `${field}.keyword`, `*${str}*`)
-        .build();
-    },
     getParams: (field, values) => {
       const str = values[0].value.toString();
       return {type: 'wildcard', field: `${field}.keyword`, value: `*${str}*`};
@@ -151,15 +128,21 @@ const Operator = () => ({
       type: 'string',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const str = values[0].value.toString();
-      return bodybuilder()
-        .query('prefix', `${field}.keyword`, str)
-        .build();
-    },
     getParams: (field, values) => {
       const str = values[0].value.toString();
       return {type: 'prefix', field: `${field}.keyword`, value: str};
+    },
+  }),
+  match: () => ({
+    props: () => ({
+      id: 'match',
+      name: 'match',
+      type: 'string',
+      params: 2,
+    }),
+    getParams: (field, values) => {
+      const str = values[0].value.toString();
+      return {type: 'match', field, value: str};
     },
   }),
   on: () => ({
@@ -169,12 +152,6 @@ const Operator = () => ({
       type: 'date',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return bodybuilder()
-        .query('term', field, date)
-        .build();
-    },
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
       return {type: 'term', field, value: date};
@@ -187,12 +164,6 @@ const Operator = () => ({
       type: 'date',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return bodybuilder()
-        .query('range', field, {gt: date})
-        .build();
-    },
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
       return {type: 'range', field, value: {gt: date}};
@@ -205,12 +176,6 @@ const Operator = () => ({
       type: 'date',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return bodybuilder()
-        .query('range', field, {lt: date})
-        .build();
-    },
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
       return {type: 'range', field, value: {lt: date}};
@@ -223,12 +188,6 @@ const Operator = () => ({
       type: 'date',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return bodybuilder()
-        .query('range', field, {gte: date})
-        .build();
-    },
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
       return {type: 'range', field, value: {gte: date}};
@@ -241,12 +200,6 @@ const Operator = () => ({
       type: 'date',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return bodybuilder()
-        .query('range', field, {lte: date})
-        .build();
-    },
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
       return {type: 'range', field, value: {lte: date}};
@@ -259,13 +212,6 @@ const Operator = () => ({
       type: 'date',
       params: 3,
     }),
-    buildQuery: (field, values) => {
-      const date1 = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      const date2 = moment(new Date(values[1].value)).format('YYYY-MM-DD');
-      return bodybuilder()
-        .query('range', field, {gte: date1, lte: date2})
-        .build();
-    },
     getParams: (field, values) => {
       const date1 = moment(new Date(values[0].value)).format('YYYY-MM-DD');
       const date2 = moment(new Date(values[1].value)).format('YYYY-MM-DD');
@@ -279,14 +225,6 @@ const Operator = () => ({
       type: 'inLast',
       params: 3,
     }),
-    buildQuery: (field, values) => {
-      const num = Number(values[0].value); // 3
-      const str = values[1].value.toString(); // in Elastic timeUnits (years, months, ...)
-      const tu = timeUnits[str];
-      return bodybuilder()
-        .query('range', field, {gte: `now-${num}${tu}`, lte: 'now'})
-        .build();
-    },
     getParams: (field, values) => {
       const num = Number(values[0].value); // 3
       const str = values[1].value.toString(); // in Elastic timeUnits (years, months, ...)
@@ -301,12 +239,6 @@ const Operator = () => ({
       type: 'number',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const num = Number(values[0].value);
-      return bodybuilder()
-        .query('term', field, num)
-        .build();
-    },
     getParams: (field, values) => {
       const num = Number(values[0].value);
       return {type: 'term', field, value: num};
@@ -319,12 +251,6 @@ const Operator = () => ({
       type: 'number',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const num = Number(values[0].value);
-      return bodybuilder()
-        .query('range', field, {lt: num})
-        .build();
-    },
     getParams: (field, values) => {
       const num = Number(values[0].value);
       return {type: 'range', field, value: {lt: num}};
@@ -337,12 +263,6 @@ const Operator = () => ({
       type: 'number',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const num = Number(values[0].value);
-      return bodybuilder()
-        .query('range', field, {gt: num})
-        .build();
-    },
     getParams: (field, values) => {
       const num = Number(values[0].value);
       return {type: 'range', field, value: {gt: num}};
@@ -355,12 +275,6 @@ const Operator = () => ({
       type: 'number',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const num = Number(values[0].value);
-      return bodybuilder()
-        .query('range', field, {lte: num})
-        .build();
-    },
     getParams: (field, values) => {
       const num = Number(values[0].value);
       return {type: 'range', field, value: {lte: num}};
@@ -373,12 +287,6 @@ const Operator = () => ({
       type: 'number',
       params: 2,
     }),
-    buildQuery: (field, values) => {
-      const num = Number(values[0].value);
-      return bodybuilder()
-        .query('range', field, {gte: num})
-        .build();
-    },
     getParams: (field, values) => {
       const num = Number(values[0].value);
       return {type: 'range', field, value: {gte: num}};
@@ -391,13 +299,6 @@ const Operator = () => ({
       type: 'number',
       params: 3,
     }),
-    buildQuery: (field, values) => {
-      const num1 = Number(values[0].value);
-      const num2 = Number(values[1].value);
-      return bodybuilder()
-        .query('range', field, {gte: num1, lte: num2})
-        .build();
-    },
     getParams: (field, values) => {
       const num1 = Number(values[0].value);
       const num2 = Number(values[1].value);

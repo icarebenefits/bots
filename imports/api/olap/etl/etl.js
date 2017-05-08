@@ -290,7 +290,7 @@ export default ETL
 /* Test */
 // const {Facebook} = require('/imports/api/facebook-graph');
 // const {facebook: {adminWorkplace}} = Meteor.settings;
-// ETL('vn').customer()
+// ETL('kh').customer()
 //   .then(res => {
 //     // console.log('res', res);
 //     /* Post result to Workplace */

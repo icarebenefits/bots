@@ -74,6 +74,20 @@ const iCMSalesOrder = () => ({
         })
       }
     ),
+    soPurchasedByChannel: () => Object.assign(
+      {},
+      Standard().String(),
+      {
+        props: () => ({
+          id: 'soPurchasedByChannel',
+          name: 'Purchase by channel',
+          type: 'string'
+        }),
+        elastic: () => ({
+          field: 'purchased_by_channel',
+        })
+      }
+    ),
     soPurchaseDate: () => Object.assign(
       {},
       Standard().Date(),
