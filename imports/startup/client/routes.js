@@ -6,38 +6,31 @@ import {Session} from 'meteor/session';
 import {Accounts} from 'meteor/accounts-base';
 import {Roles} from 'meteor/alanning:roles';
 
+/* Layout */
+import {MainLayout} from '../../ui/layouts';
+/* Pages */
+import {
+  HomePage,
+  SetupPage,
+  AccessListPage,
+  ErrorPage,
+} from '../../ui/pages';
+
 /* Notify */
 import * as Notify from '/imports/api/notifications';
-
 /* Methods */
 import {Methods} from '/imports/api/collections/logger';
 
-// layouts
-import {
-  MainLayout,
-  // BlankLayout
-} from '../../ui/layouts';
-
-// pages
-import {
-  HomePage,
-  WorkplacesPage,
-  SLAsPage,
-  AccessListPage,
-
-  // Discover,
-
-  ErrorPage,
-} from '../../ui/pages';
-// triggers
+/* Triggers */
 import {
   ensureSignedIn,
   ensureIsAdmin,
+  initiatePage,
+  resetPage
 } from './triggers';
 
+/* Trackers */
 import './trackers';
-// import ConditionGroup from '../../ui/components/conditions-builder/ConditionsBuilder';
-// import ScheduleBuilder from '../../ui/components/schedule-builder/ScheduleBuilder';
 
 /* Redirect afterLogin */
 Accounts.onLogin(() => {
@@ -62,6 +55,9 @@ Accounts.onLogout(() => {
   FlowRouter.go('home');
 });
 
+/* Global trigger */
+FlowRouter.triggers.enter([initiatePage]);
+FlowRouter.triggers.exit([resetPage]);
 
 FlowRouter.notFound = {
   action() {
@@ -96,63 +92,12 @@ const userRoutes = FlowRouter.group({
   triggersEnter: [ensureSignedIn]
 });
 
-userRoutes.route('/setup/:country', {
-  name: 'SLAs',
-  action(params, queryParams) {
-    const
-      {country} = params,
-      {tab} = queryParams
-      ;
-    let slogan = '';
-    switch (country) {
-      case 'vn':
-      {
-        slogan = 'Vietnam';
-        break;
-      }
-      case 'kh':
-      {
-        slogan = 'Cambodia';
-        break;
-      }
-      case 'la':
-      {
-        slogan = 'Laos';
-        break;
-      }
-      default:
-      {
-        slogan = '';
-      }
-    }
-
+userRoutes.route('/:page/:country', {
+  name: 'setup',
+  action() {
     mount(MainLayout, {
-      slogan,
-      tabs: [
-        {id: 'workplaces', name: 'Workplaces'},
-        {id: 'sla', name: 'SLA'},
-      ],
       content() {
-        switch (tab) {
-          case 'workplaces':
-          {
-            return (
-              <WorkplacesPage />
-            );
-          }
-          case 'sla':
-          {
-            return (
-              <SLAsPage />
-            );
-          }
-          default:
-          {
-            return (
-              <WorkplacesPage />
-            );
-          }
-        }
+        return <SetupPage />;
       }
     });
   }

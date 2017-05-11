@@ -4,6 +4,10 @@ import { Session } from 'meteor/session'
 
 /* Functions */
 import {error} from '/imports/api/notifications';
+/* App State */
+import {Store} from '/imports/ui/store';
+import * as Actions from '/imports/ui/store/actions';
+
 
 export const ensureSignedIn = (context, redirect) => {
   if(!Meteor.loggingIn() && !Meteor.userId()) {
@@ -24,4 +28,19 @@ export const ensureSignedIn = (context, redirect) => {
 
 export const ensureIsAdmin = (context, redirect) => {
 
+};
+
+export const initiatePage = (context) => {
+  const {params: {page, country}, queryParams: {tab: activeTab}} = context;
+  Store.dispatch(Actions.setCountry(country));
+  Store.dispatch(Actions.setSlogan(country));
+  Store.dispatch(Actions.setTabs(page));
+  Store.dispatch(Actions.setActiveTab(activeTab));
+};
+
+export const resetPage = () => {
+  Store.dispatch(Actions.setCountry(''));
+  Store.dispatch(Actions.setSlogan(''));
+  Store.dispatch(Actions.setTabs(''));
+  Store.dispatch(Actions.setActiveTab(''));
 };

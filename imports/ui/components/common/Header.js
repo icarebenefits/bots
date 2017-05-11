@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'lodash';
 
 import {
   Logo,
@@ -9,7 +8,7 @@ import {
 
 
 const Header = (props) => {
-  const {tabs = [], slogan = ''} = props;
+  const {slogan = ''} = props;
   return (
     <header className="page-header page-top">
       <nav className="navbar mega-menu" role="navigation">
@@ -18,11 +17,7 @@ const Header = (props) => {
             <Logo slogan={slogan}/>
             <TopBarActions />
           </div>
-          {!_.isEmpty(tabs) && (
-            <Tabs
-              tabs={tabs}
-            />
-          )}
+          <Tabs />
         </div>
       </nav>
     </header>
