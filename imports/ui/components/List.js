@@ -10,7 +10,7 @@ const List = (props) => {
       headers = [],
       data = [],
       actions = [],
-      handleDoubleClick = () => {},
+      onDoubleClick = () => {},
       readonly = true
     } = props;
 
@@ -33,7 +33,7 @@ const List = (props) => {
       </tr>
       </thead>
       <tbody
-        onDoubleClick={e => handleDoubleClick(e.target.dataset)}
+        onDoubleClick={e => onDoubleClick(e.target.dataset)}
       >
       {data.map((d, rowIdx) => {
         const {_id, row} = d;

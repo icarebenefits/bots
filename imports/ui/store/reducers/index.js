@@ -1,40 +1,49 @@
 import {combineReducers} from 'redux';
 
-/* Constants */
+/* CONSTANTS */
 import {
   SLOGANS,
   TABS,
+  SIDEBAR,
   SET_COUNTRY,
   SET_SLOGAN,
   SET_TABS,
-  SET_ACTIVE_TAB
+  SET_ACTIVE_TAB,
+  SET_SLA_SIDE_BAR,
+  SLA_CHANGE_MODE
 } from '../constants';
 
-/* initial State */
+/* SELECTORS */
+const getConstant = (Constant, defaultValue) => {
+  return id => {
+    if (!id) return defaultValue;
+    return Constant[id];
+  };
+};
+const getSlogan = getConstant(SLOGANS, 'Bots');
+const getTabs = getConstant(TABS, []);
+const getSidebar = getConstant(SIDEBAR, []);
+
+/* INITIAL STATES */
 const initialState = {
-  country: '',
-  slogan: '',
-  tabs: [],
-  activeTab: '',
-  sidebar: [],
-  activeSidebar: ''
+  pageControl: {
+    country: '',
+    slogan: '',
+    tabs: [],
+    activeTab: ''
+  },
+  sla: {
+    mode: 'list',
+    visibleSLAs: [],
+    SLA: {},
+    filter: '',
+    search: '',
+    action: ''
+  }
 };
 
-/* Selectors */
-const getSlogan = (id) => {
-  if(!id) {
-    return 'Bots';
-  }
-  return SLOGANS[id];
-};
-const getTabs = (id) => {
-  if(!id) {
-    return [];
-  }
-  return TABS[id];
-};
-
-const pageControl = (state = initialState, action) => {
+/* REDUCERS */
+const pageControl = (state = initialState.pageControl, action) => {
   const {type, payload} = action;
   switch (type) {
     case SET_COUNTRY:
@@ -62,6 +71,25 @@ const pageControl = (state = initialState, action) => {
   }
 };
 
+const sla = (state = initialState.sla, action) => {
+  const {type, payload} = action;
+  switch (type) {
+    case SET_SLA_SIDE_BAR:
+      return {
+        ...state,
+        sidebar: getSidebar(payload)
+      };
+    case SLA_CHANGE_MODE:
+      return {
+        ...state,
+        mode: payload
+      };
+    default:
+      return state;
+  }
+};
+
 export const botsApp = combineReducers({
-  pageControl
+  pageControl,
+  sla
 });

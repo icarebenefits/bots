@@ -5,7 +5,7 @@ import {Button} from '../elements';
 import {Search} from './';
 
 const Toolbar = (props) => {
-  const {buttons, tools, toolLabel, hasSearch, searchPlaceHolder, handleOnChange} = props;
+  const {buttons, tools, toolLabel, searchBox, searchPlaceHolder, handleOnChange} = props;
 
   return (
     <div className="table-toolbar">
@@ -26,7 +26,7 @@ const Toolbar = (props) => {
           </div>
         </div>
       )}
-      {hasSearch && (
+      {searchBox && (
         <div className="col-md-5 pull-right" style={{marginTop: 2, paddingRight: 0}}>
           <Search
             className=""
