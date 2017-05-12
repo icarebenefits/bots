@@ -35,7 +35,8 @@ export const TOOLBARS = {
     tools: [
       {id: 'all', icon: '', label: 'All'},
       {id: 'active', icon: '', label: 'Active'},
-      {id: 'inactive', icon: '', label: 'Inactive'}
+      {id: 'inactive', icon: '', label: 'Inactive'},
+      {id: 'draft', icon: '', label: 'Draft'}
     ],
     searchBox: {}
   }
@@ -71,3 +72,5 @@ export const SET_ACTIVE_TAB = 'PAGE::SET_ACTIVE_TAB';
 /* SLA */
 export const SET_SLA_SIDE_BAR = 'SLA::SET_SIDE_BAR';
 export const SLA_CHANGE_MODE = 'SLA::CHANGE_MODE';
+export const SLA_SET_FILTER = 'SLA::SET_FILTER';
+export const SLA_SET_SEARCH = 'SLA::SET_SEARCH';

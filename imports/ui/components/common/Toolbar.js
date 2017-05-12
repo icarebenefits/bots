@@ -5,7 +5,14 @@ import {Button} from '../elements';
 import {Search} from './';
 
 const Toolbar = (props) => {
-  const {buttons, tools, toolLabel, searchBox, searchPlaceHolder, handleOnChange} = props;
+  const {
+    buttons,
+    tools, toolLabel,
+    searchBox, searchPlaceHolder,
+    onFilter,
+    onSearch,
+    onClick
+  } = props;
 
   return (
     <div className="table-toolbar">
@@ -13,13 +20,13 @@ const Toolbar = (props) => {
         <div className="col-md-5 pull-left">
           <div className="btn-group">
             {buttons.map(btn => {
-              const {id, className, icon, label, handleOnClick} = btn;
+              const {id, className, icon, label} = btn;
               return (
                 <Button
                   key={id}
                   id={id}
                   className={className}
-                  onClick={e => handleOnClick(e, id)}
+                  onClick={() => onClick(id)}
                 >{label}{' '}<i className={icon}/></Button>
               );
             })}
@@ -31,7 +38,7 @@ const Toolbar = (props) => {
           <Search
             className=""
             placeHolder={searchPlaceHolder}
-            handleOnChange={value => handleOnChange('search', value)}
+            handleOnChange={value => onSearch(value)}
           />
         </div>
       )}
@@ -40,15 +47,16 @@ const Toolbar = (props) => {
           <div className="btn-group pull-right">
             <button
               className="btn green  btn-outline dropdown-toggle"
-              data-toggle="dropdown">{toolLabel}
+              data-toggle="dropdown">
+              {toolLabel}{' '}
               <i className="fa fa-angle-down"/>
             </button>
             <ul className="dropdown-menu pull-right">
               {tools.map(tool => {
-                const {id, icon, label, handleOnChange} = tool;
+                const {id, icon, label} = tool;
                 return (
                   <li key={id}>
-                    <a onClick={e => {e.preventDefault(); handleOnChange(id)}}>
+                    <a onClick={e => {e.preventDefault(); onFilter(id)}}>
                       <i className={icon}/>{label}</a>
                   </li>
                 );

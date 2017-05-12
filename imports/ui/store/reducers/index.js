@@ -10,7 +10,9 @@ import {
   SET_TABS,
   SET_ACTIVE_TAB,
   SET_SLA_SIDE_BAR,
-  SLA_CHANGE_MODE
+  SLA_CHANGE_MODE,
+  SLA_SET_FILTER,
+  SLA_SET_SEARCH
 } from '../constants';
 
 /* SELECTORS */
@@ -36,7 +38,7 @@ const initialState = {
     mode: 'list',
     visibleSLAs: [],
     SLA: {},
-    filter: '',
+    filter: 'all',
     search: '',
     action: ''
   }
@@ -83,6 +85,16 @@ const sla = (state = initialState.sla, action) => {
       return {
         ...state,
         mode: payload
+      };
+    case SLA_SET_FILTER:
+      return {
+        ...state,
+        filter: payload
+      }
+    case SLA_SET_SEARCH:
+      return {
+        ...state,
+        search: payload.toLowerCase()
       };
     default:
       return state;

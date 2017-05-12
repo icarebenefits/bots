@@ -6,8 +6,9 @@ import {
   SET_TABS,
   SET_ACTIVE_TAB,
   SET_SLA_SIDE_BAR,
-  SET_SLA_ACTIVE_SIDE_BAR,
-  SLA_CHANGE_MODE
+  SLA_CHANGE_MODE,
+  SLA_SET_FILTER,
+  SLA_SET_SEARCH
 } from '../constants/index';
 
 const actionCreator = type => (payload = '') => ({type, payload});
@@ -24,6 +25,24 @@ export const setSideBar = type => {
   switch (type) {
     case SET_SLA_SIDE_BAR:
       return actionCreator(SET_SLA_SIDE_BAR);
+    default:
+      return () => {};
+  }
+};
+
+export const setFilter = type => {
+  switch (type) {
+    case SLA_SET_FILTER:
+      return actionCreator(SLA_SET_FILTER);
+    default:
+      return () => {};
+  }
+};
+
+export const setSearch = type => {
+  switch (type) {
+    case SLA_SET_SEARCH:
+      return actionCreator(SLA_SET_SEARCH);
     default:
       return () => {};
   }
