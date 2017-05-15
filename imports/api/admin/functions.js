@@ -8,6 +8,7 @@ import {ElasticClient as Elastic} from '/imports/api/elastic';
 
 /* Collections */
 import {Countries} from '/imports/api/collections/countries';
+import {Logger} from '/imports/api/collections/logger';
 
 export const getExpiredIndices = async() => {
   const
@@ -51,5 +52,20 @@ export const deleteExpiredIndices = async () => {
     return deleteIndices;
   } catch(err) {
     throw new Meteor.Error('deleteExpiredIndices', err.message);
+  }
+};
+
+export const deleteExpiredLog = async () => {
+  try {
+    const
+      today = new Date(),
+      {duration, unit} = Meteor.settings.admin.cleanup.log,
+      cleanupDate = moment(today)
+        .subtract(duration, unit);
+    const selector = {createdAt: {$lt: new Date(cleanupDate)}};
+
+    return Logger.remove(selector);
+  } catch(err) {
+    throw new Meteor.Error('deleteExpiredLog', err.message);
   }
 };
