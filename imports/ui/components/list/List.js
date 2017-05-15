@@ -11,6 +11,7 @@ const List = (props) => {
       headers = [],
       data = [],
       actions = [],
+      onClickAction = () => {},
       onDoubleClick = () => {},
       readonly = true
     } = props;

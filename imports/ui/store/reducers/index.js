@@ -10,9 +10,13 @@ import {
   SET_TABS,
   SET_ACTIVE_TAB,
   SET_SLA_SIDE_BAR,
-  SLA_CHANGE_MODE,
   SLA_SET_FILTER,
-  SLA_SET_SEARCH
+  SLA_SET_SEARCH,
+  ADD_NOTIFICATION,
+  REMOVE_NOTIFICATION,
+  SLA_ACTIVATE,
+  SLA_INACTIVATE,
+  SLA_REMOVE
 } from '../constants';
 
 /* SELECTORS */
@@ -35,16 +39,23 @@ const initialState = {
     activeTab: ''
   },
   sla: {
-    mode: 'list',
-    visibleSLAs: [],
     SLA: {},
     filter: 'all',
     search: '',
-    action: ''
-  }
+    id: '', // current working sla
+    validated: true, // is sla validated or not
+    activating: '', // activating sla id in progress
+    activated: '', // the last activated sla id
+    inactivating: '', // inactivating sla id in progress
+    inactivated: '', // the last inactivated sla id
+    removing: '', // removing sla id in progress
+    removed: '', // the last removed sla id
+  },
+  notification: {} // {notifyType: (error | info | warning), title, message}
 };
 
 /* REDUCERS */
+/* Page */
 const pageControl = (state = initialState.pageControl, action) => {
   const {type, payload} = action;
   switch (type) {
@@ -73,6 +84,23 @@ const pageControl = (state = initialState.pageControl, action) => {
   }
 };
 
+/* Notification */
+const notification = (state = initialState.notification, action) => {
+  const {type, payload} = action;
+  switch (type) {
+    case ADD_NOTIFICATION:
+      return {
+        ...state,
+        ...payload
+      };
+    case REMOVE_NOTIFICATION:
+      return initialState.notification;
+    default:
+      return state;
+  }
+};
+
+/* SLA */
 const sla = (state = initialState.sla, action) => {
   const {type, payload} = action;
   switch (type) {
@@ -80,11 +108,6 @@ const sla = (state = initialState.sla, action) => {
       return {
         ...state,
         sidebar: getSidebar(payload)
-      };
-    case SLA_CHANGE_MODE:
-      return {
-        ...state,
-        mode: payload
       };
     case SLA_SET_FILTER:
       return {
@@ -96,6 +119,21 @@ const sla = (state = initialState.sla, action) => {
         ...state,
         search: payload.toLowerCase()
       };
+    case SLA_ACTIVATE:
+      return {
+        ...state,
+        ...payload
+      };
+    case SLA_INACTIVATE:
+      return {
+        ...state,
+        ...payload
+      };
+    case SLA_REMOVE:
+      return {
+        ...state,
+        ...payload
+      };
     default:
       return state;
   }
@@ -103,5 +141,6 @@ const sla = (state = initialState.sla, action) => {
 
 export const botsApp = combineReducers({
   pageControl,
-  sla
+  sla,
+  notification
 });

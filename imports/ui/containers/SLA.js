@@ -1,7 +1,7 @@
-import React, {Component, PropTypes} from 'react';
-import {connect} from 'react-redux';
+import React, {PropTypes} from 'react';
+import {FlowRouter} from 'meteor/kadira:flow-router';
 
-import {slaChangeMode} from '../store/actions';
+/* CONSTANTS */
 import {SIDEBAR} from '../store/constants';
 
 /* Components */
@@ -10,13 +10,21 @@ import SingleSLA from './SingleSLA';
 import ListSLA from './ListSLA';
 
 const SLA = (props) => {
-  const {mode, dispatch} = props;
+  const {
+    params: {country, page},
+    queryParams: {tab, mode = 'list'}
+  } = FlowRouter.current();
+
+  const onClickSidebar = mode => {
+    FlowRouter.go('setup', {country, page}, {tab, mode});
+  };
+
   return (
     <div className="page-content-row">
       {<PageSideBar
         options={SIDEBAR['sla']}
         active={mode}
-        onClick={id => dispatch(slaChangeMode(id))}
+        onClick={onClickSidebar}
       />}
       <div className="page-content-col">
         <div className="note note-info">
@@ -25,7 +33,7 @@ const SLA = (props) => {
           </h2>
         </div>
         <div className="row">
-          {mode === 'list' ?
+          {(!mode || mode === 'list') ?
             <ListSLA /> :
             <SingleSLA mode={mode}/>}
         </div>
@@ -34,12 +42,6 @@ const SLA = (props) => {
   );
 };
 
-SLA.propTypes = {
-  mode: PropTypes.string
-};
+SLA.propTypes = {};
 
-const mapStateToProps = state => ({
-  mode: state.sla.mode
-});
-
-export default connect(mapStateToProps)(SLA)
+export default SLA

@@ -19,7 +19,7 @@ const PageSideBar = (props) => {
               const {id, icon, label} = option;
               return (
                 <li key={id} className={classNames({"active": active === id})}>
-                  <a onClick={e => onClick(id)}>
+                  <a onClick={e => {e.preventDefault(); onClick(id)}}>
                     <i className={icon}></i>{label}</a>
                 </li>
               );

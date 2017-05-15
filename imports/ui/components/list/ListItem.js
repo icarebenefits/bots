@@ -32,14 +32,14 @@ const ListItem = (props) => {
           ? <td>
             <div className="btn-group">
               {actions.map(action => {
-                const {id, icon, label, className, handleAction} = action;
+                const {id, icon, label, className, onClick} = action;
                 return (
                   label === skipButton ? null :
                     <Button
                       key={id}
                       className={classNames("btn-default", className)}
-                      onClick={e => handleAction(e, id, _id)}
-                    ><i className={icon}/>{label}</Button>
+                      onClick={e => {e.preventDefault(); onClick(id, _id)}}
+                    ><i className={icon}/>{' '}{label}</Button>
                 );
               })}
             </div>

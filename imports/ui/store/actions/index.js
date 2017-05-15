@@ -1,17 +1,19 @@
+import {FlowRouter} from 'meteor/kadira:flow-router';
+
+/* CONSTANTS */
 import {
   SET_COUNTRY,
   SET_SLOGAN,
-  SET_USER_PICTURE,
-  SET_USER_FULL_NAME,
   SET_TABS,
   SET_ACTIVE_TAB,
   SET_SLA_SIDE_BAR,
-  SLA_CHANGE_MODE,
   SLA_SET_FILTER,
-  SLA_SET_SEARCH
+  SLA_SET_SEARCH,
+  ADD_NOTIFICATION,
+  REMOVE_NOTIFICATION,
 } from '../constants/index';
 
-const actionCreator = type => (payload = '') => ({type, payload});
+export const actionCreator = type => (payload = '') => ({type, payload});
 
 export const setCountry = actionCreator(SET_COUNTRY);
 
@@ -26,7 +28,8 @@ export const setSideBar = type => {
     case SET_SLA_SIDE_BAR:
       return actionCreator(SET_SLA_SIDE_BAR);
     default:
-      return () => {};
+      return () => {
+      };
   }
 };
 
@@ -35,7 +38,8 @@ export const setFilter = type => {
     case SLA_SET_FILTER:
       return actionCreator(SLA_SET_FILTER);
     default:
-      return () => {};
+      return () => {
+      };
   }
 };
 
@@ -44,8 +48,14 @@ export const setSearch = type => {
     case SLA_SET_SEARCH:
       return actionCreator(SLA_SET_SEARCH);
     default:
-      return () => {};
+      return () => {
+      };
   }
 };
 
-export const slaChangeMode = actionCreator(SLA_CHANGE_MODE);
+/* Notification */
+export const addNotification = actionCreator(ADD_NOTIFICATION);
+export const removeNotification = actionCreator(REMOVE_NOTIFICATION);
+
+/* SLA Page */
+export * from './sla';

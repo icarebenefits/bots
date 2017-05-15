@@ -26,7 +26,7 @@ const Toolbar = (props) => {
                   key={id}
                   id={id}
                   className={className}
-                  onClick={() => onClick(id)}
+                  onClick={e => {e.preventDefault(); onClick(id)}}
                 >{label}{' '}<i className={icon}/></Button>
               );
             })}

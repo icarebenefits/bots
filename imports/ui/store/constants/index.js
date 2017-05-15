@@ -17,8 +17,8 @@ export const SIDEBAR = {
   sla: [
     {id: 'list', icon: 'fa fa-star', label: 'List SLA'},
     {id: 'add', icon: 'fa fa-plus', label: 'Add SLA'},
-    {id: 'edit', icon: 'fa fa-pencil', label: 'Edit SLA'},
-    {id: 'view', icon: 'fa fa-circle', label: 'View SLA'}
+    // {id: 'edit', icon: 'fa fa-pencil', label: 'Edit SLA'},
+    // {id: 'view', icon: 'fa fa-circle', label: 'View SLA'}
   ]
 };
 /* TOOLBAR */
@@ -41,36 +41,29 @@ export const TOOLBARS = {
     searchBox: {}
   }
 };
-/* LIST */
-export const LISTS = {
-  listSLA: {
-    headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
-    actions: [
-      {
-        id: 'edit', label: 'Edit',
-        icon: 'fa fa-pencil', className: 'btn-primary'
-      },
-      {id: 'inactivate', label: 'Inactivate', className: 'yellow'},
-      {id: 'activate', label: 'Activate', className: 'green'},
-      {
-        id: 'remove', label: '',
-        icon: 'fa fa-times', className: 'btn-danger'
-      }
-    ]
-  }
-};
 
 /* ACTION TYPES */
 
 /* Page Control */
 export const SET_COUNTRY = 'PAGE::SET_COUNTRY';
 export const SET_SLOGAN = 'PAGE::SET_SLOGAN';
-export const SET_USER_PICTURE = 'PAGE::SET_USER_PICTURE';
-export const SET_USER_FULL_NAME = 'PAGE::SET_USER_FULL_NAME';
 export const SET_TABS = 'PAGE::SET_TABS';
 export const SET_ACTIVE_TAB = 'PAGE::SET_ACTIVE_TAB';
+
+/* Notification */
+export const ADD_NOTIFICATION = 'PAGE::ADD_NOTIFICATION';
+export const REMOVE_NOTIFICATION = 'PAGE::REMOVE_NOTIFICATION';
 /* SLA */
 export const SET_SLA_SIDE_BAR = 'SLA::SET_SIDE_BAR';
-export const SLA_CHANGE_MODE = 'SLA::CHANGE_MODE';
 export const SLA_SET_FILTER = 'SLA::SET_FILTER';
 export const SLA_SET_SEARCH = 'SLA::SET_SEARCH';
+export const SLA_CHANGE_MODE = 'SLA::CHANGE_MODE';
+
+export const SLA_ACTIVATE = 'SLA::ACTIVATE';
+export const SLA_INACTIVATE = 'SLA::INACTIVATE';
+export const SLA_REMOVE = 'SLA::REMOVE';
+export const SLA_VALIDATE = 'SLA::VALIDATE';
+export const SLA_PREVIEW = 'SLA::PREVIEW';
+export const SLA_SAVE = 'SLA::SAVE';
+export const SLA_SAVE_EXECUTE = 'SLA::SAVE_EXECUTE';
+export const SLA_CANCEL = 'SLA::CANCEL';
