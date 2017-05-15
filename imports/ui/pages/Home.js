@@ -44,7 +44,7 @@ class Home extends Component {
               const {code, name, stat} = country;
               return (
                 <div key={code} className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
-                     onClick={() => {FlowRouter.go('SLAs', {country: code})}}
+                     onClick={() => {FlowRouter.go('setup', {page: 'setup', country: code})}}
                 >
                   <DashboardStat
                     title={name}
@@ -53,7 +53,7 @@ class Home extends Component {
                     stat={stat}
                     description="active SLAs"
                     label="Setup"
-                    moreHref={FlowRouter.path('SLAs', {country: code})}
+                    moreHref={FlowRouter.path('setup', {page: 'setup', country: code})}
                   />
                 </div>
               );

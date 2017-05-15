@@ -1,6 +1,8 @@
 import {Meteor} from 'meteor/meteor';
 import {DDP} from 'meteor/ddp-client';
 import {later} from 'meteor/mrt:later';
+import {Promise} from 'meteor/promise';
+import {Tracker} from 'meteor/tracker';
 
 /**
  * Function create job on job server from bots client
@@ -8,140 +10,112 @@ import {later} from 'meteor/mrt:later';
  * @return {{getJobs: (function()), createJob: (function()), editJob: (function()), pauseJob: (function()), resumeJob: (function()), restartJob: (function()), cancelJob: (function()), removeJob: (function())}}
  * @constructor
  */
-const JobServer = (country) => {
+export const JobServer = async(country) => {
   const {host, port} = Meteor.settings.public.jobs_server;
+
   try {
     const server = DDP.connect(`http://${host}:${port}`);
-    
-    return {
-      getJobs: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.getJobs', params, (err, res) => {
-          if(err) callback(err, null);
+    const {status, connected, reason} = server.status();
 
-          callback(null, res);
-        });
-      },
-      createJob: ({name, priority, freqText, info}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-          attributes: {
-            priority: priority || 'normal',
-            repeat: {
-              schedule: later.parse.text(freqText)
-            }
-          },
-          data: info
-        };
-        server.call('controllers.create', params, (err, res) => {
-          if(err) callback(err, null);
+    if (status === 'failed') {
+      throw new Meteor.Error('JobServer.connect', `Failed: ${JSON.stringify({status, connected, reason})}`);
+    } else {
+      return {
+        status,
+        getJobs: async({name}) => {
+          const params = {
+            type: `${country}-${name}`,
+          };
 
-          callback(null, res);
-        });
-      },
-      editJob: ({name, priority, freqText, info}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-          attributes: {
-            priority: priority || 'normal',
-            repeat: {
-              schedule: later.parse.text(freqText)
-            }
-          },
-          data: info
-        };
-        server.call('controllers.edit', params, (err, res) => {
-          if(err) callback(err, null);
+          try {
+            return await server.call('controllers.getJobs', params);
+          } catch (err) {
+            throw new Meteor.Error('JobServer.getJobs', err.message);
+          }
+        },
+        createJob: async({name, priority, freqText, info}) => {
+          const params = {
+            type: `${country}-${name}`,
+            attributes: {
+              priority: priority || 'normal',
+              repeat: {
+                schedule: later.parse.text(freqText)
+              }
+            },
+            data: info
+          };
 
-          callback(null, res);
-        });
-      },
-      pauseJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.pause', params, (err, res) => {
-          if(err) callback(err, null);
+          try {
+            return await server.call('controllers.create', params);
+          } catch (err) {
+            throw new Meteor.Error('JobServer.createJob', err.message);
+          }
+        },
+        editJob: async({name, priority, freqText, info}) => {
+          const params = {
+            type: `${country}-${name}`,
+            attributes: {
+              priority: priority || 'normal',
+              repeat: {
+                schedule: later.parse.text(freqText)
+              }
+            },
+            data: info
+          };
 
-          callback(null, res);
-        });
-      },
-      resumeJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.resume', params, (err, res) => {
-          if(err) callback(err, null);
+          try {
+            return await server.call('controllers.edit', params);
+          } catch (err) {
+            throw new Meteor.Error('JobServer.editJob', err.message);
+          }
+        },
+        cancelJob: async({name}) => {
+          const params = {
+            type: `${country}-${name}`,
+          };
 
-          callback(null, res);
-        });
-      },
-      restartJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.restart', params, (err, res) => {
-          if(err) callback(err, null);
+          try {
+            return await server.call('controllers.cancel', params);
+          } catch (err) {
+            throw new Meteor.Error('JobServer.cancelJob', err.message);
+          }
+        },
+        removeJob: async({name}) => {
+          const params = {
+            type: `${country}-${name}`,
+          };
 
-          callback(null, res);
-        });
-      },
-      cancelJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.cancel', params, (err, res) => {
-          if(err) callback(err, null);
+          try {
+            return await server.call('controllers.remove', params);
+          } catch (err) {
+            throw new Meteor.Error('JobServer.removeJob', err.message);
+          }
+        },
+        startJob: ({name, priority, freqText, info}) => {
+          const params = {
+            type: `${country}-${name}`,
+            attributes: {
+              priority: priority || 'normal',
+              repeat: {
+                schedule: later.parse.text(freqText)
+              }
+            },
+            data: info
+          };
 
-          callback(null, res);
-        });
-      },
-      readyJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.ready', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      removeJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.remove', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      startJob: ({name, priority, freqText, info}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-          attributes: {
-            priority: priority || 'normal',
-            repeat: {
-              schedule: later.parse.text(freqText)
-            }
-          },
-          data: info
-        };
-        server.call('controllers.start', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-    };
-  } catch(e) {
-    return {
-      error: 'CONNECT_JOBS_SERVER_FAILED',
-      message: JSON.stringify(e),
-    };
+          return new Promise((resolve, reject) => {
+            server.call('controllers.start', params, (err, res) => {
+              if (err) {
+                reject(new Meteor.Error('JobServer.startJob', err.reason));
+              } else {
+                resolve(res);
+              }
+            });
+          });
+        }
+      };
+    }
+  } catch (err) {
+    throw new Meteor.Error('JobServer.connect', `Failed: ${err.reason}`);
   }
 };
-
-export default JobServer

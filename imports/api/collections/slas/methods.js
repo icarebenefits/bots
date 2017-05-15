@@ -10,6 +10,12 @@ import {QueryBuilder} from '/imports/api/query-builder';
 // fields
 import {Field} from '/imports/api/fields';
 
+/* Job server */
+import {JobServer} from '/imports/api/jobs';
+
+/* Utils */
+import {getScheduleText} from '/imports/utils';
+
 const Methods = {};
 
 /**
@@ -20,13 +26,13 @@ const Methods = {};
  * @return {String} - Mongo document _id
  */
 Methods.create = new ValidatedMethod({
-  name: 'slas.create',
+  name: 'sla.create',
   validate: null,
   run({name, description, workplace, frequency, conditions, message, status, country}) {
     try {
       const result = SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
       return result;
-    } catch(e) {
+    } catch (e) {
       throw new Meteor.Error('slas.create', JSON.stringify(e));
     }
   }
@@ -38,11 +44,12 @@ Methods.create = new ValidatedMethod({
  * @return {}
  */
 Methods.setStatus = new ValidatedMethod({
-  name: 'slas.setStatus',
+  name: 'sla.setStatus',
   validate: new SimpleSchema({
     ...IDValidator,
     status: {
       type: String,
+      allowedValues: ['active', 'inactive', 'draft']
     }
   }).validator(),
   run({_id, status}) {
@@ -52,22 +59,97 @@ Methods.setStatus = new ValidatedMethod({
       ;
 
     try {
-      const result = SLAs.update(selector, {$set: modifier});
-      return result;
-    } catch(e) {
-      throw new Meteor.Error('slas.setStatus', JSON.stringify(e));
+      return SLAs.update(selector, {$set: modifier});
+    } catch (e) {
+      throw new Meteor.Error('slas.setStatus', e.message);
+    }
+  }
+});
+
+Methods.activate = new ValidatedMethod({
+  name: 'sla.activate',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    country: {
+      type: String
+    }
+  }).validator(),
+  async run({_id, country}) {
+    // connect Job Server
+    const jobServer = await JobServer(country);
+    if (jobServer.status === 'failed') {
+      throw new Meteor.Error('SLA.connectJobServer', jobServer.status);
+    }
+    // get SLA info
+    const sla = SLAs.findOne({_id});
+    if (!_.isEmpty(sla)) {
+      try {
+        const
+          {_id: slaId, name, frequency} = sla,
+          freqText = getScheduleText(frequency);
+        // start SLA in Job Server
+        const result = await jobServer.startJob({
+          name,
+          freqText,
+          info: {method: 'bots.elastic', slaId}
+        });
+
+        if (result) {
+          return SLAs.update({_id}, {$set: {status: 'active'}});
+        }
+      } catch (err) {
+        SLAs.update({_id}, {$set: {status: 'draft'}});
+        throw new Meteor.Error('SLA.activate', err.message);
+      }
+    } else {
+      throw new Meteor.Error('SLA.activate', 'SLA not found.')
+    }
+  }
+});
+
+
+Methods.inactivate = new ValidatedMethod({
+  name: 'sla.inactivate',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    country: {
+      type: String
+    }
+  }).validator(),
+  async run({_id, country}) {
+    // connect Job Server
+    const jobServer = await JobServer(country);
+    if (jobServer.status === 'failed') {
+      throw new Meteor.Error('SLA.connectJobServer', jobServer.status);
+    }
+    // get SLA info
+    const sla = SLAs.findOne({_id});
+    if (!_.isEmpty(sla)) {
+      try {
+        const {name} = sla;
+        // cancel SLA in Job Server
+        const result = await jobServer.cancelJob({name});
+
+        if (result) {
+          return SLAs.update({_id}, {$set: {status: 'inactive'}});
+        }
+      } catch (err) {
+        throw new Meteor.Error('SLA.inactivate', err.message);
+      }
+    } else {
+      throw new Meteor.Error('SLA.inactivate', 'SLA not found.')
     }
   }
 });
 
 
 /**
-* Method set last execution of a SLA
-* @param {} name - description
-* @return {}
-*/
+ * Method set last execution of a SLA
+ * @param {} name - description
+ * @return {}
+ */
 Methods.setLastExecutedAt = new ValidatedMethod({
-  name: 'slas.setLastExecutedAt',
+  name: 'sla.setLastExecutedAt',
   validate: new SimpleSchema({
     ...IDValidator,
     lastExecutedAt: {
@@ -83,9 +165,9 @@ Methods.setLastExecutedAt = new ValidatedMethod({
     try {
       const result = SLAs.update(selector, {$set: modifier});
       return result;
-    } catch(e) {
+    } catch (e) {
       console.log('error', e);
-      throw new Meteor.Error('slas.setLastExecutedAt', JSON.stringify(e));
+      throw new Meteor.Error('sla.setLastExecutedAt', JSON.stringify(e));
     }
   }
 });
@@ -99,7 +181,7 @@ Methods.setLastExecutedAt = new ValidatedMethod({
  * @return {Boolean} - Mongo update status
  */
 Methods.edit = new ValidatedMethod({
-  name: 'slas.edit',
+  name: 'sla.edit',
   validate: null,
   run({_id, name, description, workplace, frequency, conditions, message, status, country}) {
     const
@@ -119,7 +201,7 @@ Methods.edit = new ValidatedMethod({
     try {
       const result = SLAs.update(selector, {$set: modifier});
       return result;
-    } catch(e) {
+    } catch (e) {
       throw new Meteor.Error('slas.edit', JSON.stringify(e));
     }
   }
@@ -133,7 +215,7 @@ Methods.edit = new ValidatedMethod({
  * @return {error} - validate result
  */
 Methods.validateName = new ValidatedMethod({
-  name: 'slas.validateName',
+  name: 'sla.validateName',
   validate: new SimpleSchema({
     name: {
       type: String,
@@ -143,9 +225,9 @@ Methods.validateName = new ValidatedMethod({
     }
   }).validator(),
   run({name, country}) {
-    if(!this.isSimulation) {
+    if (!this.isSimulation) {
       const sla = SLAs.findOne({name, country});
-      if(!_.isEmpty(sla)) {
+      if (!_.isEmpty(sla)) {
         return {error: 'SLA name is exists.'}
       } else {
         return {error: null};
@@ -160,7 +242,7 @@ Methods.validateName = new ValidatedMethod({
  * @return {error} - validate result
  */
 Methods.validateConditions = new ValidatedMethod({
-  name: 'slas.validateConditions',
+  name: 'sla.validateConditions',
   validate: new SimpleSchema({
     conditions: {
       type: [Object],
@@ -233,7 +315,7 @@ Methods.validateConditions = new ValidatedMethod({
     }
   }).validator(),
   run({conditions, variables, country}) {
-    if(!this.isSimulation) {
+    if (!this.isSimulation) {
       const name = 'validateConditionsAndMessage';
       const {Elastic} = require('/imports/api/elastic');
       let isValid = true, queries = [];
@@ -294,17 +376,34 @@ Methods.validateConditions = new ValidatedMethod({
  * @return {}
  */
 Methods.remove = new ValidatedMethod({
-  name: 'slas.remove',
+  name: 'sla.remove',
   validate: new SimpleSchema({
-    ...IDValidator
+    ...IDValidator,
+    country: {
+      type: String
+    }
   }).validator(),
-  run({_id}) {
-
-    try {
-      const result = SLAs.remove({_id});
-      return result;
-    } catch(e) {
-      throw new Meteor.Error('slas.remove', JSON.stringify(e));
+  async run({_id, country}) {
+    // connect Job Server
+    const jobServer = await JobServer(country);
+    if (jobServer.status === 'failed') {
+      throw new Meteor.Error('SLA.connectJobServer', jobServer.status);
+    }
+    // get SLA info
+    const sla = SLAs.findOne({_id});
+    if (!_.isEmpty(sla)) {
+      try {
+        const {name} = sla;
+        // remove SLA in Job Server
+        const result = await jobServer.removeJob({name});
+        if(result) {
+          return SLAs.remove({_id});
+        }
+      } catch (err) {
+        throw new Meteor.Error('SLA.remove', err.message);
+      }
+    } else {
+      throw new Meteor.Error('SLA.remove', 'SLA not found.')
     }
   }
 });
