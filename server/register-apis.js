@@ -53,3 +53,8 @@ import '/imports/api/query-builder';
  * OLAP
  */
 import '/imports/api/olap';
+
+/**
+ * Admin Tasks
+ */
+import '/imports/api/admin';
