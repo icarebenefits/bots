@@ -26,7 +26,6 @@ import {getScheduleText} from '/imports/utils';
 
 /* Activate */
 export const startAction = (actionType, _id) => {
-  console.log('startAction', actionType, _id);
   switch (actionType) {
     case SLA_ACTIVATE:
     {
@@ -73,14 +72,12 @@ export const startAction = (actionType, _id) => {
   }
 };
 export const actionOnSLA = (actionType, action, _id) => {
-  console.log('actionOnSLA', actionType, action, _id);
   const {pageControl: {country}} = Store.getState();
   return (dispatch) => {
     dispatch(startAction(actionType, _id));
 
     // call activate SLA method
-    SLAMethods[action].call({_id, country}, (err, res) => {
-      console.log(action, err, res)
+    SLAMethods[action].call({_id, country}, (err) => {
       if (err) {
         dispatch(endAction({actionType, error: err.message}))
       } else {
@@ -91,8 +88,6 @@ export const actionOnSLA = (actionType, action, _id) => {
 };
 export const endAction = payload => {
   const {actionType, _id, error} = payload;
-  console.log('endAction', actionType, _id, error);
-
   if (_id) {
     const action = {type: actionType};
     switch (actionType) {
