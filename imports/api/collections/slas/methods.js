@@ -11,7 +11,7 @@ import {QueryBuilder} from '/imports/api/query-builder';
 import {Field} from '/imports/api/fields';
 
 /* Job server */
-import {JobServer} from '/imports/api/jobs';
+import {startJob, cancelJob, removeJob} from '/imports/api/jobs';
 
 /* Utils */
 import {getScheduleText} from '/imports/utils';
@@ -66,6 +66,9 @@ Methods.setStatus = new ValidatedMethod({
   }
 });
 
+/**
+ * Activate SLA
+ */
 Methods.activate = new ValidatedMethod({
   name: 'sla.activate',
   validate: new SimpleSchema({
@@ -75,11 +78,6 @@ Methods.activate = new ValidatedMethod({
     }
   }).validator(),
   async run({_id, country}) {
-    // connect Job Server
-    const jobServer = await JobServer(country);
-    if (jobServer.status === 'failed') {
-      throw new Meteor.Error('SLA.connectJobServer', jobServer.status);
-    }
     // get SLA info
     const sla = SLAs.findOne({_id});
     if (!_.isEmpty(sla)) {
@@ -88,10 +86,11 @@ Methods.activate = new ValidatedMethod({
           {_id: slaId, name, frequency} = sla,
           freqText = getScheduleText(frequency);
         // start SLA in Job Server
-        const result = await jobServer.startJob({
+        const result = await startJob({
           name,
           freqText,
-          info: {method: 'bots.elastic', slaId}
+          info: {method: 'bots.elastic', slaId},
+          country
         });
 
         if (result) {
@@ -107,7 +106,9 @@ Methods.activate = new ValidatedMethod({
   }
 });
 
-
+/**
+ * Inactivate SLA
+ */
 Methods.inactivate = new ValidatedMethod({
   name: 'sla.inactivate',
   validate: new SimpleSchema({
@@ -117,18 +118,13 @@ Methods.inactivate = new ValidatedMethod({
     }
   }).validator(),
   async run({_id, country}) {
-    // connect Job Server
-    const jobServer = await JobServer(country);
-    if (jobServer.status === 'failed') {
-      throw new Meteor.Error('SLA.connectJobServer', jobServer.status);
-    }
     // get SLA info
     const sla = SLAs.findOne({_id});
     if (!_.isEmpty(sla)) {
       try {
         const {name} = sla;
         // cancel SLA in Job Server
-        const result = await jobServer.cancelJob({name});
+        const result = await cancelJob({name, country});
 
         if (result) {
           return SLAs.update({_id}, {$set: {status: 'inactive'}});
@@ -395,7 +391,7 @@ Methods.remove = new ValidatedMethod({
       try {
         const {name} = sla;
         // remove SLA in Job Server
-        const result = await jobServer.removeJob({name});
+        const result = await removeJob({name, country});
         if(result) {
           return SLAs.remove({_id});
         }

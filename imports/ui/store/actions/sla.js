@@ -77,8 +77,7 @@ export const actionOnSLA = (actionType, action, _id) => {
     dispatch(startAction(actionType, _id));
 
     // call activate SLA method
-    SLAMethods[action].call({_id, country}, (err, res) => {
-      console.log(action, err, res)
+    SLAMethods[action].call({_id, country}, (err) => {
       if (err) {
         dispatch(endAction({actionType, error: err.message}))
       } else {

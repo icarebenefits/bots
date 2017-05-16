@@ -5,6 +5,7 @@ import Bots from './functions';
 import {ESFuncs} from '/imports/api/elastic';
 import {Facebook} from '/imports/api/facebook-graph';
 import {formatMessage} from '/imports/utils/defaults';
+import {deleteExpiredIndices, deleteExpiredLog} from '/imports/api/admin';
 
 /**
  * Method called by job server for testing the job check SLA
@@ -106,9 +107,56 @@ const indexSuggests = new ValidatedMethod({
       try {
         result = Bots.addWorkplaceSuggester();
       } catch (e) {
-        throw  new Meteor.Error('methods.indexSuggests', JSON.stringify(e));
+        throw  new Meteor.Error('bots.indexSuggests', JSON.stringify(e));
       }
       return result;
+    }
+  }
+});
+
+const cleanupIndices = new ValidatedMethod({
+  name: 'bots.cleanupIndices',
+  validate: new SimpleSchema({
+    data: {
+      type: Object,
+    },
+    'data.method': {
+      type: String,
+      allowedValues: ['bots.cleanupIndices'],
+    }
+  }).validator(),
+  async run({data}) {
+    if (Meteor.isServer) {
+      try {
+        const result = await deleteExpiredIndices();
+        return result;
+      } catch(err) {
+        throw new Meteor.Error('bots.cleanupIndices', err.message);
+      }
+    }
+  }
+});
+
+const cleanupLog = new ValidatedMethod({
+  name: 'bots.cleanupLog',
+  validate: new SimpleSchema({
+    data: {
+      type: Object,
+    },
+    'data.method': {
+      type: String,
+      allowedValues: ['bots.cleanupLog'],
+    }
+  }).validator(),
+  run({data}) {
+    if (Meteor.isServer) {
+      try {
+        const result = deleteExpiredLog();
+        console.log('result', result);
+        return result;
+      } catch (err) {
+        throw new Meteor.Error('bots.cleanupLog', err.message);
+      }
     }
   }
 });

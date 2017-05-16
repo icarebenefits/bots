@@ -3,6 +3,8 @@ import moment from 'moment';
 import S from 'string';
 import _ from 'lodash';
 
+import {formatMessage} from '/imports/utils/defaults';
+import {Facebook} from '/imports/api/facebook-graph';
 /* Elastic */
 import {ElasticClient as Elastic} from '/imports/api/elastic';
 
@@ -45,17 +47,26 @@ export const getExpiredIndices = async() => {
   }
 };
 
-export const deleteExpiredIndices = async () => {
+export const deleteExpiredIndices = async() => {
   try {
     const expiredIndices = await getExpiredIndices();
-    const deleteIndices = await Elastic.indices.delete({index: expiredIndices});
-    return deleteIndices;
-  } catch(err) {
+    if(!_.isEmpty(expiredIndices)) {
+      const deleteIndices = await Elastic.indices.delete({index: expiredIndices});
+      console.log('deleteExpiredIndices', deleteIndices);
+
+      /* send result to facebook */
+      const message = formatMessage({message: '', heading1: 'DELETE_EXPIRED_INDEX', code: {expiredIndices}});
+      const {adminWorkplace} = Meteor.settings.facebook;
+      await Facebook().postMessage(adminWorkplace, message);
+
+      return deleteIndices;
+    }
+  } catch (err) {
     throw new Meteor.Error('deleteExpiredIndices', err.message);
   }
 };
 
-export const deleteExpiredLog = async () => {
+export const deleteExpiredLog = () => {
   try {
     const
       today = new Date(),
@@ -63,9 +74,15 @@ export const deleteExpiredLog = async () => {
       cleanupDate = moment(today)
         .subtract(duration, unit);
     const selector = {createdAt: {$lt: new Date(cleanupDate)}};
+    const removed = Logger.remove(selector);
 
-    return Logger.remove(selector);
-  } catch(err) {
+    /* send result to facebook */
+    const message = formatMessage({message: '', heading1: 'DELETE_EXPIRED_LOG', code: {removed}});
+    const {adminWorkplace} = Meteor.settings.facebook;
+    Facebook().postMessage(adminWorkplace, message);
+
+    return result;
+  } catch (err) {
     throw new Meteor.Error('deleteExpiredLog', err.message);
   }
 };
