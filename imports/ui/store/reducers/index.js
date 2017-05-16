@@ -16,7 +16,9 @@ import {
   REMOVE_NOTIFICATION,
   SLA_ACTIVATE,
   SLA_INACTIVATE,
-  SLA_REMOVE
+  SLA_REMOVE,
+  SLA_INIT_SLA,
+  SLA_RESET_SLA
 } from '../constants';
 
 /* SELECTORS */
@@ -120,20 +122,16 @@ const sla = (state = initialState.sla, action) => {
         search: payload.toLowerCase()
       };
     case SLA_ACTIVATE:
-      return {
-        ...state,
-        ...payload
-      };
     case SLA_INACTIVATE:
-      return {
-        ...state,
-        ...payload
-      };
     case SLA_REMOVE:
+    case SLA_INIT_SLA:
+    case SLA_RESET_SLA: {
+      console.log(type, payload);
       return {
         ...state,
         ...payload
       };
+    }
     default:
       return state;
   }

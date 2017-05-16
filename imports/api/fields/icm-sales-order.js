@@ -1,4 +1,5 @@
 import Standard from './standard';
+import {SUGGESTS} from './constants';
 /**
  * Composition Standard fields which got operators from standard fields
  * @constructor
@@ -40,9 +41,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soStatus',
           name: 'Status',
-          type: 'string',
+          type: 'suggest',
           placeHolder: '',
-          suggests: []
+          suggests: SUGGESTS.salesOrder.status
         }),
         elastic: () => ({
           field: 'so_status',
@@ -56,9 +57,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soPurchaseStore',
           name: 'Purchase store',
-          type: 'string',
+          type: 'suggest',
           placeHolder: '',
-          suggests: []
+          suggests: SUGGESTS.salesOrder.purchaseStore
         }),
         elastic: () => ({
           field: 'purchase_store',
@@ -73,7 +74,7 @@ const iCMSalesOrder = () => ({
           id: 'soPurchasedBy',
           name: 'Purchase by',
           type: 'string',
-          placeHolder: '',
+          placeHolder: 'icare.bots@icarebenefits.com',
           suggests: []
         }),
         elastic: () => ({
@@ -88,9 +89,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soPurchasedByChannel',
           name: 'Purchase by channel',
-          type: 'string',
+          type: 'suggest',
           placeHolder: '',
-          suggests: []
+          suggests: SUGGESTS.salesOrder.purchasedByChannel
         }),
         elastic: () => ({
           field: 'purchased_by_channel',

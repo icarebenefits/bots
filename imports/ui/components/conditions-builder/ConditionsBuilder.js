@@ -140,9 +140,12 @@ class ConditionsBuilder extends Component {
             FieldData = Object.assign({}, Fields.field()[filter]())
           }
 
-          const {type, params} = FieldData.operator()[value].props();
+          // const {type, params} = FieldData.operator()[value].props();
+          const {params} = FieldData.operator()[value].props();
+          const {type, placeholder, suggests} = FieldData.props();
+          console.log('FieldData', FieldData.props());
           for (let i = 0; i < params - 1; i++) {
-            newValues.push({type, value: this._getDefaultValue(type)});
+            newValues.push({type, value: this._getDefaultValue(type), placeholder, suggests});
           }
           cond = {...condition, operator: value, values: newValues};
           this.setState({values: newValues});

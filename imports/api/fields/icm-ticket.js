@@ -1,4 +1,5 @@
 import Standard from './standard';
+import {SUGGESTS} from './constants';
 /**
  * Composition Standard fields which got operators from standard fields
  * @constructor
@@ -85,9 +86,9 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketType',
           name: 'Type',
-          type: 'string',
+          type: 'suggest',
           placeHolder: '',
-          suggests: []
+          suggests: SUGGESTS.ticket.type
         }),
         elastic: () => ({
           field: 'ticket_type',
@@ -101,9 +102,9 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketPriority',
           name: 'Priority',
-          type: 'string',
+          type: 'suggest',
           placeHolder: '',
-          suggests: []
+          suggests: SUGGESTS.ticket.priority
         }),
         elastic: () => ({
           field: 'priority',
@@ -117,9 +118,9 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketStatus',
           name: 'Status',
-          type: 'string',
-          placeHolder: '',
-          suggests: []
+          type: 'suggest',
+          placeHolder: 'confirmed',
+          suggests: SUGGESTS.ticket.status
         }),
         elastic: () => ({
           field: 'ticket_status',

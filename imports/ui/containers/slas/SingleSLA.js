@@ -33,7 +33,6 @@ class SingleSLA extends Component {
     }));
     wpOptions.splice(0, 0, {name: '', label: ''});
 
-
     if (mode === 'view') {
       const {name = '', description = '', workplace = '', frequency = {}, conditions, message} = SLA;
       return (

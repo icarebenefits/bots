@@ -7,23 +7,21 @@ const FormActions = (props) => {
   const {buttons, position} = props;
 
   return (
-    <div className="form-actions">
-      <div className="row">
-        <div className={position}>
-          {buttons.map(btn => {
-            const {id, label, className, type, href, handleOnClick} = btn;
-            return (
-                <Button
-                  key={id}
-                  id={id}
-                  className={classNames('btn', className)}
-                  type={type}
-                  href={href}
-                  onClick={e => handleOnClick(e, id)}
-                >{label}</Button>
-            );
-          })}
-        </div>
+    <div className="col-md-12 form-actions">
+      <div className={position}>
+        {buttons.map(btn => {
+          const {id, label, className, type, href, onClick} = btn;
+          return (
+            <Button
+              key={id}
+              id={id}
+              className={classNames('btn', className)}
+              type={type}
+              href={href}
+              onClick={e => onClick(e, id)}
+            >{label}</Button>
+          );
+        })}
       </div>
     </div>
   );

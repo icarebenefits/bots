@@ -59,6 +59,8 @@ export const SLA_SET_FILTER = 'SLA::SET_FILTER';
 export const SLA_SET_SEARCH = 'SLA::SET_SEARCH';
 export const SLA_CHANGE_MODE = 'SLA::CHANGE_MODE';
 
+export const SLA_INIT_SLA = 'SLA::INIT_SLA';
+export const SLA_RESET_SLA = 'SLA::RESET_SLA';
 export const SLA_ACTIVATE = 'SLA::ACTIVATE';
 export const SLA_INACTIVATE = 'SLA::INACTIVATE';
 export const SLA_REMOVE = 'SLA::REMOVE';

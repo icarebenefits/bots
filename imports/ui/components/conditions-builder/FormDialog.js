@@ -96,14 +96,13 @@ class FormDialog extends Component {
             />
           </div>
           {values.map((input, idx) => {
-            const {type, value} = input;
+            const {type, suggests} = input;
             return (
               <div className="form-group" key={idx}>
                 <FormInput
                   index={idx}
-                  type={type}
-                  value={value}
-                  handleOnChange={value => handleOnChange(row, 'values', {type, value}, idx)}
+                  {...input}
+                  handleOnChange={value => handleOnChange(row, 'values', {type, suggests, value}, idx)}
                 />
               </div>
             );
