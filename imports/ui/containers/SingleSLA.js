@@ -85,7 +85,6 @@ class SingleSLA extends Component {
     return new Promise((resolve, reject) => {
       Methods.validateName.call({name, country, _id}, (err, res) => {
         if (err) {
-          // console.log('error', err);
           reject(err.reason);
         } else {
           if (res) {
@@ -164,7 +163,6 @@ class SingleSLA extends Component {
         });
         this.setState({saving: false});
       } else {
-        console.log('create sla', res);
         Notify.info({
           title: 'CREATE_SLA',
           message: 'Success.'
@@ -175,9 +173,7 @@ class SingleSLA extends Component {
   }
 
   _onEditSLA(SLA) {
-    console.log('_onEditSLA', SLA);
     const result = Methods.edit.call(SLA, (err, res) => {
-      console.log('_onEditSLA', err, res);
       if (err) {
         Notify.error({
           title: 'EDIT_SLA',
@@ -185,7 +181,6 @@ class SingleSLA extends Component {
         });
         this.setState({saving: false});
       } else {
-        console.log('edited sla', res);
         Notify.info({
           title: 'EDIT_SLA',
           message: 'Success.'
@@ -193,7 +188,6 @@ class SingleSLA extends Component {
         return this.setState({saving: false}, this.onClickCancel);
       }
     });
-    console.log('onEdit result', result);
   }
 
   _onDraft(_id, SLA) {
@@ -239,7 +233,6 @@ class SingleSLA extends Component {
         // create SLA
         result = this._onCreateSLA({...SLA, status: 'active'});
       }
-      this.onClickCancel();
     } catch (err) {
       Notify.error({
         title: 'SLA save',
@@ -250,7 +243,6 @@ class SingleSLA extends Component {
   }
 
   _onExecute(_id, SLA) {
-    this.setState({executing: true});
     if (_.isEmpty(SLA)) {
       Notify.error({
         title: 'SLA execute',
@@ -266,23 +258,22 @@ class SingleSLA extends Component {
         return this.setState({previewing: false});
       } else {
         const
-          {message, queries} = res,
+          {message} = res,
           {workplace} = SLA;
+        Notify.info({title: 'SLA executing', message: ''});
         Methods.postMessage.call({workplace, message}, (err, res) => {
           if(err) {
             Notify.error({
               title: 'SLA execute',
               message: err.reason
             });
+            this.setState({executing: false});
           } else {
-            console.log('postMessage', res);
             Notify.info({
               title: 'SLA execute',
-              message: res
+              message: `Success: posted with id - ${res.id}`
             });
-
-            console.log('after post', _id, SLA);
-
+            this.setState({executing: false, saving: true});
             try {
               let result = null;
 
@@ -293,9 +284,8 @@ class SingleSLA extends Component {
                 // create SLA
                 result = this._onCreateSLA({...SLA, status: 'active'});
               }
-              this.onClickCancel();
+              this.setState({saving: false});
             } catch (err) {
-              console.log('sla execute error', err);
               Notify.error({
                 title: 'SLA execute',
                 message: err.message
@@ -464,7 +454,7 @@ class SingleSLA extends Component {
               message: 'SLA is valid.'
             });
             // preview the SLA
-            this.setState({validating: false});
+            this.setState({validating: false, executing: true});
             return this._onExecute(slaId, newSLA);
           }
 
@@ -549,27 +539,34 @@ class SingleSLA extends Component {
 
   render() {
     const {ready, mode, SLA, WPs,} = this.props;
+    const {executing, previewing, saving, validating} = this.state;
+    const disabled = executing && previewing && saving && validating;
     const
       isEditMode = mode === 'edit',
       buttons = [
         {
           id: 'validate_preview', label: 'Validate & Preview',
+          disabled: validating,
           className: 'btn-info', type: 'button', onClick: this.onClickValidateAndPreview
         },
         {
           id: 'draft', label: 'Save as Draft',
+          disabled: saving,
           className: 'green', type: 'button', onClick: this.onClickSaveAsDraft
         },
         {
           id: 'save', label: 'Save',
+          disabled: saving,
           className: 'green', type: 'button', onClick: this.onClickSave
         },
         {
           id: 'save_execute', label: 'Save & Execute',
+          disabled: (executing && executing),
           className: 'green', type: 'button', onClick: this.onClickSaveAndExecute
         },
         {
           id: 'cancel', label: 'Cancel',
+          disabled: disabled,
           className: 'btn-default', type: 'button', onClick: this.onClickCancel
         }
       ],

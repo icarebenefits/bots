@@ -10,7 +10,7 @@ const FormActions = (props) => {
     <div className="col-md-12 form-actions">
       <div className={position}>
         {buttons.map(btn => {
-          const {id, label, className, type, href, onClick} = btn;
+          const {id, label, className, type, href, disabled, onClick} = btn;
           return (
             <Button
               key={id}
@@ -18,6 +18,7 @@ const FormActions = (props) => {
               className={classNames('btn', className)}
               type={type}
               href={href}
+              disabled={disabled}
               onClick={e => onClick(e, id)}
             >{label}</Button>
           );

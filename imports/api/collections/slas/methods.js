@@ -209,18 +209,17 @@ Methods.edit = new ValidatedMethod({
 
       // edit sla in Job Server
       const removeResult = await removeJob({name, country});
-      console.log('removeJob', removeResult);
-      console.log('status', status);
       if (status === 'active') {
+        console.log('status active')
         const {name: currentName} = currentSLA;
         if (currentName.toLowerCase() === name.toLowerCase()) {
           // job name didn't change
+          console.log('didnt change name on job')
           const editResult = await editJob(jobParams);
-          console.log('editJob', editResult);
         } else {
+          console.log(' change name on job')
           jobParams.name = currentName;
           const createResult = await createJob(jobParams);
-          console.log('createJob', createResult);
         }
       }
 
