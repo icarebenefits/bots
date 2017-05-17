@@ -246,7 +246,7 @@ class MessageBuilder extends Component {
                 type="text"
                 value={messageTemplate}
                 className="form-control"
-                placeholder="message messageTemplate"
+                placeholder="There are {icm} customers who has less than 110 iCare Members."
                 handleOnChange={value => this._handleFieldChange('messageTemplate', value)}
               />
             }

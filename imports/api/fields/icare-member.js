@@ -20,7 +20,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmName',
           name: 'Name',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'name'
@@ -34,7 +35,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmSocialId',
           name: 'Social ID',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'social_id'
@@ -76,7 +78,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmPhone',
           name: 'Phone',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'phone'
@@ -90,7 +93,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmEmail',
           name: 'Email',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'email'
@@ -104,7 +108,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmAddress',
           name: 'Address',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'address'
@@ -132,7 +137,9 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmJobTitle',
           name: 'Job title',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'job_title'
@@ -146,7 +153,9 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmDepartment',
           name: 'Department',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'department'
@@ -202,7 +211,9 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmContractType',
           name: 'Contract type',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'contract_type'
@@ -328,7 +339,9 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmSalaryPaymentMethod',
           name: 'Salary payment method',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'salary_payment_method'
@@ -342,7 +355,9 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmBankName',
           name: 'Bank name',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'bank_name'

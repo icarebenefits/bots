@@ -1,4 +1,5 @@
 import Standard from './standard';
+import {SUGGESTS} from './constants';
 /**
  * Composition Standard fields which got operators from standard fields
  * @constructor
@@ -25,7 +26,8 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soNumber',
           name: 'SO number',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
         }),
         elastic: () => ({
           field: 'so_number',
@@ -39,7 +41,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soStatus',
           name: 'Status',
-          type: 'string'
+          type: 'suggest',
+          placeHolder: '',
+          suggests: SUGGESTS.salesOrder.status
         }),
         elastic: () => ({
           field: 'so_status',
@@ -53,7 +57,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soPurchaseStore',
           name: 'Purchase store',
-          type: 'string'
+          type: 'suggest',
+          placeHolder: '',
+          suggests: SUGGESTS.salesOrder.purchaseStore
         }),
         elastic: () => ({
           field: 'purchase_store',
@@ -67,7 +73,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soPurchasedBy',
           name: 'Purchase by',
-          type: 'string'
+          type: 'string',
+          placeHolder: 'icare.bots@icarebenefits.com',
+          suggests: []
         }),
         elastic: () => ({
           field: 'purchased_by',
@@ -81,7 +89,9 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soPurchasedByChannel',
           name: 'Purchase by channel',
-          type: 'string'
+          type: 'suggest',
+          placeHolder: '',
+          suggests: SUGGESTS.salesOrder.purchasedByChannel
         }),
         elastic: () => ({
           field: 'purchased_by_channel',
@@ -109,7 +119,8 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soShipToName',
           name: 'Ship to name',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'ship_to_name',
@@ -123,7 +134,8 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soShipToAddress',
           name: 'Ship to address',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'ship_to_address',
@@ -137,7 +149,8 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soBillToName',
           name: 'Bill to name',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'bill_to_name',
@@ -151,7 +164,8 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soBillToAddress',
           name: 'Bill to address',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'bill_to_address',

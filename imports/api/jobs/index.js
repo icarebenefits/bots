@@ -1,6 +1,8 @@
 import {Meteor} from 'meteor/meteor';
 import {DDP} from 'meteor/ddp-client';
 import {later} from 'meteor/mrt:later';
+import {Promise} from 'meteor/promise';
+
 
 /**
  * Function create job on job server from bots client
@@ -8,140 +10,96 @@ import {later} from 'meteor/mrt:later';
  * @return {{getJobs: (function()), createJob: (function()), editJob: (function()), pauseJob: (function()), resumeJob: (function()), restartJob: (function()), cancelJob: (function()), removeJob: (function())}}
  * @constructor
  */
-const JobServer = (country) => {
+export const connectJobServer = () => {
   const {host, port} = Meteor.settings.public.jobs_server;
+
   try {
     const server = DDP.connect(`http://${host}:${port}`);
-    
-    return {
-      getJobs: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.getJobs', params, (err, res) => {
-          if(err) callback(err, null);
+    const {status, connected, reason} = server.status();
 
-          callback(null, res);
-        });
-      },
-      createJob: ({name, priority, freqText, info}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-          attributes: {
-            priority: priority || 'normal',
-            repeat: {
-              schedule: later.parse.text(freqText)
-            }
-          },
-          data: info
-        };
-        server.call('controllers.create', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      editJob: ({name, priority, freqText, info}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-          attributes: {
-            priority: priority || 'normal',
-            repeat: {
-              schedule: later.parse.text(freqText)
-            }
-          },
-          data: info
-        };
-        server.call('controllers.edit', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      pauseJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.pause', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      resumeJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.resume', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      restartJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.restart', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      cancelJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.cancel', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      readyJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.ready', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      removeJob: ({name}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-        };
-        server.call('controllers.remove', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-      startJob: ({name, priority, freqText, info}, callback = () => {}) => {
-        const params = {
-          type: `${country}-${name}`,
-          attributes: {
-            priority: priority || 'normal',
-            repeat: {
-              schedule: later.parse.text(freqText)
-            }
-          },
-          data: info
-        };
-        server.call('controllers.start', params, (err, res) => {
-          if(err) callback(err, null);
-
-          callback(null, res);
-        });
-      },
-    };
-  } catch(e) {
-    return {
-      error: 'CONNECT_JOBS_SERVER_FAILED',
-      message: JSON.stringify(e),
-    };
+    if (status === 'failed') {
+      throw new Meteor.Error('JobServer.connect', `Failed: ${JSON.stringify({status, connected, reason})}`);
+    } else {
+      return server;
+    }
+  } catch (err) {
+    throw new Meteor.Error('JobServer.connect', `Failed: ${err.reason}`);
   }
 };
+const server = connectJobServer();
 
-export default JobServer
+const controlJobServer = (controller, params) => {
+  return new Promise((resolve, reject) => {
+    server.call(controller, params, (err, res) => {
+      if (err) {
+        reject(new Meteor.Error(`JobServer.${controller}`, err.reason));
+      } else {
+        resolve(res);
+      }
+    });
+  });
+};
+
+export const getJobs = ({name, country}) => {
+  const params = {
+    type: `${country}-${name}`,
+  };
+
+  return controlJobServer('controllers.getJobs', params);
+}
+export const createJob = ({name, priority, freqText, info, country}) => {
+  const params = {
+    type: `${country}-${name}`,
+    attributes: {
+      priority: priority || 'normal',
+      repeat: {
+        schedule: later.parse.text(freqText)
+      }
+    },
+    data: info
+  };
+
+  return controlJobServer('controllers.create', params);
+}
+export const editJob = ({name, priority, freqText, info, country}) => {
+  const params = {
+    type: `${country}-${name}`,
+    attributes: {
+      priority: priority || 'normal',
+      repeat: {
+        schedule: later.parse.text(freqText)
+      }
+    },
+    data: info
+  };
+
+  return controlJobServer('controllers.edit', params);
+}
+export const cancelJob = ({name, country}) => {
+  const params = {
+    type: `${country}-${name}`,
+  };
+
+  return controlJobServer('controllers.cancel', params);
+};
+export const removeJob = ({name, country}) => {
+  const params = {
+    type: `${country}-${name}`,
+  };
+
+  return controlJobServer('controllers.remove', params);
+};
+export const startJob = ({name, priority, freqText, info, country}) => {
+  const params = {
+    type: `${country}-${name}`,
+    attributes: {
+      priority: priority || 'normal',
+      repeat: {
+        schedule: later.parse.text(freqText)
+      }
+    },
+    data: info
+  };
+
+  return controlJobServer('controllers.start', params);
+};

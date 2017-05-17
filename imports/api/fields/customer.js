@@ -24,7 +24,8 @@ const Customer = () => ({
         props: () => ({
           id: 'name',
           name: 'Name',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'name'
@@ -38,7 +39,8 @@ const Customer = () => ({
         props: () => ({
           id: 'numberEmployees',
           name: 'Number of employees',
-          type: 'number'
+          type: 'number',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'number_employees',
@@ -52,7 +54,8 @@ const Customer = () => ({
         props: () => ({
           id: 'numberICMs',
           name: 'Number of iCare members',
-          type: 'number'
+          type: 'number',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'number_iCMs'
@@ -66,7 +69,8 @@ const Customer = () => ({
         props: () => ({
           id: 'email',
           name: 'Email',
-          type: 'string'
+          type: 'string',
+          placeHolder: 'icare.bots@icarebenefits.com'
         }),
         elastic: () => ({
           field: 'email'
@@ -80,7 +84,8 @@ const Customer = () => ({
         props: () => ({
           id: 'phone',
           name: 'Phone',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'phone',
@@ -94,7 +99,8 @@ const Customer = () => ({
         props: () => ({
           id: 'address',
           name: 'Address',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'address',
@@ -136,7 +142,9 @@ const Customer = () => ({
         props: () => ({
           id: 'repaymentMethod',
           name: 'Repayment method',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'repayment_method',
@@ -150,7 +158,9 @@ const Customer = () => ({
         props: () => ({
           id: 'typeOfContract',
           name: 'Type of contract',
-          type: 'string'
+          type: 'string',
+          placeHolder: '',
+          suggests: []
         }),
         elastic: () => ({
           field: 'type_of_contract',

@@ -1,26 +1,24 @@
 import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
 import {FlowRouter} from 'meteor/kadira:flow-router';
+import {connect} from 'react-redux';
 
-export class Tabs extends Component {
+import {setActiveTab} from '/imports/ui/store/actions';
 
-  render() {
-    const
-      {tabs} = this.props,
-      active = FlowRouter.getQueryParam('tab') || tabs[0].id
-      ;
-
+const Tabs = (props) => {
+  const {tabs} = props;
+  if(_.isEmpty(tabs)) {
+    return null;
+  } else {
+    const {country} = props;
+    const activeTab = _.isEmpty(props.activeTab) ? tabs[0].id : props.activeTab;
     return (
       <div className="nav-collapse collapse navbar-collapse navbar-responsive-collapse">
         <ul className="nav navbar-nav">
           {tabs.map(tab => {
-            const
-              {id, name} = tab,
-              country = FlowRouter.getParam('country'),
-              isActive = active === id ? true : false
-              ;
+            const {id, name} = tab;
+            const isActive = activeTab === id;
             return (
-              // "active open selected"
               <li
                 className={classNames({
                      'active': isActive,
@@ -30,7 +28,7 @@ export class Tabs extends Component {
                 key={id}
               >
                 <a className="text-uppercase"
-                   onClick={() => FlowRouter.go('SLAs', {country}, {tab: id})}
+                   onClick={() => FlowRouter.go('setup', {page: 'setup', country}, {tab: id})}
                 >
                   <i className="fa fa-puzzle"></i>
                   {name}
@@ -42,7 +40,7 @@ export class Tabs extends Component {
       </div>
     );
   }
-}
+};
 
 Tabs.propTypes = {
   tabs: PropTypes.arrayOf(
@@ -51,7 +49,16 @@ Tabs.propTypes = {
       name: PropTypes.string,
     })
   ).isRequired,
-  active: PropTypes.string,
+  activeTab: PropTypes.string,
 };
 
-export default Tabs
+const mapStateToProps = state => {
+  const {pageControl: {tabs, activeTab, country}} = state;
+  return {
+    country,
+    tabs,
+    activeTab
+  };
+};
+
+export default connect(mapStateToProps)(Tabs)

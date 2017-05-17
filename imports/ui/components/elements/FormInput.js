@@ -4,6 +4,7 @@ import {Checkbox} from './Checkbox';
 import {Textbox} from './Textbox';
 import {Selectbox} from './Selectbox';
 import {DatePicker} from './DatePicker';
+import Suggest from './Suggest';
 
 
 export class FormInput extends Component {
@@ -14,8 +15,14 @@ export class FormInput extends Component {
 
   render() {
     const
-      {id, type, defaultValue, value, className, multiline, options, handleOnChange, hidden, index} = this.props,
-      common = {id, ref: 'input', className, defaultValue, multiline, value, handleOnChange, hidden, type}
+      {
+        id, type, defaultValue, value, className, placeholder = '', suggests = [],
+        multiline, options, handleOnChange, hidden, index
+      } = this.props,
+      common = {
+        id, ref: 'input', className, defaultValue, placeholder,
+        multiline, value, handleOnChange, hidden, type
+      }
       ;
 
     switch (type) {
@@ -82,7 +89,7 @@ export class FormInput extends Component {
       case 'inLast':
       {
         let options = [];
-        if(index > 0) {
+        if (index > 0) {
           options = [
             {name: '', label: ''},
             {name: 'years', label: 'years'},
@@ -113,6 +120,13 @@ export class FormInput extends Component {
           />
         );
       }
+      case 'suggest':
+      {
+        return <Suggest
+          {...common}
+          options={suggests}
+        />;
+      }
       default:
       {
         return (
@@ -123,8 +137,6 @@ export class FormInput extends Component {
   }
 }
 
-FormInput.propTypes = {
-
-};
+FormInput.propTypes = {};
 
 export default FormInput

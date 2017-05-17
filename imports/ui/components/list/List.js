@@ -2,22 +2,24 @@ import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
 import ListItem from './ListItem';
-import {NoContent} from './common';
+import {NoContent} from '../common';
 
 const List = (props) => {
   const
     {
+      noContentLabel = 'content',
       headers = [],
       data = [],
       actions = [],
-      handleDoubleClick = () => {},
+      onClickAction = () => {},
+      onDoubleClick = () => {},
       readonly = true
     } = props;
 
   if(_.isEmpty(data)) {
     return (
       <NoContent
-        message="There is no SLA."
+        message={`There is no ${noContentLabel}.`}
       />
     );
   }
@@ -33,7 +35,7 @@ const List = (props) => {
       </tr>
       </thead>
       <tbody
-        onDoubleClick={e => handleDoubleClick(e.target.dataset)}
+        onDoubleClick={e => onDoubleClick(e.target.dataset)}
       >
       {data.map((d, rowIdx) => {
         const {_id, row} = d;

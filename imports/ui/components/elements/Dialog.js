@@ -15,13 +15,13 @@ export class Dialog extends Component {
   }
 
   render() {
-    const {modal, header, onAction, children, hasCancel, confirmLabel} = this.props;
+    const {modal, header, onAction, children, hasCancel, confirmLabel, width = 350, bodyClass = 'text-center'} = this.props;
 
     return (
       <div className={classNames({'Dialog': true, 'DialogModal': modal})}>
-        <div className={classNames({'DialogModalWrap': modal})}>
+        <div className={classNames({'DialogModalWrap': modal})} style={{width}}>
           <div className="DialogHeader">{header}</div>
-          <div className="DialogBody">{children}</div>
+          <div className={classNames("DialogBody", bodyClass)}>{children}</div>
           <div className="DialogFooter">
             {hasCancel
               ? <span

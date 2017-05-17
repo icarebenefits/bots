@@ -7,7 +7,7 @@ export class Textbox extends Component {
   }
   
   render() {
-    const {multiline = false, className, value, handleOnChange} = this.props;
+    const {multiline = false, className, value, handleOnChange, placeholder} = this.props;
     if(multiline) {
       return (
         <textarea
@@ -15,6 +15,7 @@ export class Textbox extends Component {
           ref="input"
           className={className}
           defaultValue={value}
+          placeholder={placeholder}
           height="50"
           onChange={e => handleOnChange(e.target.value)}
         />
@@ -26,6 +27,7 @@ export class Textbox extends Component {
         ref="input"
         className={className}
         defaultValue={value}
+        placeholder={placeholder}
         onChange={e => handleOnChange(e.target.value)}
       />
     );

@@ -1,3 +1,6 @@
+import S from 'string';
+import _ from 'lodash';
+
 /**
  * COUNTRY CONSTANTS
  * @type {string[]}
@@ -31,4 +34,16 @@ export const formatMessage = ({message = '', heading1, heading2, bold, link, cod
   };
 
   return newMess;
+};
+
+
+export const getVarsFromString = (str, arr) => {
+  const v = S(str).between('{', '}').s;
+  if (_.isEmpty(v)) {
+    return arr;
+  }
+  arr.push(v);
+  const newStr = S(str).strip(`{${v}}`).s;
+  getVarsFromString(newStr, arr);
+  return arr;
 };
