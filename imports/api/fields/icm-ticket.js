@@ -1,4 +1,5 @@
 import Standard from './standard';
+import {SUGGESTS} from './constants';
 /**
  * Composition Standard fields which got operators from standard fields
  * @constructor
@@ -25,7 +26,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketId',
           name: 'Ticket ID',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'ticket_id',
@@ -39,7 +41,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketSONumber',
           name: 'SO number',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'so_number',
@@ -53,7 +56,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketTitle',
           name: 'title',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'title',
@@ -67,7 +71,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketDescription',
           name: 'Description',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'description',
@@ -81,7 +86,9 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketType',
           name: 'Type',
-          type: 'string'
+          type: 'suggest',
+          placeHolder: '',
+          suggests: SUGGESTS.ticket.type
         }),
         elastic: () => ({
           field: 'ticket_type',
@@ -95,7 +102,9 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketPriority',
           name: 'Priority',
-          type: 'string'
+          type: 'suggest',
+          placeHolder: '',
+          suggests: SUGGESTS.ticket.priority
         }),
         elastic: () => ({
           field: 'priority',
@@ -109,7 +118,9 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketStatus',
           name: 'Status',
-          type: 'string'
+          type: 'suggest',
+          placeHolder: 'confirmed',
+          suggests: SUGGESTS.ticket.status
         }),
         elastic: () => ({
           field: 'ticket_status',
@@ -123,7 +134,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketStaffName',
           name: 'Staff name',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'staff_name',
@@ -137,7 +149,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketStaffEmail',
           name: 'Staff email',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'staff_email',
@@ -165,7 +178,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketDepartment',
           name: 'Department',
-          type: 'string'
+          type: 'string',
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'department',

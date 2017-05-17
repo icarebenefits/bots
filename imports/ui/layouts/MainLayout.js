@@ -1,39 +1,24 @@
 import React, {Component} from 'react';
+import {Provider} from 'react-redux';
+import {Store} from '/imports/ui/store';
 
-// Components
-// common
-import {
-  Header,
-  Footer
-} from '../../ui/components/common';
+/* Components */
+import {Header, Footer} from '/imports/ui/components/common';
 
-
-class MainLayout extends Component {
-
-  render() {
-    const {
-      tabs = [],
-      content = () => {
-      },
-      slogan
-    } = this.props;
-
-    return (
+const MainLayout = (props) => {
+  return (
+    <Provider store={Store}>
       <div className="page-header-fixed page-sidebar-closed-hide-logo">
         <div className="wrapper">
           {/* Header */}
-          <Header
-            slogan={slogan}
-            tabs={tabs}
-          />
-
+          <Header />
           <div id="index" className="container-fluid">
             <div className="page-content">
               {/* Breadcrumbs */}
 
               <div className="page-content-container">
                 {/* Content */}
-                {content()}
+                {props.content()}
               </div>
             </div>
 
@@ -43,8 +28,8 @@ class MainLayout extends Component {
         </div>
         {/* Quick Sidebar */}
       </div>
-    );
-  }
-}
+    </Provider>
+  );
+};
 
 export default MainLayout

@@ -48,6 +48,7 @@ SLAs.schema = new SimpleSchema({
   },
   workplace: {
     type: String,
+    optional: true
   },
   frequency: {
     type: Object,
@@ -122,10 +123,12 @@ SLAs.schema = new SimpleSchema({
     optional: true,
   },
   message: {
-    type: Object
+    type: Object,
+    optional: true
   },
   "message.variables": {
     type: [Object],
+    optional: true
   },
   "message.variables.$.summaryType": {
     type: String,
@@ -145,6 +148,7 @@ SLAs.schema = new SimpleSchema({
   },
   "message.messageTemplate": {
     type: String,
+    optional: true
   },
   status: {
     type: String,

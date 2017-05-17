@@ -1,6 +1,6 @@
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
-import {check} from 'meteor/check';
-import classification from '/imports/ui/pages/examples/classification';
+import S from 'string';
+import moment from 'moment';
 
 export const IDValidator = {
   _id: {
@@ -9,119 +9,45 @@ export const IDValidator = {
   }
 };
 
-export const Expression = {
-  build: (conditions) => {
-    check(conditions, Array);
+export const getScheduleText = (freq) => {
+  const
+    {preps, range, unit, preps2, range2} = freq;
+  let text = '';
 
-    // console.log(conditions);
-    let expression = [];
+  !_.isEmpty(preps) && (text = `${preps}`);
+  !_.isEmpty(range) && (text = `${text} ${range}`);
+  !_.isEmpty(unit) && (preps === 'at') ? (text = `${text}:${unit}`) : (text = `${text} ${unit}`);
+  !_.isEmpty(preps2) && (text = `${text} ${preps2}`);
+  !_.isEmpty(range2) && (text = `${text} ${range2}`);
 
-    conditions.map(condition => {
-      let newCond = {};
-      condition.map(cond => {
-        if (cond.id === 'description') {
-          newCond['operator'] = cond.operator;
-          newCond['value'] = cond.value;
-        } else {
-          console.log(cond)
-          newCond[cond.id] = cond.value || '';
-        }
-        delete newCond.description;
-      });
-      expression.push(newCond);
-    });
-
-    // console.log(expression);
-    
-    return expression;
-  },
-  create: (expression) => {
-    check(expression, Array);
-
-    const expr = [];
-    expression.map(e => {
-      // console.log(e);
-      const {not, openParens, filter, operator, value, closeParens, bitwise} = e;
-      expr.push(`${(not ? '!' : '')} ${openParens} ${filter} ${operator} ${value} ${closeParens} ${bitwise}`);
-    });
-
-    return expr.join(' ');
-  }
+  return text;
 };
 
-export const Conditions = {
-  parse: (expression) => {
-    check(expression, Array);
-
-    let conditions = [];
-
-    expression.map(e => {
-      const {not, openParens, filter, operator, value, closeParens, bitwise} = e;
-      const condition = [
-        {
-          id: 'not',
-          label: 'Not',
-          type: 'checkbox',
-          value: not
-        },
-        {
-          id: 'openParens',
-          label: 'Parens',
-          type: 'select',
-          options: classification.conditionsBuilder.openParens,
-          value: openParens
-        },
-        {
-          id: 'filter',
-          label: 'Filter',
-          type: 'select',
-          options: classification.conditionsBuilder.filters,
-          value: filter
-        },
-        {
-          id: 'description',
-          label: 'Description',
-          type: 'label',
-          operator: operator,
-          value: value
-        },
-        {
-          id: 'closeParens',
-          label: 'Parens',
-          type: 'select',
-          options: classification.conditionsBuilder.closeParens,
-          value: closeParens
-        },
-        {
-          id: 'bitwise',
-          label: 'And/Or',
-          type: 'select',
-          options: classification.conditionsBuilder.bitwise,
-          value: bitwise
-        },
-      ];
-      conditions.push(condition);
-    });
-    
-    return conditions;
-  }
-};
-
-export const Operators = {
-  get: (field) => {
-    check(field, String);
-
+export const searchSLAList = (SLAs, WPs, search) => {
+  return SLAs.filter(s => {
     const
-      {operators, fieldTypes} = classification.conditionsBuilder,
-      type = fieldTypes[field]
-      ;
+      {name, frequency, lastExecutedAt} = s,
+      wp = WPs.filter(w => w.id === Number(s.workplace))
+    let
+      wpName = '';
+    if (!_.isEmpty(wp)) {
+      wpName = wp[0].name
+    }
+    
+    const searchText = name.toLowerCase() + ' ' +
+      S(wpName.toLowerCase()) + ' ' +
+      S(getScheduleText(frequency).toLowerCase()) + ' ' +
+      S(moment(new Date(lastExecutedAt)).format('LLL').toLowerCase());
+    // console.log('searchText', searchText);
 
-    return operators[type];
-  },
-  getType: (field) => {
-    const {fieldTypes} = classification.conditionsBuilder;
-
-    return fieldTypes[field];
-  }
+    return S(searchText).contains(search);
+  });
 };
+
+/* Parser */
+export {default as Parser} from './parser';
+
+/* Defaults */
+export * from './defaults';
+
 

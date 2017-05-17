@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {PropTypes} from 'react';
+import {connect} from 'react-redux';
 
 const Logo = (props) => (
   <a className="page-logo" href="/">
@@ -10,4 +11,12 @@ const Logo = (props) => (
   </a>
 );
 
-export default Logo
+Logo.propTypes = {
+  slogan: PropTypes.string.isRequired
+};
+
+const mapStateToProps = state => ({
+  slogan: state.pageControl.slogan
+});
+
+export default connect(mapStateToProps)(Logo)

@@ -61,115 +61,132 @@ const fistSLACheck = () => {
 };
 
 /**
- * check the sla base on conditions and message
- * @param slaId
- * @return {*}
+ * Execute SLA - server & client
+ * @param SLA
+ * @param preview
+ * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
-const checkSLA = (slaId) => {
-  const sla = SLAs.findOne({_id: slaId});
-  if (!_.isEmpty(sla)) {
-    const {name, conditions, workplace, message: {variables, messageTemplate}, country} = sla;
-    const {level} = Meteor.settings.log;
-    let queries = [];
+export const executeSLA = ({SLA}) => {
+  if (_.isEmpty(SLA)) {
+    throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
+  }
+  const {name, conditions, workplace, message: {variables, messageTemplate}, country} = SLA;
+  let queries = [];
 
-    /* validate conditions and message */
-    if (_.isEmpty(conditions)) {
-      throw new Meteor.Error('CONDITIONS_EMPTY');
-    }
-    if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
-      throw new Meteor.Error('MESSAGE_EMPTY');
-    }
+  /* validate conditions and message */
+  // if (_.isEmpty(conditions)) {
+  //   throw new Meteor.Error('EXECUTE_SLA', 'Conditions is required');
+  // }
+  if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+    throw new Meteor.Error('EXECUTE_SLA', 'Message is required.');
+  }
 
-    /* For every variable - build appropriated query
-     * and get the aggregation result */
-    const vars = {};
-    variables.map(aggregation => {
-      const
-        {summaryType: aggType, group, field, name} = aggregation,
-        {type} = Field()[group]().elastic();
-      const
-        {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
-        index = `${indexPrefix}_${country}_${env}`;
+  /* For every variable - build appropriated query
+   * and get the aggregation result */
+  const vars = {};
+  variables.map(aggregation => {
+    const
+      {summaryType: aggType, group, field, name} = aggregation,
+      {type} = Field()[group]().elastic();
+    const
+      {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
+      index = `${indexPrefix}_${country}_${env}`;
 
-      const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
-      const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(aggregation);
+    const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
+    const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(aggregation);
 
-      // console.log('query', JSON.stringify(query))
+    // console.log('query', JSON.stringify(query))
 
-      if (error || aggsErr) {
-        throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
+    if (error || aggsErr) {
+      throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
+    } else {
+      // build the query
+      const ESQuery = {
+        query,
+        aggs,
+        size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+      };
+
+      queries.push({index, type, ESQuery});
+
+      const {Elastic} = require('../elastic');
+      // validate query before run
+      const {valid} = Elastic.indices.validateQuery({
+        index,
+        type,
+        body: {query}
+      });
+      if (!valid) {
+        throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
       } else {
-        // build the query
-        const ESQuery = {
-          query,
-          aggs,
-          size: 0 // just need the result of total and aggregation, no need to fetch ES documents
-        };
+        let agg = {};
+        try {
+          const {aggregations} = Elastic.search({
+            index,
+            type,
+            body: ESQuery
+          });
+          agg = aggregations;
+        } catch (err) {
+          throw new Meteor.Error('BUILD_AGGS_QUERY', `Failed: ${err.message}`);
+        }
 
-        queries.push({index, type, ESQuery});
-
-        const {Elastic} = require('../elastic');
-        // validate query before run
-        const {valid} = Elastic.indices.validateQuery({
-          index,
-          type,
-          body: {query}
-        });
-        if (!valid) {
-          throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
-        } else {
-          let agg = {};
-          try {
-            const {aggregations} = Elastic.search({
-              index,
-              type,
-              body: ESQuery
-            });
-            agg = aggregations;
-          } catch(e) {
-            console.log({name: 'checkSLA', message: JSON.stringify(e)});
+        if (!_.isEmpty(agg)) {
+          let ESField = '';
+          if (field === 'total') {
+            ESField = Field()[group]().elastic().id;
+          } else {
+            ESField = Field()[group]().field()[field]().elastic().field;
           }
+          const {value} = agg[`agg_${aggType}_${ESField}`];
 
-          if (!_.isEmpty(agg)) {
-            let ESField = '';
-            if (field === 'total') {
-              ESField = Field()[group]().elastic().id;
-            } else {
-              ESField = Field()[group]().field()[field]().elastic().field;
-            }
-            const {value} = agg[`agg_${aggType}_${ESField}`];
-
-            vars[name] = accounting.formatNumber(value, 0);
-          }
+          vars[name] = accounting.formatNumber(value, 0);
         }
       }
-    });
-
-    /* Build message */
-    let message = `# ${name} \n`;
-    message = message + format(messageTemplate, vars);
-    if(level === 'debug') {
-      message = `${message} \n **Query** \n \`\`\`${JSON.stringify(queries, null, 2)} \n \`\`\``;
     }
-    // message = `${message} \n\n **@Powered by** [iCare-bots](bots.stage.icbsys.net)`;
+  });
 
-    /* Send message to workplace */
-    Facebook().postMessage(workplace, message)
-      .then(res => console.log('postMessage', JSON.stringify(res)))
-      .catch(e => console.log('postMessage.Error', JSON.stringify(e)));
-    Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
+  /* Build message */
+  let message = `## ${name} \n`;
+  message = message + format(messageTemplate, vars);
 
-    return {
-      check: true,
-      notify: true,
-    };
+  return {
+    executed: true,
+    message,
+    queries
+  };
+};
 
-  } else {
-    return {
-      check: false,
-      notify: false,
-      error: 'SLA_NOT_FOUND'
-    };
+/**
+ * Execute SLA - server
+ * @param slaId
+ * @param isPreview
+ * @return {{check: boolean, notify: boolean, message: string}}
+ */
+const checkSLA = (slaId) => {
+  try {
+    const SLA = SLAs.findOne({_id: slaId});
+    if (!_.isEmpty(SLA)) {
+      const result = executeSLA({SLA, slaId});
+      if (result.executed) {
+        const {message, queries} = result;
+        let mess = message;
+        /* Send message to workplace */
+        const {level} = Meteor.settings.log;
+        if (level === 'debug') {
+          mess = `${mess} \n **Query** \n \`\`\`${JSON.stringify(queries, null, 2)} \n \`\`\``;
+        }
+        Facebook().postMessage(SLA.workplace, mess)
+          .then(res => console.log('postMessage', JSON.stringify(res)))
+          .catch(e => console.log('postMessage.Error', JSON.stringify(e)));
+        // Track execute SLA
+        Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
+      }
+    } else {
+      throw new Meteor.Error('EXECUTE_SLA', 'SLA not found.');
+    }
+  } catch (err) {
+    throw new Meteor.Error('EXECUTE_SLA', err.message);
   }
 };
 
@@ -180,7 +197,7 @@ const addWorkplaceSuggester = (next, total = 0) => {
     .then(
       res => {
         const {data, paging: {next}} = JSON.parse(res);
-        if(_.isEmpty(data)) {
+        if (_.isEmpty(data)) {
           const message = formatMessage({
             message: '',
             heading1: 'addWorkplaceSuggester.NoGroupFound',
@@ -191,7 +208,7 @@ const addWorkplaceSuggester = (next, total = 0) => {
           /* index suggester */
           const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
           total += ESFuncs.indexSuggests({index, type, data});
-          if(next) {
+          if (next) {
             addWorkplaceSuggester(next, total);
           } else {
             const message = formatMessage({
@@ -217,6 +234,7 @@ const addWorkplaceSuggester = (next, total = 0) => {
 const Bots = {
   fistSLACheck,
   checkSLA,
+  executeSLA,
   addWorkplaceSuggester,
 };
 
