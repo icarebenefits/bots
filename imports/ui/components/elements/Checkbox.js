@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
 
 export class Checkbox extends Component {
@@ -20,5 +20,11 @@ export class Checkbox extends Component {
     );
   }
 }
+
+Checkbox.propTypes = {
+  className: PropTypes.string,
+  value: PropTypes.bool,
+  handleOnChange: PropTypes.func
+};
 
 export default Checkbox

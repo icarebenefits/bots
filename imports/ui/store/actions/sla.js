@@ -4,25 +4,34 @@
 import {
   SLA_ACTIVATE,
   SLA_INACTIVATE,
-  SLA_REMOVE
+  SLA_REMOVE,
+  SLA_INIT_SLA,
+  SLA_RESET_SLA,
+  SLA_CHANGE_MODE_EDIT
 } from '../constants/index';
 
-import {actionCreator, addNotification} from './';
+import {addNotification} from './';
 
 /* store */
 import {Store} from '../';
 
-/* Job Server */
-import JobServer from '/imports/api/jobs/index';
-
 /* Collections */
-import SLACollection from '/imports/api/collections/slas/slas';
+import {SLAs} from '/imports/api/collections/slas';
+import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
 
 /* Methods */
 import SLAMethods from '/imports/api/collections/slas/methods';
 
 /* Utils */
 import {getScheduleText} from '/imports/utils';
+
+const actionCreator = type => (payload = '') => ({type, payload});
+
+/* Change mode */
+export const onChangeModeEdit = SLA => ({
+  type: SLA_CHANGE_MODE_EDIT,
+  payload: {SLA}
+});
 
 /* Activate */
 export const startAction = (actionType, _id) => {
@@ -153,3 +162,7 @@ export const endAction = payload => {
     return action;
   }
 };
+
+/* Set SLA */
+export const initSLA = actionCreator(SLA_INIT_SLA);
+export const resetSLA = () => ({type: SLA_RESET_SLA, payload: {SLA: {}}});

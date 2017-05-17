@@ -16,7 +16,7 @@ import {
 /* Actions */
 import {
   setFilter, setSearch,
-  actionOnSLA
+  actionOnSLA, onChangeModeEdit
 } from '/imports/ui/store/actions';
 
 /* Collections */
@@ -34,6 +34,14 @@ class ListSLA extends Component {
     super(props);
 
     this._getListData = this._getListData.bind(this);
+    this.onClickEdit = this.onClickEdit.bind(this);
+  }
+
+  onClickEdit(mode, id) {
+    const {SLAs, onChangeModeEdit} = this.props;
+    const SLA = SLAs.filter(s => s._id === id)[0] || {};
+    onChangeModeEdit(SLA);
+    FlowRouter.setQueryParams({mode, id});
   }
 
   _getListData() {
@@ -84,7 +92,7 @@ class ListSLA extends Component {
   render() {
     const {
       ready, filter,
-      onFilter, onSearch, onClickAdd, onClickEdit,
+      onFilter, onSearch, onClickAdd,
       onClickActivate, onClickInactivate, onClickRemove
     } = this.props;
 
@@ -94,7 +102,7 @@ class ListSLA extends Component {
         {
           id: 'edit', label: 'Edit',
           icon: 'fa fa-pencil', className: 'btn-primary',
-          onClick: onClickEdit
+          onClick: this.onClickEdit
         },
         {id: 'activate', label: 'Activate',
           icon: 'fa fa-play', className: 'green',
@@ -150,7 +158,7 @@ ListSLA.propTypes = {
   onFilter: PropTypes.func,
   onSearch: PropTypes.func,
   onClickAdd: PropTypes.func,
-  onClickEdit: PropTypes.func,
+  onChangeModeEdit: PropTypes.func,
   onClickActivate: PropTypes.func,
   onClickInactivate: PropTypes.func,
   onClickRemove: PropTypes.func,
@@ -203,7 +211,7 @@ const mapDispatchToProps = dispatch => ({
   onFilter: f => dispatch(setFilter(SLA_SET_FILTER)(f)),
   onSearch: s => dispatch(setSearch(SLA_SET_SEARCH)(s)),
   onClickAdd: mode => FlowRouter.setQueryParams({mode}),
-  onClickEdit: (mode, id) => FlowRouter.setQueryParams({mode, id}),
+  onChangeModeEdit: SLA => dispatch(onChangeModeEdit(SLA)),
   onClickActivate: (action, _id) => dispatch(actionOnSLA(SLA_ACTIVATE, action, _id)),
   onClickInactivate: (action, _id) => dispatch(actionOnSLA(SLA_INACTIVATE, action, _id)),
   onClickRemove: (action, _id) => dispatch(actionOnSLA(SLA_REMOVE, action, _id))

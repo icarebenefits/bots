@@ -48,34 +48,31 @@ Meteor.startup(function () {
         ;
 
       countries.map(country => {
-        JobServer(country).getJobs({name: 'migration'}, (err, res) => {
-          if (err) {
-            Logger.error({name: 'GET_MIGRATION_JOBS', message: {error: err.reason}});
-            throw new Meteor.Error('GET_MIGRATION_JOBS_FAILED', err.reason);
-          }
-          if (res && _.isEmpty(res)) {
-            const params = {
-              name: 'migration',
-              priority: 'high',
-              freqText: frequency[country],
-              info: {
-                method: 'bots.migrateToElastic',
-                country,
-              }
-            };
-            JobServer(country).createJob(params, (err, res) => {
-              if (err) {
-                Logger.error({name: 'CREATE_MIGRATION_JOBS', message: {error: err.reason}});
-                throw new Meteor.Error('CREATE_MIGRATION_FAILED', err.reason);
-              }
-              if (res) {
-                Logger.info({name: 'CREATE_MIGRATION_JOBS', message: `job run with schedule: ${params.freqText}`});
-              }
-            });
-          } else {
-            Logger.info({name: 'MIGRATION_JOBS', message: 'EXISTS'});
-          }
-        });
+        const params = {
+          name: 'migration',
+          priority: 'high',
+          freqText: frequency[country],
+          info: {
+            method: 'bots.migrateToElastic',
+            country,
+          },
+          country
+        };
+        getJobs({name: params.name, country: params.country})
+          .then(jobs => {
+            if (_.isEmpty(jobs)) {
+              return createJob(params);
+            }
+            return {};
+          })
+          .then(res => {
+            if(!_.isEmpty(res)) {
+              message = formatMessage({message, heading1: 'CREATE_JOB_MIGRATION', code: res});
+            }
+          })
+          .catch(err => {
+            message = formatMessage({message, heading1: 'CREATE_JOB_MIGRATION', code: err.message});
+          });
       });
     }
   }
@@ -96,7 +93,6 @@ Meteor.startup(function () {
     getJobs({name: params.name, country: params.country})
       .then(jobs => {
         if (_.isEmpty(jobs)) {
-          console.log('createJob', jobs);
           return createJob(params);
         }
         return {};

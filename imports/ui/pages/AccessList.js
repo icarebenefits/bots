@@ -55,8 +55,7 @@ class AccessListComponent extends Component {
     return this.setState({dialog: true});
   }
 
-  handleActionAC(event, action, _id) {
-    event.preventDefault();
+  handleActionAC(action, _id) {
     switch (action) {
       case 'remove':
       {
@@ -172,15 +171,14 @@ class AccessListComponent extends Component {
               id: 'add',
               className: 'bold green',
               icon: 'fa fa-plus',
-              label: 'Add',
-              handleOnClick: this.handleAddEmail
+              label: 'Add'
             }
           ],
           toolLabel: `tool Label`,
           tools: [],
           hasSearch: true,
           searchPlaceHolder: 'Search by email...',
-          handleOnChange: this.handleToolbarChange,
+          onClick: this.handleAddEmail
         },
         list: {
           headers: ['Email', 'Created at', 'Updated At'],
@@ -190,7 +188,7 @@ class AccessListComponent extends Component {
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
-              handleAction: this.handleActionAC
+              onClick: this.handleActionAC
             },
           ],
           handleDoubleClick: () => {

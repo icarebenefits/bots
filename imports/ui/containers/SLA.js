@@ -15,8 +15,8 @@ const SLA = (props) => {
     queryParams: {tab, mode = 'list'}
   } = FlowRouter.current();
 
-  const onClickSidebar = mode => {
-    FlowRouter.go('setup', {country, page}, {tab, mode});
+  const onClickSidebar = (e, mode) => {
+    FlowRouter.setQueryParams({mode, id: null});
   };
 
   return (

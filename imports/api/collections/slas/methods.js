@@ -3,6 +3,7 @@ import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
+import S from 'string';
 
 import SLAs from './slas';
 // query builder
@@ -11,7 +12,9 @@ import {QueryBuilder} from '/imports/api/query-builder';
 import {Field} from '/imports/api/fields';
 
 /* Job server */
-import {startJob, cancelJob, removeJob} from '/imports/api/jobs';
+import {startJob, cancelJob, removeJob, createJob, editJob} from '/imports/api/jobs';
+
+import {Facebook} from '/imports/api/facebook-graph';
 
 /* Utils */
 import {getScheduleText} from '/imports/utils';
@@ -28,12 +31,22 @@ const Methods = {};
 Methods.create = new ValidatedMethod({
   name: 'sla.create',
   validate: null,
-  run({name, description, workplace, frequency, conditions, message, status, country}) {
+  async run({name, description, workplace, frequency, conditions, message, status, country}) {
     try {
-      const result = SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
-      return result;
-    } catch (e) {
-      throw new Meteor.Error('slas.create', JSON.stringify(e));
+      const _id = SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
+      if (status === 'active') {
+        const freqText = getScheduleText(frequency);
+        const jobParams = {
+          name,
+          freqText,
+          info: {method: 'bots.elastic', slaId: _id},
+          country
+        };
+        const createResult = await createJob(jobParams);
+        console.log('createJob', createResult);
+      }
+    } catch (err) {
+      throw new Meteor.Error('slas.create', err.message);
     }
   }
 });
@@ -179,26 +192,51 @@ Methods.setLastExecutedAt = new ValidatedMethod({
 Methods.edit = new ValidatedMethod({
   name: 'sla.edit',
   validate: null,
-  run({_id, name, description, workplace, frequency, conditions, message, status, country}) {
-    const
-      selector = {_id},
-      modifier = {}
-      ;
-
-    !_.isEmpty(name) && (modifier.name = name);
-    !_.isEmpty(description) && (modifier.description = description);
-    !_.isEmpty(workplace) && (modifier.workplace = workplace);
-    !_.isEmpty(frequency) && (modifier.frequency = frequency);
-    !_.isEmpty(conditions) && (modifier.conditions = conditions);
-    (!_.isEmpty(status) || status === 0) && (modifier.status = status);
-    !_.isEmpty(country) && (modifier.country = country);
-    !_.isEmpty(message) && (modifier.message = message);
-
+  async run({_id, name, description, workplace, frequency, conditions, message, status, country}) {
     try {
+      const currentSLA = SLAs.findOne({_id});
+      if (_.isEmpty(currentSLA)) {
+        throw new Meteor.Error('SLA_EDIT', 'SLA not found.');
+      }
+
+      const freqText = getScheduleText(frequency);
+      const jobParams = {
+        name,
+        freqText,
+        info: {method: 'bots.elastic', slaId: _id},
+        country
+      };
+
+      /* Edit sla in Job Server */
+      // remove job base on new name
+      const {name: currentName} = currentSLA;
+      if (currentName.toLowerCase() !== name.toLowerCase()) {
+        // job name didn't change
+        const removeResult = await removeJob({name: currentName, country});
+      } else {
+        const removeResult = await removeJob({name, country});
+      }
+      // create new job if job is activated
+      if (status === 'active') {
+        const createResult = await createJob(jobParams);
+      }
+
+      // edit SLA in Database
+      const selector = {_id}, modifier = {};
+
+      !_.isEmpty(name) && (modifier.name = name);
+      !_.isEmpty(description) && (modifier.description = description);
+      !_.isEmpty(workplace) && (modifier.workplace = workplace);
+      !_.isEmpty(frequency) && (modifier.frequency = frequency);
+      !_.isEmpty(conditions) && (modifier.conditions = conditions);
+      (!_.isEmpty(status) || status === 0) && (modifier.status = status);
+      !_.isEmpty(country) && (modifier.country = country);
+      !_.isEmpty(message) && (modifier.message = message);
+
       const result = SLAs.update(selector, {$set: modifier});
       return result;
-    } catch (e) {
-      throw new Meteor.Error('slas.edit', JSON.stringify(e));
+    } catch (err) {
+      throw new Meteor.Error('SLA_EDIT', err.message);
     }
   }
 });
@@ -213,6 +251,11 @@ Methods.edit = new ValidatedMethod({
 Methods.validateName = new ValidatedMethod({
   name: 'sla.validateName',
   validate: new SimpleSchema({
+    _id: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+      optional: true
+    },
     name: {
       type: String,
     },
@@ -220,13 +263,53 @@ Methods.validateName = new ValidatedMethod({
       type: String,
     }
   }).validator(),
-  run({name, country}) {
-    if (!this.isSimulation) {
-      const sla = SLAs.findOne({name, country});
-      if (!_.isEmpty(sla)) {
-        return {error: 'SLA name is exists.'}
+  run({_id, name, country}) {
+    try {
+      if (_.isEmpty(name)) {
+        return {validated: false, detail: ['Name is required.']};
+      }
+      const sla = SLAs.findOne({name, country}, {fields: {_id: true}});
+      if (_.isEmpty(sla)) {
+        return {validated: true}; // new name is valid
       } else {
-        return {error: null};
+        if (_id && sla._id === _id) {
+          return {validated: true}; // name didn't change
+        } else {
+          return {validated: false, detail: ['Name is exists.']}; // new name is duplicated with other sla
+        }
+      }
+    } catch (err) {
+      throw new Meteor.Error('SLA_METHOD_VALIDATE_NAME', err.message);
+    }
+  }
+});
+
+Methods.preview = new ValidatedMethod({
+  name: 'sla.preview',
+  validate: null,
+  run({SLA}) {
+    if (!this.isSimulation) {
+      try {
+        const {executeSLA} = require('/imports/api/bots');
+        const result = executeSLA({SLA});
+        return result;
+      } catch (err) {
+        throw new Meteor.Error('PREVIEW_SLA', err.message);
+      }
+    }
+  }
+});
+
+Methods.postMessage = new ValidatedMethod({
+  name: 'sla.postMessage',
+  validate: null,
+  async run({workplace, message}) {
+    if(!this.isSimulation) {
+      try {
+        const result = await Facebook().postMessage(workplace, message);
+        return result;
+      } catch(err) {
+        throw new Meteor.Error('POST_MESSAGE_TO_WORKPLACE', err.message);
       }
     }
   }
@@ -380,11 +463,6 @@ Methods.remove = new ValidatedMethod({
     }
   }).validator(),
   async run({_id, country}) {
-    // connect Job Server
-    const jobServer = await JobServer(country);
-    if (jobServer.status === 'failed') {
-      throw new Meteor.Error('SLA.connectJobServer', jobServer.status);
-    }
     // get SLA info
     const sla = SLAs.findOne({_id});
     if (!_.isEmpty(sla)) {
@@ -392,7 +470,7 @@ Methods.remove = new ValidatedMethod({
         const {name} = sla;
         // remove SLA in Job Server
         const result = await removeJob({name, country});
-        if(result) {
+        if (result) {
           return SLAs.remove({_id});
         }
       } catch (err) {
