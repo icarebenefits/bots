@@ -50,6 +50,7 @@ class ListSLA extends Component {
     if (!_.isEmpty(search)) {
       list = searchSLAList(list, WPs, search);
     }
+    console.log('list', list);
 
     return list.map(s => {
       let wpName = '';

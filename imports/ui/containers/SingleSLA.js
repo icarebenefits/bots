@@ -34,6 +34,8 @@ class SingleSLA extends Component {
 
     this.state = {
       validating: false,
+      saving: false,
+      executing: false,
       previewing: false,
       showPreviewQuery: false,
       previewMessage: '',
@@ -41,10 +43,16 @@ class SingleSLA extends Component {
     };
 
     this._getSLA = this._getSLA.bind(this);
-    this._onPreview = this._onPreview.bind(this);
     this._closeDialog = this._closeDialog.bind(this);
     this._renderDialog = this._renderDialog.bind(this);
     this._onShowPreviewQuery = this._onShowPreviewQuery.bind(this);
+
+    this._onPreview = this._onPreview.bind(this);
+    this._onDraft = this._onDraft.bind(this);
+    this._onSave = this._onSave.bind(this);
+    this._onExecute = this._onExecute.bind(this);
+    this._onEditSLA = this._onEditSLA.bind(this);
+    this._onCreateSLA = this._onCreateSLA.bind(this);
 
     this.onClickValidateAndPreview = this.onClickValidateAndPreview.bind(this);
     this.onClickSaveAsDraft = this.onClickSaveAsDraft.bind(this);
@@ -147,16 +155,157 @@ class SingleSLA extends Component {
     });
   }
 
-  _onSave(SLA) {
-
+  _onCreateSLA(SLA) {
+    Methods.create.call(SLA, (err, res) => {
+      if (err) {
+        Notify.error({
+          title: 'CREATE_SLA',
+          message: err.message
+        });
+        this.setState({saving: false});
+      } else {
+        console.log('create sla', res);
+        Notify.info({
+          title: 'CREATE_SLA',
+          message: 'Success.'
+        });
+        return this.setState({saving: false}, this.onClickCancel);
+      }
+    });
   }
 
-  _onDraft(SLA) {
-
+  _onEditSLA(SLA) {
+    console.log('_onEditSLA', SLA);
+    const result = Methods.edit.call(SLA, (err, res) => {
+      console.log('_onEditSLA', err, res);
+      if (err) {
+        Notify.error({
+          title: 'EDIT_SLA',
+          message: err.message
+        });
+        this.setState({saving: false});
+      } else {
+        console.log('edited sla', res);
+        Notify.info({
+          title: 'EDIT_SLA',
+          message: 'Success.'
+        });
+        return this.setState({saving: false}, this.onClickCancel);
+      }
+    });
+    console.log('onEdit result', result);
   }
 
-  _onExecute(SLA) {
+  _onDraft(_id, SLA) {
+    this.setState({saving: true});
+    if (_.isEmpty(SLA)) {
+      Notify.error({
+        title: 'SLA save as draft',
+        message: 'SLA not found.'
+      });
+    }
+    try {
+      let result = null;
+      if (_id) {
+        // edit SLA
+        result = this._onEditSLA({...SLA, _id, status: 'draft'});
+      } else {
+        // create SLA
+        result = this._onCreateSLA({...SLA, status: 'draft'});
+      }
+    } catch (err) {
+      Notify.error({
+        title: 'SLA save as draft',
+        message: err.message
+      });
+      this.setState({saving: false});
+    }
+  }
 
+  _onSave(_id, SLA) {
+    this.setState({saving: true});
+    if (_.isEmpty(SLA)) {
+      Notify.error({
+        title: 'SLA save',
+        message: 'SLA not found.'
+      });
+    }
+    try {
+      let result = null;
+      if (_id) {
+        // edit SLA
+        result = this._onEditSLA({...SLA, _id, status: 'active'});
+      } else {
+        // create SLA
+        result = this._onCreateSLA({...SLA, status: 'active'});
+      }
+      this.onClickCancel();
+    } catch (err) {
+      Notify.error({
+        title: 'SLA save',
+        message: err.message
+      });
+      this.setState({saving: false});
+    }
+  }
+
+  _onExecute(_id, SLA) {
+    this.setState({executing: true});
+    if (_.isEmpty(SLA)) {
+      Notify.error({
+        title: 'SLA execute',
+        message: 'SLA not found.'
+      });
+    }
+    Methods.preview.call({SLA}, (err, res) => {
+      if (err) {
+        Notify.error({
+          title: 'Preview SLA',
+          message: err.reason
+        });
+        return this.setState({previewing: false});
+      } else {
+        const
+          {message, queries} = res,
+          {workplace} = SLA;
+        Methods.postMessage.call({workplace, message}, (err, res) => {
+          if(err) {
+            Notify.error({
+              title: 'SLA execute',
+              message: err.reason
+            });
+          } else {
+            console.log('postMessage', res);
+            Notify.info({
+              title: 'SLA execute',
+              message: res
+            });
+
+            console.log('after post', _id, SLA);
+
+            try {
+              let result = null;
+
+              if (_id) {
+                // edit SLA
+                result = this._onEditSLA({...SLA, _id, status: 'active'});
+              } else {
+                // create SLA
+                result = this._onCreateSLA({...SLA, status: 'active'});
+              }
+              this.onClickCancel();
+            } catch (err) {
+              console.log('sla execute error', err);
+              Notify.error({
+                title: 'SLA execute',
+                message: err.message
+              });
+              this.setState({saving: false});
+            }
+          }
+        });
+      }
+    });
   }
 
   _closeDialog() {
@@ -207,21 +356,127 @@ class SingleSLA extends Component {
   }
 
   onClickSaveAsDraft() {
-    const SLA = this._getSLA();
-    console.log('onClickSaveAsDraft', SLA);
-
+    const {SLA} = this.props;
+    const newSLA = this._getSLA();
+    let slaId = null;
+    !_.isEmpty(SLA) && (slaId = SLA._id);
+    this.setState({validating: true});
+    this._onValidateName(newSLA.country, newSLA.name, slaId)
+      .then(res => {
+        const {validated, detail} = res;
+        if (!validated) {
+          Notify.error({
+            title: 'Save as Draft',
+            message: detail[0]
+          });
+          this.setState({validating: false});
+        } else {
+          const {validated, detail} = this._onValidate(newSLA);
+          // Warning user if SLA is invalid
+          if (!validated) {
+            Notify.warning({
+              title: 'Save as Draft',
+              message: detail[0]
+            });
+          }
+          return this.setState({validating: false}, () => this._onDraft(slaId, newSLA));
+        }
+      })
+      .catch(err => {
+        Notify.error({
+          title: 'Save as Draft',
+          message: err.message
+        });
+        return this.setState({validating: false});
+      })
   }
 
   onClickSave() {
-    const SLA = this._getSLA();
-    console.log('onClickSave', SLA);
+    const {SLA} = this.props;
+    const newSLA = this._getSLA();
+    let slaId = null;
+    !_.isEmpty(SLA) && (slaId = SLA._id);
+    this.setState({validating: true});
+    this._onValidateName(newSLA.country, newSLA.name, slaId)
+      .then(res => {
+        const {validated, detail} = res;
+        if (!validated) {
+          Notify.error({
+            title: 'Save',
+            message: detail[0]
+          });
+          this.setState({validating: false});
+        } else {
+          const {validated, detail} = this._onValidate(newSLA);
+          if (!validated) {
+            Notify.error({
+              title: 'Save',
+              message: detail[0]
+            });
+            return this.setState({validating: false});
+          } else {
+            Notify.info({
+              title: 'Save',
+              message: 'SLA is valid.'
+            });
+            // preview the SLA
+            this.setState({validating: false});
+            return this._onSave(slaId, newSLA);
+          }
 
+        }
+      })
+      .catch(err => {
+        Notify.error({
+          title: 'Save',
+          message: err.message
+        });
+        return this.setState({validating: false});
+      });
   }
 
   onClickSaveAndExecute() {
-    const SLA = this._getSLA();
-    console.log('onClickSaveAndExecute', SLA);
+    const {SLA} = this.props;
+    const newSLA = this._getSLA();
+    let slaId = null;
+    !_.isEmpty(SLA) && (slaId = SLA._id);
+    this.setState({validating: true});
+    this._onValidateName(newSLA.country, newSLA.name, slaId)
+      .then(res => {
+        const {validated, detail} = res;
+        if (!validated) {
+          Notify.error({
+            title: 'Save and Execute',
+            message: detail[0]
+          });
+          this.setState({validating: false});
+        } else {
+          const {validated, detail} = this._onValidate(newSLA);
+          if (!validated) {
+            Notify.error({
+              title: 'Save and Execute',
+              message: detail[0]
+            });
+            return this.setState({validating: false});
+          } else {
+            Notify.info({
+              title: 'Save and Execute',
+              message: 'SLA is valid.'
+            });
+            // preview the SLA
+            this.setState({validating: false});
+            return this._onExecute(slaId, newSLA);
+          }
 
+        }
+      })
+      .catch(err => {
+        Notify.error({
+          title: 'Save and Execute',
+          message: err.message
+        });
+        return this.setState({validating: false});
+      });
   }
 
   onClickCancel() {
@@ -279,11 +534,11 @@ class SingleSLA extends Component {
                 <span className="caption-subject font-dark bold uppercase">Queries</span>
               </div>
               {previewQueries.map((q, i) => (
-                  <div className="alert alert-info" key={i}>
-                    <ReactMarkdown
-                      source={`\n${JSON.stringify(q, null, 2)}\n`}
-                    />
-                  </div>
+                <div className="alert alert-info" key={i}>
+                  <ReactMarkdown
+                    source={`\n${JSON.stringify(q, null, 2)}\n`}
+                  />
+                </div>
               ))}
             </div>
           )}
