@@ -97,6 +97,7 @@ class FormDialog extends Component {
           </div>
           {values.map((input, idx) => {
             const {type, suggests} = input;
+            console.log('type suggests', type, suggests);
             return (
               <div className="form-group" key={idx}>
                 <FormInput

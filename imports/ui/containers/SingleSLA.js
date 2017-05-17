@@ -540,28 +540,28 @@ class SingleSLA extends Component {
   render() {
     const {ready, mode, SLA, WPs,} = this.props;
     const {executing, previewing, saving, validating} = this.state;
-    const disabled = executing && previewing && saving && validating;
+    const disabled = executing || previewing || saving || validating;
     const
       isEditMode = mode === 'edit',
       buttons = [
         {
           id: 'validate_preview', label: 'Validate & Preview',
-          disabled: validating,
+          disabled: disabled,
           className: 'btn-info', type: 'button', onClick: this.onClickValidateAndPreview
         },
         {
           id: 'draft', label: 'Save as Draft',
-          disabled: saving,
+          disabled: disabled,
           className: 'green', type: 'button', onClick: this.onClickSaveAsDraft
         },
         {
           id: 'save', label: 'Save',
-          disabled: saving,
+          disabled: disabled,
           className: 'green', type: 'button', onClick: this.onClickSave
         },
         {
           id: 'save_execute', label: 'Save & Execute',
-          disabled: (executing && executing),
+          disabled: disabled,
           className: 'green', type: 'button', onClick: this.onClickSaveAndExecute
         },
         {

@@ -207,20 +207,18 @@ Methods.edit = new ValidatedMethod({
         country
       };
 
-      // edit sla in Job Server
-      const removeResult = await removeJob({name, country});
+      /* Edit sla in Job Server */
+      // remove job base on new name
+      const {name: currentName} = currentSLA;
+      if (currentName.toLowerCase() !== name.toLowerCase()) {
+        // job name didn't change
+        const removeResult = await removeJob({name: currentName, country});
+      } else {
+        const removeResult = await removeJob({name, country});
+      }
+      // create new job if job is activated
       if (status === 'active') {
-        console.log('status active')
-        const {name: currentName} = currentSLA;
-        if (currentName.toLowerCase() === name.toLowerCase()) {
-          // job name didn't change
-          console.log('didnt change name on job')
-          const editResult = await editJob(jobParams);
-        } else {
-          console.log(' change name on job')
-          jobParams.name = currentName;
-          const createResult = await createJob(jobParams);
-        }
+        const createResult = await createJob(jobParams);
       }
 
       // edit SLA in Database

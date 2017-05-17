@@ -47,13 +47,11 @@ class Workplaces extends Component {
 
     // handlers
     this._handleSuggestWP = this._handleSuggestWP.bind(this);
-    this.handleToolbarChange = this.handleToolbarChange.bind(this);
     this.handleActionWP = this.handleActionWP.bind(this);
     this.handleAddWP = this.handleAddWP.bind(this);
   }
 
-  handleActionWP(event, action, _id) {
-    event.preventDefault();
+  handleActionWP(action, _id) {
     switch (action) {
       case 'remove':
       {
@@ -64,10 +62,6 @@ class Workplaces extends Component {
         return Notify.error({title: `Access list action ${action}`, message: 'Unsupported.'})
       }
     }
-  }
-
-  handleToolbarChange(type, value) {
-    return this.setState({search: value.toLowerCase()});
   }
 
   _handleSuggestWP(text) {
@@ -125,6 +119,7 @@ class Workplaces extends Component {
     const
       {country} = this.props,
       groupId = Number(this.refs.suggest.getValue());
+    console.log('add', country, groupId);
     Meteor.call('groups.getName', groupId, (err, res) => {
       if (err) {
         return Notify.error({title: `Add workplace`, message: `Failed: ${JSON.stringify(err)}`});
@@ -264,7 +259,7 @@ class Workplaces extends Component {
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
-              handleAction: this.handleActionWP
+              onClick: this.handleActionWP
             },
           ],
           handleDoubleClick: () => {

@@ -141,9 +141,12 @@ class ConditionsBuilder extends Component {
           }
 
           // const {type, params} = FieldData.operator()[value].props();
-          const {params} = FieldData.operator()[value].props();
-          const {type, placeholder, suggests} = FieldData.props();
-          console.log('FieldData', FieldData.props());
+          const {type: opType, params} = FieldData.operator()[value].props();
+          const {type: fieldType, placeholder, suggests} = FieldData.props();
+          let type = opType;
+          if(fieldType === 'suggest') {
+            type = fieldType;
+          }
           for (let i = 0; i < params - 1; i++) {
             newValues.push({type, value: this._getDefaultValue(type), placeholder, suggests});
           }
@@ -218,30 +221,13 @@ class ConditionsBuilder extends Component {
 
   _getDefaultValue(type) {
     switch (type) {
-      case 'date':
-      {
-        return (new Date()).toString();
-      }
-      case 'number':
-      {
-        return '';
-      }
-      case 'string':
-      {
-        return '';
-      }
-      case 'bool':
-      {
-        return 'true';
-      }
-      case 'gender':
-      {
-        return 'not specified';
-      }
-      default:
-      {
-        return '';
-      }
+      case 'date': return (new Date()).toString();
+      case 'number': return '';
+      case 'suggests':
+      case 'string': return '';
+      case 'bool': return 'true';
+      case 'gender': return 'not specified';
+      default: return '';
     }
   }
 
