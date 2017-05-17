@@ -18,7 +18,8 @@ import {
   SLA_INACTIVATE,
   SLA_REMOVE,
   SLA_INIT_SLA,
-  SLA_RESET_SLA
+  SLA_RESET_SLA,
+  SLA_CHANGE_MODE_EDIT
 } from '../constants';
 
 /* SELECTORS */
@@ -125,13 +126,12 @@ const sla = (state = initialState.sla, action) => {
     case SLA_INACTIVATE:
     case SLA_REMOVE:
     case SLA_INIT_SLA:
-    case SLA_RESET_SLA: {
-      console.log(type, payload);
+    case SLA_RESET_SLA:
+    case SLA_CHANGE_MODE_EDIT:
       return {
         ...state,
         ...payload
       };
-    }
     default:
       return state;
   }

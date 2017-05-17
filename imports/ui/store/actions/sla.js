@@ -6,7 +6,8 @@ import {
   SLA_INACTIVATE,
   SLA_REMOVE,
   SLA_INIT_SLA,
-  SLA_RESET_SLA
+  SLA_RESET_SLA,
+  SLA_CHANGE_MODE_EDIT
 } from '../constants/index';
 
 import {addNotification} from './';
@@ -27,9 +28,10 @@ import {getScheduleText} from '/imports/utils';
 const actionCreator = type => (payload = '') => ({type, payload});
 
 /* Change mode */
-export const changeMode = (mode, id) => {
-  
-};
+export const onChangeModeEdit = SLA => ({
+  type: SLA_CHANGE_MODE_EDIT,
+  payload: {SLA}
+});
 
 /* Activate */
 export const startAction = (actionType, _id) => {

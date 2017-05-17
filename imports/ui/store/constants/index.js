@@ -57,7 +57,7 @@ export const REMOVE_NOTIFICATION = 'PAGE::REMOVE_NOTIFICATION';
 export const SET_SLA_SIDE_BAR = 'SLA::SET_SIDE_BAR';
 export const SLA_SET_FILTER = 'SLA::SET_FILTER';
 export const SLA_SET_SEARCH = 'SLA::SET_SEARCH';
-export const SLA_CHANGE_MODE = 'SLA::CHANGE_MODE';
+export const SLA_CHANGE_MODE_EDIT = 'SLA::CHANGE_MODE_EDIT';
 
 export const SLA_INIT_SLA = 'SLA::INIT_SLA';
 export const SLA_RESET_SLA = 'SLA::RESET_SLA';

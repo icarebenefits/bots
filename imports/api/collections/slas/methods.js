@@ -213,6 +213,11 @@ Methods.edit = new ValidatedMethod({
 Methods.validateName = new ValidatedMethod({
   name: 'sla.validateName',
   validate: new SimpleSchema({
+    _id: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+      optional: true
+    },
     name: {
       type: String,
     },
@@ -220,13 +225,38 @@ Methods.validateName = new ValidatedMethod({
       type: String,
     }
   }).validator(),
-  run({name, country}) {
-    if (!this.isSimulation) {
-      const sla = SLAs.findOne({name, country});
-      if (!_.isEmpty(sla)) {
-        return {error: 'SLA name is exists.'}
+  run({_id, name, country}) {
+    try {
+      if(_.isEmpty(name)) {
+        return {validated: false, detail: ['Name is required.']};
+      }
+      const sla = SLAs.findOne({name, country}, {fields: {_id: true}});
+      if (_.isEmpty(sla)) {
+        return {validated: true}; // new name is valid
       } else {
-        return {error: null};
+        if (_id && sla._id === _id) {
+          return {validated: true}; // name didn't change
+        } else {
+          return {validated: false, detail: ['Name is exists.']}; // new name is duplicated with other sla
+        }
+      }
+    } catch (err) {
+      throw new Meteor.Error('SLA_METHOD_VALIDATE_NAME', err.message);
+    }
+  }
+});
+
+Methods.preview = new ValidatedMethod({
+  name: 'sla.preview',
+  validate: null,
+  run({SLA}) {
+    if(!this.isSimulation) {
+      try {
+        const {executeSLA} = require('/imports/api/bots');
+        const result = executeSLA({SLA});
+        return result;
+      } catch(err) {
+        throw new Meteor.Error('PREVIEW_SLA', err.message);
       }
     }
   }
@@ -392,7 +422,7 @@ Methods.remove = new ValidatedMethod({
         const {name} = sla;
         // remove SLA in Job Server
         const result = await removeJob({name, country});
-        if(result) {
+        if (result) {
           return SLAs.remove({_id});
         }
       } catch (err) {

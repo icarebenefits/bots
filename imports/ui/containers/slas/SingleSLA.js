@@ -6,9 +6,7 @@ import {
   FormActions,
 } from '../../components/elements';
 
-import {ConditionsBuilder} from '../../components/conditions-builder';
-import ScheduleBuilder from '../../components/schedule-builder/ScheduleBuilder';
-import MessageBuilder from '../../components/message-builder/MessageBuilder';
+import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '../../components';
 
 class SingleSLA extends Component {
 

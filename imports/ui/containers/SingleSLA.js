@@ -1,82 +1,321 @@
 import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
-import {connect} from 'react-redux';
+import {Promise} from 'meteor/promise';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
+import validate from 'validate.js';
 
 /* Components */
+import ReactMarkdown from 'react-markdown';
 import {
   Label,
   FormInput,
   FormActions,
+  Dialog,
+  Checkbox
 } from '../components/elements';
 
 import {NoContent} from '../components/common';
-
-import {ConditionsBuilder} from '../components/conditions-builder';
-import ScheduleBuilder from '../components/schedule-builder/ScheduleBuilder';
-import MessageBuilder from '../components/message-builder/MessageBuilder';
+import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '../components';
 
 /* Collections */
-import {SLAs} from '/imports/api/collections/slas';
+import {SLAs, Methods} from '/imports/api/collections/slas';
 import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
 
-/* Actions */
-import {
-  initSLA, resetSLA
-} from '/imports/ui/store/actions';
+/* Notify */
+import * as Notify from '/imports/api/notifications';
+
+import {formatMessage} from '/imports/utils';
 
 class SingleSLA extends Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
 
-    // console.log('props', props);
-    // if(!_.isEmpty(props.SLA)) {
-    //   props.onInitSLA(props.SLA);
-    // }
+    this.state = {
+      validating: false,
+      previewing: false,
+      showPreviewQuery: false,
+      previewMessage: '',
+      previewQueries: []
+    };
+
+    this._getSLA = this._getSLA.bind(this);
+    this._onPreview = this._onPreview.bind(this);
+    this._closeDialog = this._closeDialog.bind(this);
+    this._renderDialog = this._renderDialog.bind(this);
+    this._onShowPreviewQuery = this._onShowPreviewQuery.bind(this);
+
+    this.onClickValidateAndPreview = this.onClickValidateAndPreview.bind(this);
+    this.onClickSaveAsDraft = this.onClickSaveAsDraft.bind(this);
+    this.onClickSave = this.onClickSave.bind(this);
+    this.onClickSaveAndExecute = this.onClickSaveAndExecute.bind(this);
   }
 
-  componentWillMount() {
-    // console.log('props', this.props);
-    // console.log('next props', nextProps);
-    const {SLA, onInitSLA} = this.props;
-    if(!_.isEmpty(SLA)) {
-      onInitSLA(SLA);
+  _getSLA() {
+    const {name, desc, workplace, frequency, conditions, message} = this.refs;
+    const {country} = this.props;
+    const SLA = {
+      name: name.getValue(),
+      description: desc.getValue(),
+      workplace: workplace.getValue(),
+      frequency: frequency.getData(),
+      conditions: conditions.getConditions(),
+      message: message.getData(),
+      country
+    };
+    return SLA;
+  }
+
+  _onShowPreviewQuery(value) {
+    this.setState({showPreviewQuery: value});
+  }
+
+  _onValidateName(country, name, _id) {
+    // verify name is duplicated or not
+    // async call
+    return new Promise((resolve, reject) => {
+      Methods.validateName.call({name, country, _id}, (err, res) => {
+        if (err) {
+          // console.log('error', err);
+          reject(err.reason);
+        } else {
+          if (res) {
+            resolve(res);
+          }
+        }
+      });
+    });
+  }
+
+  _onValidate(SLA) {
+    /* Field Values */
+    const constraints = {
+      workplace: {
+        presence: {
+          message: 'is required.'
+        },
+      },
+      frequency: {
+        presence: {
+          message: 'is required.'
+        },
+        schedule: true
+      },
+      conditions: {
+        slaConditions: true
+      },
+      message: {
+        presence: {
+          message: 'is required.'
+        },
+        slaMessage: true
+      },
+      country: {
+        presence: {
+          message: 'is required.'
+        },
+      }
+    };
+    const validateValue = validate(SLA, constraints);
+
+    if (validateValue) {
+      const result = Object.keys(validateValue)
+        .map(v => validateValue[v].join());
+      return {validated: false, detail: result};
+    } else {
+      return {validated: true};
     }
   }
 
+  _onPreview(SLA) {
+    this.setState({previewing: true});
+    Methods.preview.call({SLA}, (err, res) => {
+      if (err) {
+        Notify.error({
+          title: 'Preview SLA',
+          message: err.message
+        });
+        return this.setState({previewing: false});
+      } else {
+        const {message, queries} = res;
+        return this.setState({
+          previewMessage: message,
+          previewQueries: queries
+        });
+      }
+    });
+  }
+
+  _onSave(SLA) {
+
+  }
+
+  _onDraft(SLA) {
+
+  }
+
+  _onExecute(SLA) {
+
+  }
+
+  _closeDialog() {
+    this.setState({previewing: false});
+  }
+
+  onClickValidateAndPreview() {
+    const {SLA} = this.props;
+    const newSLA = this._getSLA();
+    let slaId = null;
+    !_.isEmpty(SLA) && (slaId = SLA._id);
+    this.setState({validating: true});
+    this._onValidateName(newSLA.country, newSLA.name, slaId)
+      .then(res => {
+        const {validated, detail} = res;
+        if (!validated) {
+          Notify.error({
+            title: 'Validate and Preview',
+            message: detail[0]
+          });
+          this.setState({validating: false});
+        } else {
+          const {validated, detail} = this._onValidate(newSLA);
+          if (!validated) {
+            Notify.error({
+              title: 'Validate and Preview',
+              message: detail[0]
+            });
+            return this.setState({validating: false});
+          } else {
+            Notify.info({
+              title: 'Validate and Preview',
+              message: 'SLA is valid.'
+            });
+            // preview the SLA
+            return this.setState({validating: false}, () => this._onPreview(newSLA));
+          }
+
+        }
+      })
+      .catch(err => {
+        Notify.error({
+          title: 'Validate and Preview',
+          message: err.message
+        });
+        return this.setState({validating: false});
+      })
+  }
+
+  onClickSaveAsDraft() {
+    const SLA = this._getSLA();
+    console.log('onClickSaveAsDraft', SLA);
+
+  }
+
+  onClickSave() {
+    const SLA = this._getSLA();
+    console.log('onClickSave', SLA);
+
+  }
+
+  onClickSaveAndExecute() {
+    const SLA = this._getSLA();
+    console.log('onClickSaveAndExecute', SLA);
+
+  }
+
+  onClickCancel() {
+    FlowRouter.setQueryParams({mode: 'list', id: null})
+  }
+
+  _renderDialog() {
+    const {
+      previewing, showPreviewQuery,
+      previewMessage, previewQueries
+    } = this.state;
+
+    if (!previewing) {
+      return null;
+    }
+
+    return (
+      <Dialog
+        modal={true}
+        width={600}
+        bodyClass="text-left"
+        header="Preview SLA"
+        confirmLabel="Ok"
+        hasCancel={false}
+        onAction={this._closeDialog}
+      >
+        <div className="form-body">
+          <div className="form-group">
+            <div className="caption">
+              <i className="icon-edit font-dark"/>
+              <span className="caption-subject font-dark bold uppercase">Message:</span>
+            </div>
+            <div className="alert alert-info">
+              <ReactMarkdown
+                source={previewMessage}
+              />
+            </div>
+          </div>
+          <div className="form-group form-inline">
+            <div className="mt-checkbox-list">
+              <label className="mt-checkbox mt-checkbox-outline">{' show Query'}
+                <Checkbox
+                  className="form-control"
+                  value={showPreviewQuery}
+                  handleOnChange={this._onShowPreviewQuery}
+                />
+                <span></span>
+              </label>
+            </div>
+          </div>
+          {showPreviewQuery && (
+            <div className="form-group">
+              <div className="caption">
+                <i className="icon-edit font-dark"/>
+                <span className="caption-subject font-dark bold uppercase">Queries</span>
+              </div>
+              {previewQueries.map((q, i) => (
+                  <div className="alert alert-info" key={i}>
+                    <ReactMarkdown
+                      source={`\n${JSON.stringify(q, null, 2)}\n`}
+                    />
+                  </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Dialog>
+    );
+  }
+
   render() {
-    console.log('props', this.props);
-    const
-      {
-        ready, mode,
-        WPs,
-        onValidateAndPreview, onSaveAsDraft, onSave,
-        onSaveAndExecute, onCancel
-      } = this.props;
+    const {ready, mode, SLA, WPs,} = this.props;
     const
       isEditMode = mode === 'edit',
       buttons = [
         {
           id: 'validate_preview', label: 'Validate & Preview',
-          className: 'btn-info', type: 'button', onClick: onValidateAndPreview
+          className: 'btn-info', type: 'button', onClick: this.onClickValidateAndPreview
         },
         {
           id: 'draft', label: 'Save as Draft',
-          className: 'green', type: 'button', onClick: onSaveAsDraft
+          className: 'green', type: 'button', onClick: this.onClickSaveAsDraft
         },
         {
           id: 'save', label: 'Save',
-          className: 'green', type: 'button', onClick: onSave
+          className: 'green', type: 'button', onClick: this.onClickSave
         },
         {
           id: 'save_execute', label: 'Save & Execute',
-          className: 'green', type: 'button', onClick: onSaveAndExecute
+          className: 'green', type: 'button', onClick: this.onClickSaveAndExecute
         },
         {
           id: 'cancel', label: 'Cancel',
-          className: 'btn-default', type: 'button', onClick: onCancel
+          className: 'btn-default', type: 'button', onClick: this.onClickCancel
         }
       ],
       defaultFrequency = {
@@ -85,11 +324,11 @@ class SingleSLA extends Component {
         unit: 'day of the week',
         preps2: '',
         range2: '',
-      };
-    const wpOptions = WPs.map(w => ({
-      name: w.id,
-      label: w.name,
-    }));
+      },
+      wpOptions = WPs.map(w => ({
+        name: w.id,
+        label: w.name,
+      }));
     wpOptions.splice(0, 0, {name: '', label: ''});
 
     if (ready) {
@@ -220,6 +459,8 @@ class SingleSLA extends Component {
               </div>
             </div>
           </div>
+          {/* Dialog */}
+          {this._renderDialog()}
         </div>
       );
     } else {
@@ -232,7 +473,7 @@ class SingleSLA extends Component {
 
 SingleSLA.propTypes = {};
 
-const SingleSLAContainer = createContainer(props => {
+export default createContainer(() => {
   const
     {
       params: {country},
@@ -252,22 +493,3 @@ const SingleSLAContainer = createContainer(props => {
     WPs
   };
 }, SingleSLA);
-
-const mapStateToProps = (state, ownProps) => {
-  if(ownProps.mode === 'edit') {
-    return {workingSLA: state.sla.SLA};
-  }
-  return {};
-};
-
-const mapDispatchToProps = dispatch => ({
-  onInitSLA: SLA => dispatch(initSLA({SLA})),
-  onResetSLA: () => dispatch(resetSLA()),
-  onValidateAndPreview: () => dispatch(),
-  onSaveAsDraft: () => dispatch,
-  onSave: () => dispatch,
-  onSaveAndExecute: () => dispatch,
-  onCancel: () => FlowRouter.setQueryParams({mode: 'list', id: null})
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(SingleSLAContainer);
