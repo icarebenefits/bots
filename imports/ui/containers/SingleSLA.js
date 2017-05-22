@@ -29,8 +29,8 @@ import * as Notify from '/imports/api/notifications';
 import {formatMessage} from '/imports/utils';
 
 class SingleSLA extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       validating: false,
@@ -307,7 +307,7 @@ class SingleSLA extends Component {
     const newSLA = this._getSLA();
     let slaId = null;
     !_.isEmpty(SLA) && (slaId = SLA._id);
-    this.setState({validating: true});
+    this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
         const {validated, detail} = res;
@@ -350,7 +350,7 @@ class SingleSLA extends Component {
     const newSLA = this._getSLA();
     let slaId = null;
     !_.isEmpty(SLA) && (slaId = SLA._id);
-    this.setState({validating: true});
+    this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
         const {validated, detail} = res;
@@ -386,7 +386,7 @@ class SingleSLA extends Component {
     const newSLA = this._getSLA();
     let slaId = null;
     !_.isEmpty(SLA) && (slaId = SLA._id);
-    this.setState({validating: true});
+    this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
         const {validated, detail} = res;
@@ -430,7 +430,7 @@ class SingleSLA extends Component {
     const newSLA = this._getSLA();
     let slaId = null;
     !_.isEmpty(SLA) && (slaId = SLA._id);
-    this.setState({validating: true});
+    this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
         const {validated, detail} = res;
@@ -538,10 +538,11 @@ class SingleSLA extends Component {
   }
 
   render() {
-    const {ready, mode, SLA, WPs,} = this.props;
-    const {executing, previewing, saving, validating} = this.state;
+    const {ready, mode, SLA: currentSLA, WPs,} = this.props;
+    const {newSLA, executing, previewing, saving, validating} = this.state;
     const disabled = executing || previewing || saving || validating;
     const
+      SLA = !_.isEmpty(newSLA) ? {...newSLA} : {...currentSLA},
       isEditMode = mode === 'edit',
       buttons = [
         {
@@ -723,7 +724,13 @@ class SingleSLA extends Component {
   }
 }
 
-SingleSLA.propTypes = {};
+SingleSLA.propTypes = {
+  ready: PropTypes.bool,
+  country: PropTypes.string,
+  mode: PropTypes.string,
+  SLA: PropTypes.object,
+  WPs: PropTypes.array
+};
 
 export default createContainer(() => {
   const
