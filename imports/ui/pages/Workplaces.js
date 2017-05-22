@@ -119,7 +119,6 @@ class Workplaces extends Component {
     const
       {country} = this.props,
       groupId = Number(this.refs.suggest.getValue());
-    console.log('add', country, groupId);
     Meteor.call('groups.getName', groupId, (err, res) => {
       if (err) {
         return Notify.error({title: `Add workplace`, message: `Failed: ${JSON.stringify(err)}`});
