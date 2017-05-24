@@ -127,6 +127,18 @@ Validators.slaMessage = (message) => {
       if(_.isEmpty(options))
         return 'interval is required';
     }
+    let compareGroup = '';
+    variables.forEach((v, i) => {
+      const {bucket: vBucket, group: vGroup} = v;
+      if(vBucket) {
+        if(group !== vGroup) {
+          compareGroup = `summary - row ${i + 1} - field is unacceptable.`;
+          return;
+        }
+      }
+    });
+    if(!_.isEmpty(compareGroup))
+      return compareGroup;
   }
   
   // number of template open & close
