@@ -42,6 +42,7 @@ const iCMSalesOrder = () => ({
           id: 'soStatus',
           name: 'Status',
           type: 'suggest',
+          bucket: true,
           placeHolder: '',
           suggests: SUGGESTS.salesOrder.status
         }),
@@ -58,6 +59,7 @@ const iCMSalesOrder = () => ({
           id: 'soPurchaseStore',
           name: 'Purchase store',
           type: 'suggest',
+          bucket: true,
           placeHolder: '',
           suggests: SUGGESTS.salesOrder.purchaseStore
         }),
@@ -74,6 +76,7 @@ const iCMSalesOrder = () => ({
           id: 'soPurchasedBy',
           name: 'Purchase by',
           type: 'string',
+          bucket: true,
           placeHolder: 'icare.bots@icarebenefits.com',
           suggests: []
         }),
@@ -90,6 +93,7 @@ const iCMSalesOrder = () => ({
           id: 'soPurchasedByChannel',
           name: 'Purchase by channel',
           type: 'suggest',
+          bucket: true,
           placeHolder: '',
           suggests: SUGGESTS.salesOrder.purchasedByChannel
         }),
@@ -105,7 +109,8 @@ const iCMSalesOrder = () => ({
         props: () => ({
           id: 'soPurchaseDate',
           name: 'Purchase date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'purchase_date',

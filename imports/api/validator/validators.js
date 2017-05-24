@@ -37,10 +37,10 @@ Validators.schedule = (schedule) => {
  * @param conditions
  */
 Validators.slaConditions = (conditions) => {
-  if(!_.isEmpty(conditions)) {
-    if(conditions.length === 1) {
+  if (!_.isEmpty(conditions)) {
+    if (conditions.length === 1) {
       const {openParens, group, filter, operator, values, closeParens, bitwise} = conditions[0];
-      if((_.isEmpty(openParens) && _.isEmpty(filter) && _.isEmpty(group) && _.isEmpty(operator)
+      if ((_.isEmpty(openParens) && _.isEmpty(filter) && _.isEmpty(group) && _.isEmpty(operator)
         && _.isEmpty(values) && _.isEmpty(closeParens) && _.isEmpty(bitwise))) {
         return;
       }
@@ -71,7 +71,7 @@ Validators.slaConditions = (conditions) => {
     }
 
     const {error} = validateConditions(conditions, makeExpression(conditions));
-    if(error) {
+    if (error) {
       return `: ${error}`;
     }
   }
@@ -82,7 +82,7 @@ Validators.slaConditions = (conditions) => {
  * @param message
  */
 Validators.slaMessage = (message) => {
-  const {variables, messageTemplate} = message;
+  const {variables, messageTemplate, useBucket, bucket} = message;
 
   // variables can't be empty
   if (_.isEmpty(variables)) {
@@ -90,7 +90,7 @@ Validators.slaMessage = (message) => {
   } else {
     let mess = '';
     variables.forEach((v, i) => {
-      const {summaryType, group, field, name} = v;
+      const {bucket, summaryType, group, field, name} = v;
       if (_.isEmpty(summaryType)) {
         mess = `type is required in row ${i + 1}.`;
         return;
@@ -108,35 +108,43 @@ Validators.slaMessage = (message) => {
         return;
       }
     });
-    if (!_.isEmpty(mess)) {
+    if (!_.isEmpty(mess))
       return mess;
-    }
   }
   // messageTemplate can't be empty
-  if (_.isEmpty(messageTemplate)) {
+  if (_.isEmpty(messageTemplate))
     return 'template is required.'
+  // if useBucket, bucket can't be empty
+  if (useBucket) {
+    if (_.isEmpty(bucket))
+      return 'bucket information is required.';
+    const {group, field, hasOption, options} = bucket;
+    if (_.isEmpty(group))
+      return `${field} is unsupported.`;
+    if (_.isEmpty(field))
+      return 'field is required.';
+    if (hasOption) {
+      if(_.isEmpty(options))
+        return 'interval is required';
+    }
   }
-
+  
   // number of template open & close
   const
     numOpen = S(messageTemplate).count('{'),
     numClose = S(messageTemplate).count('}');
-  if (numOpen === 0 || numClose === 0) {
+  if (numOpen === 0 || numClose === 0)
     return `variables is unused in template.`;
-  }
-  if (numOpen < numClose) {
+  if (numOpen < numClose)
     return `template is wrong syntax - missing open curly brace "{".`;
-  }
-  if (numClose < numOpen) {
+  if (numClose < numOpen)
     return `template is wrong syntax - missing close curly brace "}".`;
-  }
 
   // message name can't be duplicated
   const names = variables.map(v => v.name);
   const uniqNames = _.uniq(names);
-  if (names.length != uniqNames.length) {
+  if (names.length != uniqNames.length)
     return `variable is duplicated.`;
-  }
 
   // make sure name is used in template
   let unUnusedName = '';
@@ -146,16 +154,15 @@ Validators.slaMessage = (message) => {
       return;
     }
   });
-  if (!_.isEmpty(unUnusedName)) {
+  if (!_.isEmpty(unUnusedName))
     return `variable is "${unUnusedName}" - unused.`;
-  }
 
   // find invalid variables in messageTemplate
   // get all variables from messageTemplate
   const templateVars = getVarsFromString(messageTemplate.trim(), []);
   const invalidVars = _.difference(templateVars, uniqNames) || [];
-  if (!_.isEmpty(invalidVars)) {
+  if (!_.isEmpty(invalidVars))
     return `template has invalid variable${invalidVars.length > 1 ? 's' : ''}: 
     "${invalidVars.join(', ')}".`;
-  }
+
 };
