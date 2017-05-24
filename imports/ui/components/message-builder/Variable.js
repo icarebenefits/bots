@@ -1,9 +1,10 @@
 /**
  * Created by vinhcq on 3/17/17.
  */
-import React, {Component} from 'react';
+import React, {Component, PropTypes} from 'react';
 
 import {
+  Checkbox,
   Selectbox,
   SelectboxGrouped,
   FormInput,
@@ -11,17 +12,16 @@ import {
 } from '../elements';
 import {Field} from '/imports/api/fields';
 
-export class Variable extends Component {
+/* CONSTANTS */
+import {AGGS_OPTIONS} from '/imports/ui/store/constants';
 
-  constructor(props) {
-    super(props);
-  }
+class Variable extends Component {
 
-  _getFilters() {
-    const
-      listGroups = Object.keys(Field())
-      ;
-
+  _getFilters(bucket, useBucket, bucketGroup) {
+    // console.log('useBucket bucketGroup', useBucket, bucketGroup);
+    const listGroups = (bucket && useBucket && !_.isEmpty(bucketGroup) && bucketGroup !== 'empty')
+      ? [bucketGroup]
+      : Object.keys(Field());
     const grpOptions = listGroups.map(group => {
       const
         Fields = Field()[group]().field,
@@ -30,9 +30,7 @@ export class Variable extends Component {
 
       const options = listFields
       // message builder apply for number fields only
-        .filter(f => {
-          return Fields()[f]().props().type === 'number'
-        })
+        .filter(f => Fields()[f]().props().type === 'number')
         .map(f => {
           const {id: name, name: label} = Fields()[f]().props();
           return {name, label};
@@ -54,67 +52,66 @@ export class Variable extends Component {
     const
       {
         id,
-        variable: {summaryType = '', group = '', field = '', name = ''},
+        useBucket,
+        bucketGroup,
+        variable: {bucket, summaryType = '', group = '', field = '', name = ''},
         handlers: {
           handleFieldChange,
           handleRemoveRow,
         },
         readonly = false,
       } = this.props,
-      filters = this._getFilters();
+      filters = this._getFilters(bucket, useBucket, bucketGroup);
     return (
       <tr>
+        {useBucket && (
+          <td data-row={id}>
+            <Checkbox
+              className="form-control"
+              value={bucket}
+              handleOnChange={value => handleFieldChange(id, 'bucket', value)}
+            />
+          </td>
+        )}
         <td data-row={id}>
-          {readonly
-            ? summaryType
-            : (<Selectbox
+          <Selectbox
             className="form-control"
             value={summaryType}
             options={[
                 {name: '', label: ''},
-                {name: 'value_count', label: 'count'},
-                {name: 'sum', label: 'sum'},
-                {name: 'max', label: 'max'},
-                {name: 'min', label: 'min'},
-                {name: 'avg', label: 'average'},
+                ...AGGS_OPTIONS
               ]}
             handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
-          />)
-          }
+          />
         </td>
         <td data-row={id}>
-          {readonly
-            ? field
-            : (<SelectboxGrouped
+          <SelectboxGrouped
             className="form-control"
             value={field === 'total' ? `${group}-total` : field}
             grpOptions={filters}
             handleOnChange={value => handleFieldChange(id, 'field', value)}
-          />)
-          }
+          />
         </td>
         <td data-row={id}>
-          {readonly
-            ? name :
-            <FormInput
-              className="form-control"
-              value={name}
-              handleOnChange={value => handleFieldChange(id, 'name', value)}
-            />
-          }
+          <FormInput
+            className="form-control"
+            value={name}
+            handleOnChange={value => handleFieldChange(id, 'name', value)}
+          />
         </td>
         <td data-row={id}>
-          {readonly
-            ? null
-            : <div>
+          <div>
             <Button
               onClick={e => {e.preventDefault(); handleRemoveRow(id);}}
               className="btn-danger"
             >Remove</Button>
           </div>
-          }
         </td>
       </tr>
     );
   }
 }
+
+Variable.propTypes = {};
+
+export default Variable

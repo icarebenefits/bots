@@ -1,4 +1,3 @@
-
 /* SLOGANS */
 export const SLOGANS = {
   vn: 'Vietnam',
@@ -41,6 +40,14 @@ export const TOOLBARS = {
     searchBox: {}
   }
 };
+/* AGGS OPTIONS */
+export const AGGS_OPTIONS = [
+  {name: 'value_count', label: 'count'},
+  {name: 'sum', label: 'sum'},
+  {name: 'max', label: 'max'},
+  {name: 'min', label: 'min'},
+  {name: 'avg', label: 'average'}
+];
 
 /* ACTION TYPES */
 

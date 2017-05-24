@@ -126,6 +126,38 @@ SLAs.schema = new SimpleSchema({
     type: Object,
     optional: true
   },
+  "message.useBucket": {
+    type: Boolean,
+    defaultValue: false,
+  },
+  "message.bucket": {
+    type: Object,
+    optional: true
+  },
+  "message.bucket.type": {
+    type: String,
+    optional: true
+  },
+  "message.bucket.group": {
+    type: String,
+    optional: true
+  },
+  "message.bucket.field": {
+    type: String,
+    optional: true
+  },
+  "message.bucket.hasOption": {
+    type: Boolean,
+    optional: true
+  },
+  "message.bucket.options": {
+    type: Object,
+    optional: true
+  },
+  "message.bucket.options.interval": {
+    type: String,
+    optional: true,
+  },
   "message.variables": {
     type: [Object],
     optional: true
@@ -144,6 +176,10 @@ SLAs.schema = new SimpleSchema({
   },
   "message.variables.$.name": {
     type: String,
+    optional: true,
+  },
+  "message.variables.$.bucket": {
+    type: Boolean,
     optional: true,
   },
   "message.messageTemplate": {

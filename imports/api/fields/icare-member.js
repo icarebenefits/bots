@@ -50,7 +50,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmGender',
           name: 'Gender',
-          type: 'gender'
+          type: 'gender',
+          bucket: true
         }),
         elastic: () => ({
           field: 'gender',
@@ -64,7 +65,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmDateOfBirth',
           name: 'Date of birth',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'date_of_birth'
@@ -183,7 +185,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmHiringDate',
           name: 'Hiring date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'hiring_date'
@@ -197,7 +200,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmTerminationDate',
           name: 'Termination date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'termination_date',
@@ -311,7 +315,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmMaternityLeaveStartDate',
           name: 'Maternity leave start date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'maternity_leave_start_date'
@@ -325,7 +330,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmMaternityLeaveEndDate',
           name: 'Maternity leave end date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'maternity_leave_end_date'
@@ -356,6 +362,7 @@ const iCareMember = () => ({
           id: 'icmBankName',
           name: 'Bank name',
           type: 'string',
+          bucket: true,
           placeHolder: '',
           suggests: []
         }),
@@ -399,7 +406,8 @@ const iCareMember = () => ({
         props: () => ({
           id: 'icmCreatedAt',
           name: 'Create Date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'created_at'

@@ -197,10 +197,11 @@ class ScheduleBuilder extends Component {
     return (
       <div className="col-md-12">
         <div className="row">
-          <Label
-            className="col-md-12 bold uppercase pull-left"
-            value={'Schedule Builder'}
-          />
+          <div className="col-md-12">
+            <div className="note note-info">
+              <h4 className="block uppercase">Schedule Builder</h4>
+            </div>
+          </div>
         </div>
         {/* Note */}
         <div className="row">
