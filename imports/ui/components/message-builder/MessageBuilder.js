@@ -203,8 +203,9 @@ class MessageBuilder extends Component {
           <div className="col-md-12">
             <div className="form-body">
               <div className="form-group form-inline">
-                <div className="mt-checkbox-list">
-                  <label className="mt-checkbox mt-checkbox-outline uppercase">{' use Bucket'}
+                <div className="mt-checkbox-list" style={{paddingBottom: 0}}>
+                  <label className="mt-checkbox mt-checkbox-outline uppercase" style={{marginBottom: 0}}>
+                    {' use Bucket'}
                     <Checkbox
                       className="form-control"
                       value={useBucket}
@@ -240,6 +241,7 @@ class MessageBuilder extends Component {
             </div>
           </div>
         )}
+        <div className="hr-line-dashed"></div>
         <div className="row">
           <div className="col-md-12">
             <Label
@@ -263,6 +265,7 @@ class MessageBuilder extends Component {
             />
           </div>
         </div>
+        <div className="hr-line-dashed"></div>
         <div className="row">
           <div className="col-md-12">
             <Label

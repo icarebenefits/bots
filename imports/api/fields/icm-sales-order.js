@@ -51,6 +51,21 @@ const iCMSalesOrder = () => ({
         }),
       }
     ),
+    soLastStatusDate: () => Object.assign(
+      {},
+      Standard().Date(),
+      {
+        props: () => ({
+          id: 'soLastStatusDate',
+          name: 'Status date',
+          type: 'date',
+          bucket: true
+        }),
+        elastic: () => ({
+          field: 'last_status_date',
+        })
+      }
+    ),
     soPurchaseStore: () => Object.assign(
       {},
       Standard().String(),
