@@ -128,7 +128,8 @@ const Customer = () => ({
         props: () => ({
           id: 'contractEndDate',
           name: 'Contract end date',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
       elastic: () => ({
         field: 'contract_end_date',

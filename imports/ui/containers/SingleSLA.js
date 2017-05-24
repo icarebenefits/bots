@@ -72,6 +72,7 @@ class SingleSLA extends Component {
       message: message.getData(),
       country
     };
+
     return SLA;
   }
 
@@ -599,10 +600,9 @@ class SingleSLA extends Component {
             <div className="portlet-body">
               <div className="row" style={{marginBottom: 20}}>
                 <div className="col-md-12">
-                  <Label
-                    className="col-md-4 bold uppercase pull-left"
-                    value="Informations: "
-                  />
+                  <div className="note note-info">
+                    <h4 className="block uppercase">Informations</h4>
+                  </div>
                 </div>
               </div>
               <div className="row">
