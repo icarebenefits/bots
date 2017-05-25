@@ -182,6 +182,7 @@ const iCMTicket = () => ({
           id: 'ticketDepartment',
           name: 'Department',
           type: 'string',
+          bucket: true,
           placeHolder: ''
         }),
         elastic: () => ({
