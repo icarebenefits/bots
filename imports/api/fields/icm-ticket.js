@@ -87,6 +87,7 @@ const iCMTicket = () => ({
           id: 'ticketType',
           name: 'Type',
           type: 'suggest',
+          bucket: true,
           placeHolder: '',
           suggests: SUGGESTS.ticket.type
         }),
@@ -103,6 +104,7 @@ const iCMTicket = () => ({
           id: 'ticketPriority',
           name: 'Priority',
           type: 'suggest',
+          bucket: true,
           placeHolder: '',
           suggests: SUGGESTS.ticket.priority
         }),
@@ -119,6 +121,7 @@ const iCMTicket = () => ({
           id: 'ticketStatus',
           name: 'Status',
           type: 'suggest',
+          bucket: true,
           placeHolder: 'confirmed',
           suggests: SUGGESTS.ticket.status
         }),
@@ -193,7 +196,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketCreatedAt',
           name: 'Created at',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'created_at',
@@ -207,7 +211,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketModifiedAt',
           name: 'Modified at',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'modified_at',
@@ -221,7 +226,8 @@ const iCMTicket = () => ({
         props: () => ({
           id: 'ticketResolvedAt',
           name: 'Resolved at',
-          type: 'date'
+          type: 'date',
+          bucket: true
         }),
         elastic: () => ({
           field: 'resolved_at',

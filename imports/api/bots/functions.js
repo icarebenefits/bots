@@ -2,10 +2,11 @@ import {Meteor} from 'meteor/meteor';
 import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
 import _ from 'lodash';
+import moment from 'moment';
 // collections
 import {SLAs} from '../collections/slas';
 // fields
-import {Field} from '/imports/api/fields';
+import {Field, getESField} from '/imports/api/fields';
 // functions
 import {Facebook} from '../facebook-graph';
 import {QueryBuilder} from '../query-builder';
@@ -70,7 +71,7 @@ export const executeSLA = ({SLA}) => {
   if (_.isEmpty(SLA)) {
     throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
   }
-  const {name, conditions, workplace, message: {variables, messageTemplate}, country} = SLA;
+  const {name, conditions, workplace, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
   let queries = [];
 
   /* validate conditions and message */
@@ -86,17 +87,15 @@ export const executeSLA = ({SLA}) => {
   const vars = {};
   variables.map(aggregation => {
     const
-      {summaryType: aggType, group, field, name} = aggregation,
+      {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
       {type} = Field()[group]().elastic();
     const
       {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
       index = `${indexPrefix}_${country}_${env}`;
 
     const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
-    const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(aggregation);
-
-    // console.log('query', JSON.stringify(query))
-
+    const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+    
     if (error || aggsErr) {
       throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
     } else {
@@ -132,15 +131,42 @@ export const executeSLA = ({SLA}) => {
         }
 
         if (!_.isEmpty(agg)) {
-          let ESField = '';
-          if (field === 'total') {
-            ESField = Field()[group]().elastic().id;
-          } else {
-            ESField = Field()[group]().field()[field]().elastic().field;
-          }
-          const {value} = agg[`agg_${aggType}_${ESField}`];
+          const ESField = getESField(aggType, group, field);
 
-          vars[name] = accounting.formatNumber(value, 0);
+          if(useBucket && applyBucket) {
+            const {type, group, field, options} = bucket;
+            let bucketField = getESField('', group, field);
+            if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
+              throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
+            }
+            switch (type) {
+              case 'terms':
+              {
+                bucketField = `${bucketField}.keyword`;
+                break;
+              }
+              default:
+                bucketField = bucketField;
+            }
+            const {buckets} = agg[`agg_${type}_${bucketField}`];
+            if(!_.isEmpty(buckets)) {
+              let mess = '';
+              buckets.map(b => {
+                let key = b.key;
+                const value = accounting.formatNumber(b[`agg_${aggType}_${ESField}`].value, 0);
+                if(type === 'date_histogram') {
+                  key = moment(key).format('LL');
+                }
+                mess = `${mess} \n - ${key}: ${value} \n`;
+              });
+              vars[name] = mess;
+            } else {
+              vars[name] = 'No result.';
+            }
+          } else {
+            const {value} = agg[`agg_${aggType}_${ESField}`];
+            vars[name] = accounting.formatNumber(value, 0);
+          }
         }
       }
     }

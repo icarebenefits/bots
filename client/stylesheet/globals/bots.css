@@ -9,3 +9,19 @@
 .table-no-border, td {
   border-top: 0px !important;
 }
+
+.hr-line-dashed {
+  border-top: 1px dashed #ddd;
+  color: #ffffff;
+  background-color: #ffffff;
+  height: 1px;
+  margin: 20px 0;
+}
+
+.hr-line-solid {
+  border-bottom: 1px solid #ddd;
+  background-color: rgba(0, 0, 0, 0);
+  border-style: solid !important;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
