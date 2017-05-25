@@ -95,7 +95,7 @@ export const executeSLA = ({SLA}) => {
 
     const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
     const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
-
+    
     if (error || aggsErr) {
       throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
     } else {
@@ -152,11 +152,12 @@ export const executeSLA = ({SLA}) => {
             if(!_.isEmpty(buckets)) {
               let mess = '';
               buckets.map(b => {
-                let key = b.key, value = accounting.formatNumber(b.doc_count, 0);
+                let key = b.key;
+                const value = accounting.formatNumber(b[`agg_${aggType}_${ESField}`].value, 0);
                 if(type === 'date_histogram') {
                   key = moment(key).format('LL');
                 }
-                mess = `${mess} \n - ${key}: ${value}`;
+                mess = `${mess} \n - ${key}: ${value} \n`;
               });
               vars[name] = mess;
             } else {

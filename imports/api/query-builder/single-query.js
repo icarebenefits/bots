@@ -346,7 +346,7 @@ const buildQuery = (type, {aggGroup, operator, fieldGroup, value}, queryType = '
 const buildAggregation = (useBucket, bucket, agg) => {
   check(agg, Object);
 
-  const {summaryType, group, field, bucket: applyBucket} = agg;
+  const {summaryType, group, field, bucket: applyBucket = false} = agg;
 
   /* validate aggs params */
   // summaryType
@@ -355,40 +355,44 @@ const buildAggregation = (useBucket, bucket, agg) => {
     throw new Meteor.Error('BUILD_AGGREGATION', `${summaryType} unsupported.`);
   }
 
-  const ESField = getESField(summaryType, group, field);
   let body = bodybuilder();
+  try {
+    const ESField = getESField(summaryType, group, field);
 
-  if (useBucket && applyBucket) { // bucket is applied to SLA with this aggregation
-    const {type, group, field, options} = bucket;
-    if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
-      throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
-    }
-    let bucketField = getESField('', group, field);
-    switch (type) {
-      case 'terms':
-      {
-        body = body
-          .aggregation(type, `${bucketField}.keyword`, a => {
-            return a.aggregation(summaryType, ESField)
-          });
-        break;
+    if (useBucket && applyBucket) { // bucket is applied to SLA with this aggregation
+      const {type, group, field, options} = bucket;
+      if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
+        throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
       }
-      case 'date_histogram':
-      {
-        body = body
-          .aggregation(type, bucketField, {...options}, a => {
-            return a.aggregation(summaryType, ESField)
-          });
-        break;
+      let bucketField = getESField('', group, field);
+      switch (type) {
+        case 'terms':
+        {
+          body = body
+            .aggregation(type, `${bucketField}.keyword`, a => {
+              return a.aggregation(summaryType, ESField)
+            });
+          break;
+        }
+        case 'date_histogram':
+        {
+          body = body
+            .aggregation(type, bucketField, {...options}, a => {
+              return a.aggregation(summaryType, ESField)
+            });
+          break;
+        }
+        default:
+          body = body
+            .aggregation(type, bucketField, a => {
+              return a.aggregation(summaryType, ESField)
+            });
       }
-      default:
-        body = body
-          .aggregation(type, bucketField, a => {
-            return a.aggregation(summaryType, ESField)
-          });
+    } else {
+      body = body.aggregation(summaryType, ESField);
     }
-  } else {
-    body = body.aggregation(summaryType, ESField);
+  } catch (err) {
+    throw new Meteor.Error('buildAggregation', err.message);
   }
 
   return body.build();
