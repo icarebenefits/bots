@@ -3,7 +3,10 @@ import {check} from 'meteor/check';
 import bodybuilder from 'bodybuilder';
 import _ from 'lodash';
 
-import {Field, Operator} from '/imports/api/fields';
+import {Field, Operator, getESField} from '/imports/api/fields';
+
+/* CONSTANTS */
+import {AGGS_OPTIONS} from '/imports/ui/store/constants';
 
 /**
  *
@@ -164,7 +167,7 @@ const formatNestedInput = ({operator, fieldGroup, value}) => {
    */
 
   const {group, name} = fieldGroup;
-  const {parent, } = Field()[group]().elastic();
+  const {parent,} = Field()[group]().elastic();
 
   const input = createInput({
     field: parent ? `${group}.${name}` : name,
@@ -340,27 +343,59 @@ const buildQuery = (type, {aggGroup, operator, fieldGroup, value}, queryType = '
   }
 };
 
-const buildAggregation = (agg) => {
+const buildAggregation = (useBucket, bucket, agg) => {
   check(agg, Object);
 
-  const {summaryType: type, group, field} = agg;
+  const {summaryType, group, field, bucket: applyBucket = false} = agg;
 
   /* validate aggs params */
   // summaryType
-  if (['value_count', 'sum', 'avg', 'max', 'min'].indexOf(type) === -1) {
-    return {error: `${type} unsupported.`};
-  }
-  let ESField = '';
-
-  if (field === 'total') {
-    ESField = Field()[group]().elastic().id;
-  } else {
-    ESField = Field()[group]().field()[field]().elastic().field;
+  const allowedAggs = AGGS_OPTIONS.map(o => o.name);
+  if (allowedAggs.indexOf(summaryType) === -1) {
+    throw new Meteor.Error('BUILD_AGGREGATION', `${summaryType} unsupported.`);
   }
 
-  return bodybuilder()
-    .aggregation(type, ESField)
-    .build();
+  let body = bodybuilder();
+  try {
+    const ESField = getESField(summaryType, group, field);
+
+    if (useBucket && applyBucket) { // bucket is applied to SLA with this aggregation
+      const {type, group, field, options} = bucket;
+      if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
+        throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
+      }
+      let bucketField = getESField('', group, field);
+      switch (type) {
+        case 'terms':
+        {
+          body = body
+            .aggregation(type, `${bucketField}.keyword`, a => {
+              return a.aggregation(summaryType, ESField)
+            });
+          break;
+        }
+        case 'date_histogram':
+        {
+          body = body
+            .aggregation(type, bucketField, {...options}, a => {
+              return a.aggregation(summaryType, ESField)
+            });
+          break;
+        }
+        default:
+          body = body
+            .aggregation(type, bucketField, a => {
+              return a.aggregation(summaryType, ESField)
+            });
+      }
+    } else {
+      body = body.aggregation(summaryType, ESField);
+    }
+  } catch (err) {
+    throw new Meteor.Error('buildAggregation', err.message);
+  }
+
+  return body.build();
 };
 
 const SingleQuery = () => ({

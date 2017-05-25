@@ -406,10 +406,9 @@ class ConditionsBuilder extends Component {
       <div className="col-md-12">
         <div className="row">
           <div className="col-md-12">
-            <Label
-              className="col-md-4 bold uppercase pull-left"
-              value="Conditions: "
-            />
+            <div className="note note-info">
+              <h4 className="block uppercase">Conditions Builder</h4>
+            </div>
             {readonly
               ? null
               : <Button
