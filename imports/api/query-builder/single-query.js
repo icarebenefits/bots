@@ -368,8 +368,9 @@ const buildAggregation = (useBucket, bucket, agg) => {
       switch (type) {
         case 'terms':
         {
+          const options = Meteor.settings.elastic.aggregation.bucket.terms;
           body = body
-            .aggregation(type, `${bucketField}.keyword`, a => {
+            .aggregation(type, `${bucketField}.keyword`, {...options}, a => {
               return a.aggregation(summaryType, ESField)
             });
           break;
