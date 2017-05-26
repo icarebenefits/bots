@@ -18,7 +18,7 @@ const getField = (group, fieldId) => {
  * @param conditions
  * @return {Array}
  */
-export const makeExpression = (conditions) => {
+export const makeExpression = conditions => {
   const stack = [];
   conditions.map((condition) => {
     const {not, openParens, group, filter, field, operator, values, closeParens, bitwise} = condition;
@@ -59,13 +59,17 @@ export const makeExpression = (conditions) => {
  * @param operator
  * @return {number}
  */
-const getPriority = (operator) => {
-  if (['not', 'or', 'and'].indexOf(operator) > -1) {
-    return 1;
-  } else if (['(', ')'].indexOf(operator) > -1)
-    return 0;
-  else
+const getPriority = operator => {
+  if (operator === 'not')
     return 2;
+
+  if (['or', 'and'].indexOf(operator) > -1)
+    return 1;
+
+  if (['(', ')'].indexOf(operator) > -1)
+    return 0;
+
+  return 3;
 };
 
 /**
@@ -73,7 +77,7 @@ const getPriority = (operator) => {
  * @param e
  * @return {boolean}
  */
-const isOperator = (e) => {
+const isOperator = e => {
   if (operators.indexOf(e) !== -1)
     return true;
   else
@@ -85,7 +89,7 @@ const isOperator = (e) => {
  * @param expression
  * @return {Array}
  */
-export const infixToPostfix = (expression) => {
+export const infixToPostfix = expression => {
   const stack = [];
   const queue = [];
 
@@ -127,7 +131,7 @@ export const infixToPostfix = (expression) => {
  * @param q
  * @return {boolean}
  */
-const isQueryObject = (q) => {
+const isQueryObject = q => {
   if (!_.isEmpty(q.query))
     return true;
   else
