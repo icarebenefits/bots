@@ -214,10 +214,10 @@ const polishNotation = (conditions, aggregation) => {
       switch (p) {
         case 'not':
         {
-          // only build query with 1 param
-          const param = stack.pop();
-          if (isQueryObject(param)) {
-            params.query = param.query;
+          // only build query with 1 operand
+          const operand = stack.pop();
+          if (isQueryObject(operand)) {
+            params.query = operand.query;
           } else {
             // build new query
             return {error: "can't build 'not' query from a non query object!!!"};
@@ -226,33 +226,33 @@ const polishNotation = (conditions, aggregation) => {
         }
         case 'and':
         {
-          // build query with 2 params
+          // build query with 2 operands
           const
-            param2 = stack.pop(),
-            param1 = stack.pop();
+            operand2 = stack.pop(),
+            operand1 = stack.pop();
 
           // verify params type
-          if (!isQueryObject(param1) || !isQueryObject(param2)) {
+          if (!isQueryObject(operand1) || !isQueryObject(operand2)) {
             return {error: "can't build 'and' query from a non query object!!!"};
           }
 
-          params.queries = [param1.query, param2.query];
+          params.queries = [operand1.query, operand2.query];
 
           break;
         }
         case 'or':
         {
-          // build query with 2 params
+          // build query with 2 operands
           const
-            param2 = stack.pop(),
-            param1 = stack.pop();
+            operand2 = stack.pop(),
+            operand1 = stack.pop();
 
           // verify params type
-          if (!isQueryObject(param1) || !isQueryObject(param2)) {
+          if (!isQueryObject(operand1) || !isQueryObject(operand2)) {
             return {error: "can't build 'or' query from a non query object!!!"};
           }
 
-          params.queries = [param1.query, param2.query];
+          params.queries = [operand1.query, operand2.query];
 
           break;
         }
