@@ -304,11 +304,11 @@ Methods.postMessage = new ValidatedMethod({
   name: 'sla.postMessage',
   validate: null,
   async run({workplace, message}) {
-    if(!this.isSimulation) {
+    if (!this.isSimulation) {
       try {
         const result = await Facebook().postMessage(workplace, message);
         return result;
-      } catch(err) {
+      } catch (err) {
         throw new Meteor.Error('POST_MESSAGE_TO_WORKPLACE', err.message);
       }
     }
@@ -482,5 +482,74 @@ Methods.remove = new ValidatedMethod({
   }
 });
 
+Methods.copy = new ValidatedMethod({
+  name: 'sla.copy',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    country: {
+      type: String
+    }
+  }).validator(),
+  async run({_id, country}) {
+    // get SLA info
+    const sla = SLAs.findOne({_id});
+    if (!_.isEmpty(sla)) {
+      try {
+        const {name} = sla;
+        console.log('copy SLA', sla);
+        // get the name for copied SLA
+        // todo
+
+        // get current user who copied SLA
+        // todo
+
+        // create copied SLA
+        // todo
+
+        // return the copied SLA _id
+        return _id;
+      } catch (err) {
+        throw new Meteor.Error('SLA.remove', err.message);
+      }
+    } else {
+      throw new Meteor.Error('SLA.remove', 'SLA not found.')
+    }
+  }
+});
+
+Methods.publish = new ValidatedMethod({
+  name: 'sla.publish',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    country: {
+      type: String
+    }
+  }).validator(),
+  async run({_id, country}) {
+    // get SLA info
+    const sla = SLAs.findOne({_id});
+    if (!_.isEmpty(sla)) {
+      try {
+        const {name} = sla;
+        console.log('publish SLA', sla);
+        // get the name for published SLA
+        // todo
+
+        // get current user who published SLA
+        // todo
+
+        // publish SLA to production
+        // todo
+
+        // return the published SLA _id
+        return _id;
+      } catch (err) {
+        throw new Meteor.Error('SLA.remove', err.message);
+      }
+    } else {
+      throw new Meteor.Error('SLA.remove', 'SLA not found.')
+    }
+  }
+});
 
 export default Methods

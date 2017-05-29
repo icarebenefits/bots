@@ -9,15 +9,12 @@ import validate from 'validate.js';
 /* Components */
 import ReactMarkdown from 'react-markdown';
 import {
-  Label,
-  FormInput,
-  FormActions,
-  Dialog,
-  Checkbox
-} from '../components/elements';
+  Label, FormInput, FormActions,
+  Dialog, Checkbox
+} from '/imports/ui/components/elements';
 
-import {NoContent} from '../components/common';
-import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '../components';
+import {NoContent} from '/imports/ui/components/common';
+import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '/imports/ui/components';
 
 /* Collections */
 import {SLAs, Methods} from '/imports/api/collections/slas';
@@ -487,7 +484,7 @@ class SingleSLA extends Component {
     return (
       <Dialog
         modal={true}
-        width={600}
+        className="DialogMedium"
         bodyClass="text-left"
         header="Preview SLA"
         confirmLabel="Ok"

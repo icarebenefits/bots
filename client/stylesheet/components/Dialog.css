@@ -55,3 +55,11 @@
 .DialogFooter .Button {
   margin: 10px;
 }
+
+.DialogSmall {
+  width: 350px !important;
+}
+
+.DialogMedium {
+  width: 600px !important;
+}

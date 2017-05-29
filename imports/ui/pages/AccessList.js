@@ -12,9 +12,9 @@ import * as Notify from '/imports/api/notifications';
 import {AccessList, Methods} from '/imports/api/collections/access-list';
 
 /* Components */
-import {ListAccess} from '../containers';
-import {PageSideBar} from '../components';
-import {Dialog, FormDialog} from '../components/elements';
+import {ListAccess} from '/imports/ui/containers';
+import {PageSideBar} from '/imports/ui/components';
+import {Dialog, FormDialog} from '/imports/ui/components/elements';
 
 class AccessListComponent extends Component {
 

@@ -2,10 +2,10 @@ import React, {PropTypes} from 'react';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 
 /* CONSTANTS */
-import {SIDEBAR} from '../store/constants';
+import {SIDEBAR} from '/imports/ui/store/constants';
 
 /* Components */
-import {PageSideBar} from '../components';
+import {PageSideBar} from '/imports/ui/components';
 import SingleSLA from './SingleSLA';
 import ListSLA from './ListSLA';
 

@@ -5,11 +5,7 @@ import moment from 'moment';
 // Fields
 import {Field} from '/imports/api/fields';
 
-import {
-  Button,
-  Dialog,
-  Label,
-} from '../elements';
+import {Button, Dialog} from '../elements';
 import {Condition} from './Condition';
 import FormDialog from './FormDialog';
 import * as Notify from '/imports/api/notifications';

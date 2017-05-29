@@ -2,20 +2,16 @@ import React, {PropTypes} from 'react';
 import classNames from 'classnames';
 import _ from 'lodash';
 
-import {
-  FormInput,
-  Button,
-} from '../elements';
+import {FormInput, Button,} from '/imports/ui/components/elements';
 
 const ListItem = (props) => {
   const
-    {_id, row, readonly, rowData, actions} = props,
-    hasActions = !_.isEmpty(actions)
-    ;
-  const status = rowData.pop().value;
-  const skipButton = (status === 'inactive' || status === 'draft') ? 'Inactivate' : 'Activate';
-  // console.log(skipButton);
-  if (readonly) {
+    {_id, row, readonly, rowData, actions, moreActions} = props,
+    hasActions = !_.isEmpty(actions),
+    status = rowData.pop().value,
+    skipButton = (status === 'inactive' || status === 'draft') ? 'Inactivate' : 'Activate';
+
+  console.log('moreActions', moreActions);
     return (
       <tr className="odd gradeX">
         {rowData.map((cell, idx) => {
@@ -42,40 +38,33 @@ const ListItem = (props) => {
                     ><i className={icon}/>{' '}{label}</Button>
                 );
               })}
+              {!_.isEmpty(moreActions) && (
+                <div className="btn-group pull-right">
+                  <button
+                    className="btn btn-default  btn-outline dropdown-toggle"
+                    data-toggle="dropdown">
+                    <i className="fa fa-caret-down"/>
+                    {' More'}
+                  </button>
+                  <ul className="dropdown-menu pull-right">
+                    {moreActions.map(action => {
+                      const {id, icon, label, onClick} = action;
+                      return (
+                        <li key={id}>
+                          <a onClick={e => {e.preventDefault(); onClick(id, _id)}}>
+                            <i className={icon}/>{label}</a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </td>
           : null
         }
       </tr>
     );
-  } else {
-    return (
-      <tr>
-        {rowData.map((cell, idx) => {
-          const
-            {type, handleOnChange} = cell;
-          return (
-            <td
-              key={idx}
-              data-row={row}
-              data-cell={idx}
-            >
-              <FormInput
-                {...cell}
-                handleOnChange={value => handleOnChange(row, type, value)}
-              />
-            </td>
-          );
-        })}
-        {hasActions
-          ? <td>
-            {actions}
-          </td>
-          : null
-        }
-      </tr>
-    );
-  }
 };
 
 ListItem.propTypes = {

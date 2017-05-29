@@ -8,14 +8,15 @@ import {FlowRouter} from 'meteor/kadira:flow-router';
 
 /* CONSTANTS */
 import {
-  TOOLBARS, LISTS,
+  TOOLBARS, LISTS, MORE_BUTTON,
   SLA_SET_FILTER, SLA_SET_SEARCH,
   SLA_ADD, SLA_EDIT,
-  SLA_REMOVE, SLA_ACTIVATE, SLA_INACTIVATE
+  SLA_REMOVE, SLA_ACTIVATE, SLA_INACTIVATE,
+  SLA_COPY, SLA_PUBLISH
 } from '/imports/ui/store/constants';
 /* Actions */
 import {
-  setFilter, setSearch,
+  setFilter, setSearch, closeDialog,
   actionOnSLA, onChangeModeEdit
 } from '/imports/ui/store/actions';
 
@@ -25,6 +26,7 @@ import SLACollection from '/imports/api/collections/slas/slas';
 
 /* Components */
 import {List, Toolbar} from '/imports/ui/components';
+import {FormInput, Dialog} from '/imports/ui/components/elements';
 
 /* Functions */
 import {searchSLAList, getScheduleText} from '/imports/utils';
@@ -33,8 +35,22 @@ class ListSLA extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      dialog: false,
+      slaId: '',
+      action: '',
+      country: ''
+    };
+
     this._getListData = this._getListData.bind(this);
+    // handlers
     this.onClickEdit = this.onClickEdit.bind(this);
+    this.onClickCopy = this.onClickCopy.bind(this);
+    this.onClickPublish = this.onClickPublish.bind(this);
+    this._onChooseCountry = this._onChooseCountry.bind(this);
+
+    this._renderDialog = this._renderDialog.bind(this);
+    this._closeDialog = this._closeDialog.bind(this);
   }
 
   onClickEdit(mode, id) {
@@ -42,6 +58,18 @@ class ListSLA extends Component {
     const SLA = SLAs.filter(s => s._id === id)[0] || {};
     onChangeModeEdit(SLA);
     FlowRouter.setQueryParams({mode, id});
+  }
+
+  onClickCopy(slaId) {
+    this.setState({dialog: {action: 'copy'}, slaId, country: ''});
+  }
+
+  onClickPublish(slaId) {
+    this.setState({dialog: {action: 'publish'}, slaId, country: ''});
+  }
+
+  _onChooseCountry(country) {
+    this.setState({country});
   }
 
   _getListData() {
@@ -89,11 +117,61 @@ class ListSLA extends Component {
     });
   }
 
+  _renderDialog() {
+    const {dialog} = this.state;
+
+    if (!dialog) {
+      return null;
+    }
+
+    const {action} = dialog, {country} = this.state;
+
+    return (
+      <Dialog
+        modal={true}
+        bodyClass="text-left"
+        header={`${S(action).capitalize().s} SLA`}
+        confirmLabel="Ok"
+        hasCancel={true}
+        onAction={this._closeDialog}
+      >
+        <div className="form-body">
+          <div className="form-group">
+            <div className="caption">
+              <i className="icon-edit font-dark"/>
+              <span className="caption-subject font-dark bold uppercase">
+                {`Choose country to ${action}`}
+              </span>
+            </div>
+          </div>
+          <div className="form-group form-inline">
+            <FormInput
+              type="select"
+              value={country}
+              options={[
+              {name: '', label: ''},
+              {name: 'vn', label: 'Vietnam'},
+              {name: 'kh', label: 'Cambodia'},
+              {name: 'la', label: 'Laos'}
+              ]}
+              handleOnChange={this._onChooseCountry}
+            />
+          </div>
+        </div>
+      </Dialog>
+    );
+  }
+
+  _closeDialog(action) {
+    console.log('_closeDialog', action);
+  }
+
   render() {
     const {
       ready, filter,
-      onFilter, onSearch, onClickAdd,
-      onClickActivate, onClickInactivate, onClickRemove
+      onFilter, onSearch,
+      onClickAdd, onClickRemove,
+      onClickActivate, onClickInactivate
     } = this.props;
 
     const listProps = {
@@ -104,21 +182,34 @@ class ListSLA extends Component {
           icon: 'fa fa-pencil', className: 'btn-primary',
           onClick: this.onClickEdit
         },
-        {id: 'activate', label: 'Activate',
+        {
+          id: 'activate', label: 'Activate',
           icon: 'fa fa-play', className: 'green',
-          onClick: onClickActivate},
+          onClick: onClickActivate
+        },
         {
           id: 'inactivate', label: 'Inactivate',
           icon: 'fa fa-stop', className: 'yellow',
           onClick: onClickInactivate
+        }
+      ],
+      moreActions: [
+        {
+          id: 'copy', label: 'Copy',
+          icon: '', onClick: this.onClickCopy
         },
         {
-          id: 'remove', label: '',
-          icon: 'fa fa-times', className: 'btn-danger',
-          onClick: onClickRemove
+          id: 'publish', label: 'Publish',
+          icon: '', onClick: this.onClickPublish
+        },
+        {
+          id: 'remove', label: 'Remove',
+          icon: '', onClick: onClickRemove
         }
       ]
     };
+
+    console.log('dialog', this.state.dialog);
 
     if (ready) {
       return (
@@ -138,6 +229,9 @@ class ListSLA extends Component {
           />
 
           {/*<ListFooter />*/}
+
+          {/* Dialog */}
+          {this._renderDialog()}
         </div>
       );
     } else {
@@ -161,7 +255,9 @@ ListSLA.propTypes = {
   onChangeModeEdit: PropTypes.func,
   onClickActivate: PropTypes.func,
   onClickInactivate: PropTypes.func,
-  onClickRemove: PropTypes.func,
+  onCopySLA: PropTypes.func,
+  onPublishSLA: PropTypes.func,
+  onClickRemove: PropTypes.func
 };
 
 const ListSLAContainer = createContainer((props) => {
@@ -214,6 +310,8 @@ const mapDispatchToProps = dispatch => ({
   onChangeModeEdit: SLA => dispatch(onChangeModeEdit(SLA)),
   onClickActivate: (action, _id) => dispatch(actionOnSLA(SLA_ACTIVATE, action, _id)),
   onClickInactivate: (action, _id) => dispatch(actionOnSLA(SLA_INACTIVATE, action, _id)),
+  onCopySLA: (action, _id, country) => dispatch(actionOnSLA(SLA_COPY, action, _id, country)),
+  onPublishSLA: (action, _id, country) => dispatch(actionOnSLA(SLA_PUBLISH, action, _id, country)),
   onClickRemove: (action, _id) => dispatch(actionOnSLA(SLA_REMOVE, action, _id))
 });
 
