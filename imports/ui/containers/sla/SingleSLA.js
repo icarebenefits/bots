@@ -153,7 +153,7 @@ class SingleSLA extends Component {
   }
 
   _onCreateSLA(SLA) {
-    Methods.create.call(SLA, (err, res) => {
+    Methods.create.call(SLA, err => {
       if (err) {
         Notify.error({
           title: 'CREATE_SLA',
@@ -171,7 +171,7 @@ class SingleSLA extends Component {
   }
 
   _onEditSLA(SLA) {
-    const result = Methods.edit.call(SLA, (err, res) => {
+    const result = Methods.edit.call(SLA, err => {
       if (err) {
         Notify.error({
           title: 'EDIT_SLA',
@@ -189,6 +189,7 @@ class SingleSLA extends Component {
   }
 
   _onDraft(_id, SLA) {
+    const {copied} = this.props;
     this.setState({saving: true});
     if (_.isEmpty(SLA)) {
       Notify.error({
@@ -197,20 +198,17 @@ class SingleSLA extends Component {
       });
     }
     try {
-      let result = null;
-      if (_id) {
-        // edit SLA
-        result = this._onEditSLA({...SLA, _id, status: 'draft'});
-      } else {
-        // create SLA
-        result = this._onCreateSLA({...SLA, status: 'draft'});
-      }
+      // edit SLA
+      if (_id)
+        return this._onEditSLA({...SLA, _id, status: 'draft'});
+      // create SLA
+      return this._onCreateSLA({...SLA, status: 'draft'});
     } catch (err) {
       Notify.error({
         title: 'SLA save as draft',
         message: err.message
       });
-      this.setState({saving: false});
+      return this.setState({saving: false});
     }
   }
 
@@ -223,14 +221,12 @@ class SingleSLA extends Component {
       });
     }
     try {
-      let result = null;
-      if (_id) {
-        // edit SLA
-        result = this._onEditSLA({...SLA, _id, status: 'active'});
-      } else {
-        // create SLA
-        result = this._onCreateSLA({...SLA, status: 'active'});
-      }
+      // edit SLA
+      if (_id)
+        return this._onEditSLA({...SLA, _id, status: 'active'});
+
+      // create SLA
+      return this._onCreateSLA({...SLA, status: 'active'});
     } catch (err) {
       Notify.error({
         title: 'SLA save',
@@ -260,7 +256,7 @@ class SingleSLA extends Component {
           {workplace} = SLA;
         Notify.info({title: 'SLA executing', message: ''});
         Methods.postMessage.call({workplace, message}, (err, res) => {
-          if(err) {
+          if (err) {
             Notify.error({
               title: 'SLA execute',
               message: err.reason
@@ -344,10 +340,10 @@ class SingleSLA extends Component {
   }
 
   onClickSaveAsDraft() {
-    const {SLA} = this.props;
+    const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
-    !_.isEmpty(SLA) && (slaId = SLA._id);
+    (!_.isEmpty(SLA) && _.isEmpty(copied)) && (slaId = SLA._id);
     this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
@@ -424,7 +420,7 @@ class SingleSLA extends Component {
   }
 
   onClickSaveAndExecute() {
-    const {SLA} = this.props;
+    const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
     !_.isEmpty(SLA) && (slaId = SLA._id);
@@ -536,7 +532,7 @@ class SingleSLA extends Component {
   }
 
   render() {
-    const {ready, mode, SLA: currentSLA, WPs,} = this.props;
+    const {ready, mode, SLA: currentSLA, WPs, copied} = this.props;
     const {newSLA, executing, previewing, saving, validating} = this.state;
     const disabled = executing || previewing || saving || validating;
     const
@@ -615,7 +611,9 @@ class SingleSLA extends Component {
                           <FormInput
                             ref="name"
                             type="text"
-                            value={isEditMode ? SLA.name : ''}
+                            value={isEditMode ?
+                            (copied ? `${SLA.name}_1` : SLA.name) :
+                            ''}
                             className="form-control input-medium"
                             placeholder="SLA name"
                             handleOnChange={() => {}}
@@ -733,18 +731,19 @@ export default createContainer(() => {
   const
     {
       params: {country},
-      queryParams: {mode, id}
+      queryParams: {mode, id, copied}
     } = FlowRouter.current(),
     subSLAs = Meteor.subscribe('slasList'),
     subWPs = Meteor.subscribe('groups'),
     ready = subSLAs.ready() && subWPs.ready(),
-    SLA = SLAs.findOne({_id: id}),
+    SLA = SLAs.findOne({_id: id || copied}),
     WPs = WPCollection.find({country}).fetch();
 
   return {
     ready,
     country,
     mode,
+    copied,
     SLA,
     WPs
   };

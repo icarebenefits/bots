@@ -60,12 +60,12 @@ class ListSLA extends Component {
     FlowRouter.setQueryParams({mode, id});
   }
 
-  onClickCopy(slaId) {
-    this.setState({dialog: {action: 'copy'}, slaId, country: ''});
+  onClickCopy(action, slaId) {
+    this.setState({dialog: {action}, slaId, country: ''});
   }
 
-  onClickPublish(slaId) {
-    this.setState({dialog: {action: 'publish'}, slaId, country: ''});
+  onClickPublish(action, slaId) {
+    this.setState({dialog: {action}, slaId, country: ''});
   }
 
   _onChooseCountry(country) {
@@ -163,7 +163,12 @@ class ListSLA extends Component {
   }
 
   _closeDialog(action) {
-    console.log('_closeDialog', action);
+    if(action === 'confirm') {
+      const {slaId: copied, country} = this.state;
+      FlowRouter.go('setup', {page: 'setup', country}, {tab: 'sla', mode: 'edit', copied});
+    } else {
+      this.setState({dialog: null});
+    }
   }
 
   render() {

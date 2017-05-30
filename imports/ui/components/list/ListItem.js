@@ -6,12 +6,10 @@ import {FormInput, Button,} from '/imports/ui/components/elements';
 
 const ListItem = (props) => {
   const
-    {_id, row, readonly, rowData, actions, moreActions} = props,
-    hasActions = !_.isEmpty(actions),
+    {_id, row, rowData, actions, moreActions} = props,
     status = rowData.pop().value,
     skipButton = (status === 'inactive' || status === 'draft') ? 'Inactivate' : 'Activate';
 
-  console.log('moreActions', moreActions);
     return (
       <tr className="odd gradeX">
         {rowData.map((cell, idx) => {
@@ -24,7 +22,7 @@ const ListItem = (props) => {
             >{value}</td>
           );
         })}
-        {hasActions
+        {!_.isEmpty(actions)
           ? <td>
             <div className="btn-group">
               {actions.map(action => {
