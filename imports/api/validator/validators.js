@@ -200,7 +200,6 @@ Validators.copiedSLA = (copiedSLA) => {
         aggs: originalAggs,
         size: 0 // just need the result of total and aggregation, no need to fetch ES documents
       });
-      console.log('originalESQuery', originalESQuery);
 
       const {conditions, message: {useBucket, bucket, variables}} = SLA,
         aggregation = variables[i];
@@ -216,7 +215,6 @@ Validators.copiedSLA = (copiedSLA) => {
           aggs,
           size: 0 // just need the result of total and aggregation, no need to fetch ES documents
         });
-        console.log('ESQuery', ESQuery);
 
         if(originalESQuery !== ESQuery)
           isSame = false;
