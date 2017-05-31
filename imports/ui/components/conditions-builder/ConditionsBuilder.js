@@ -5,11 +5,7 @@ import moment from 'moment';
 // Fields
 import {Field} from '/imports/api/fields';
 
-import {
-  Button,
-  Dialog,
-  Label,
-} from '../elements';
+import {Button, Dialog} from '../elements';
 import {Condition} from './Condition';
 import FormDialog from './FormDialog';
 import * as Notify from '/imports/api/notifications';
@@ -121,6 +117,19 @@ class ConditionsBuilder extends Component {
         cond = {...condition, field: value};
         break;
       }
+      case 'edit': {
+        const {group, filter, values} = condition;
+        this.setState({
+          dialog: {
+            row,
+            groupId: group,
+            fieldId: filter
+          },
+          values
+        });
+        cond = {...condition};
+        break;
+      }
       case 'operator':
       {
         if (_.isEmpty(value)) {
@@ -128,16 +137,18 @@ class ConditionsBuilder extends Component {
         } else {
           // key: operator, value: bool
           const
-            Fields = Field()[groupId](),
+            Fields = Field()[groupId],
             {filter, field} = conditions[row],
             newValues = []
             ;
+
+          
           let FieldData = {};
           if (!_.isEmpty(field)) {
             // field group
             // FieldData = Object.assign({}, Fields[filter]().fields[field]);
           } else {
-            FieldData = Object.assign({}, Fields.field()[filter]())
+            FieldData = Object.assign({}, Fields().field()[filter]())
           }
 
           // const {type, params} = FieldData.operator()[value].props();
@@ -179,6 +190,7 @@ class ConditionsBuilder extends Component {
         return c;
       }
     });
+
     return this.setState({
       conditions: newConds
     });
@@ -317,20 +329,6 @@ class ConditionsBuilder extends Component {
     return description;
   }
 
-  getExpression(conditions = []) {
-    let expression = '';
-
-    conditions.map(condition => {
-      const {not, openParens, filter, closeParens, bitwise} = condition;
-
-      if (!_.isEmpty(filter)) {
-        expression = `${expression} ${not ? '!' : ''} ${openParens} ${filter} ${this.getDescription(condition)} ${closeParens} ${bitwise}`;
-      }
-    });
-
-    return expression;
-  }
-
   _renderDialog() {
     const {dialog} = this.state;
 
@@ -374,7 +372,7 @@ class ConditionsBuilder extends Component {
   _saveDataDialog(action) {
     let newConds = [];
     if (action === 'dismiss') {
-      newConds = this._clearDescription();
+      newConds = this.props.conditions;
     }
     this._closeDialog(newConds);
   }

@@ -15,11 +15,17 @@ export class Dialog extends Component {
   }
 
   render() {
-    const {modal, header, onAction, children, hasCancel, confirmLabel, width = 350, bodyClass = 'text-center'} = this.props;
+    const {
+      modal, header, onAction,
+      children,
+      hasCancel, confirmLabel,
+      href, openTab,
+      className = 'DialogSmall', bodyClass = 'text-center'
+    } = this.props;
 
     return (
       <div className={classNames({'Dialog': true, 'DialogModal': modal})}>
-        <div className={classNames({'DialogModalWrap': modal})} style={{width}}>
+        <div className={classNames({'DialogModalWrap': modal, [`${className}`]: true})}>
           <div className="DialogHeader">{header}</div>
           <div className={classNames("DialogBody", bodyClass)}>{children}</div>
           <div className="DialogFooter">
@@ -32,6 +38,8 @@ export class Dialog extends Component {
             }
             {' '}
             <Button
+              href={href}
+              target={openTab && "_blank"}
               className="btn-default"
               onClick={onAction.bind(this, hasCancel ? 'confirm' : 'dismiss')}
             >{confirmLabel}</Button>
@@ -57,7 +65,8 @@ Dialog.propTypes = {
 Dialog.defaultProps = {
   confirmLabel: 'ok',
   modal: false,
-  onAction: () => {},
+  onAction: () => {
+  },
   hasCancel: true
 };
 
