@@ -3,7 +3,7 @@ import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
-import S from 'string';
+import {DDP} from 'meteor/ddp-client'
 
 import SLAs from './slas';
 // query builder
@@ -43,10 +43,11 @@ Methods.create = new ValidatedMethod({
           country
         };
         const createResult = await createJob(jobParams);
-        console.log('createJob', createResult);
+        return {_id, createResult};
       }
+      return {_id};
     } catch (err) {
-      throw new Meteor.Error('slas.create', err.message);
+      throw new Meteor.Error('SLA_CREATE', err.message);
     }
   }
 });
@@ -450,7 +451,7 @@ Methods.validateConditions = new ValidatedMethod({
 });
 
 /**
- * Method remove an SLA
+ * Method remove a SLA
  * @param {} name - description
  * @return {}
  */
@@ -482,41 +483,12 @@ Methods.remove = new ValidatedMethod({
   }
 });
 
-Methods.copy = new ValidatedMethod({
-  name: 'sla.copy',
-  validate: new SimpleSchema({
-    ...IDValidator,
-    country: {
-      type: String
-    }
-  }).validator(),
-  async run({_id, country}) {
-    // get SLA info
-    const sla = SLAs.findOne({_id});
-    if (!_.isEmpty(sla)) {
-      try {
-        const {name} = sla;
-        console.log('copy SLA', sla);
-        // get the name for copied SLA
-        // todo
-
-        // get current user who copied SLA
-        // todo
-
-        // create copied SLA
-        // todo
-
-        // return the copied SLA _id
-        return _id;
-      } catch (err) {
-        throw new Meteor.Error('SLA.remove', err.message);
-      }
-    } else {
-      throw new Meteor.Error('SLA.remove', 'SLA not found.')
-    }
-  }
-});
-
+/**
+ * Method publish a SLA to production
+ * @param {String} _id
+ * @param {String} country
+ * @returns {String} publishedURL
+ */
 Methods.publish = new ValidatedMethod({
   name: 'sla.publish',
   validate: new SimpleSchema({
@@ -525,24 +497,54 @@ Methods.publish = new ValidatedMethod({
       type: String
     }
   }).validator(),
-  async run({_id, country}) {
+  run({_id, country}) {
+    let publishedUrl = '';
     // get SLA info
     const sla = SLAs.findOne({_id});
     if (!_.isEmpty(sla)) {
       try {
-        const {name} = sla;
-        console.log('publish SLA', sla);
-        // get the name for published SLA
-        // todo
+        // connect to production with DDP protocol
+        const {host} = Meteor.settings.prod;
+        const BotsProd = DDP.connect(`http://${host}`);
 
-        // get current user who published SLA
-        // todo
+        const
+          {
+            name: originalName, description,
+            frequency, conditions, message
+          } = sla;
+        const
+          name = `${originalName}_published`,
+          workplace = '',
+          status = 'draft';
 
-        // publish SLA to production
-        // todo
+        // validate name for published SLA
+        BotsProd.call('sla.validateName', {name, country}, (err, res) => {
+          if (err)
+            throw new Meteor.Error('VALIDATE_NAME_IN_PROD', err.reason);
+          const {validated, detail} = res;
+          if (!validated) {
+            throw new Meteor.Error('VALIDATE_NAME_IN_PROD', detail[0]);
+          } else {
+            // publish SLA to production
+            BotsProd.call('sla.create', {
+              name, description, workplace,
+              frequency, conditions, message,
+              status, country
+            }, (err, res) => {
+              if (err)
+                throw new Meteor.Error('CREATE_SLA_IN_PROD', err.reason);
 
-        // return the published SLA _id
-        return _id;
+              const {_id} = res;
+              // return the published SLA URL
+              publishedUrl = `http://${host}/app/setup/${country}?tab=sla&mode=edit&id=${_id}`;
+
+              // disconnect from production
+              DDP.disconnect();
+
+              return {publishedUrl};
+            });
+          }
+        });
       } catch (err) {
         throw new Meteor.Error('SLA.remove', err.message);
       }

@@ -43,6 +43,7 @@ class SingleSLA extends Component {
     this._closeDialog = this._closeDialog.bind(this);
     this._renderDialog = this._renderDialog.bind(this);
     this._onShowPreviewQuery = this._onShowPreviewQuery.bind(this);
+    this._onValidate = this._onValidate.bind(this);
 
     this._onPreview = this._onPreview.bind(this);
     this._onDraft = this._onDraft.bind(this);
@@ -93,7 +94,24 @@ class SingleSLA extends Component {
     });
   }
 
-  _onValidate(SLA) {
+  _onValidate(SLA, originalSLA) {
+    console.log('_onValidate', SLA, originalSLA);
+    /* Validate for copied SLA */
+    if(!_.isEmpty(originalSLA)) {
+      const constraints = {
+        data: {
+          copySLA: true
+        }
+      };
+      const validateCopy = validate({data: {SLA, originalSLA}}, constraints);
+      console.log('validateCopy', validateCopy);
+      if (validateCopy) {
+        const result = Object.keys(validateCopy)
+          .map(v => validateValue[v].join());
+        return {validated: false, detail: result};
+      }
+    }
+
     /* Field Values */
     const constraints = {
       workplace: {
@@ -376,10 +394,10 @@ class SingleSLA extends Component {
   }
 
   onClickSave() {
-    const {SLA} = this.props;
+    const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
-    !_.isEmpty(SLA) && (slaId = SLA._id);
+    (!_.isEmpty(SLA) && !copied) && (slaId = SLA._id);
     this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
@@ -391,7 +409,11 @@ class SingleSLA extends Component {
           });
           this.setState({validating: false});
         } else {
-          const {validated, detail} = this._onValidate(newSLA);
+          let originalSLA = null;
+          if(copied) {
+            originalSLA = SLA;
+          }
+          const {validated, detail} = this._onValidate(newSLA, originalSLA);
           if (!validated) {
             Notify.error({
               title: 'Save',

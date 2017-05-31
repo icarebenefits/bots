@@ -1,4 +1,5 @@
 import {Meteor} from 'meteor/meteor';
+import {Session} from 'meteor/session';
 import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
 import {connect} from 'react-redux';
@@ -22,7 +23,8 @@ import {
 
 /* Collections */
 import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
-import SLACollection from '/imports/api/collections/slas/slas';
+import {SLAs as SLACollection, Methods} from '/imports/api/collections/slas';
+import {Countries as CountriesCollection} from '/imports/api/collections/countries';
 
 /* Components */
 import {List, Toolbar} from '/imports/ui/components';
@@ -30,6 +32,8 @@ import {FormInput, Dialog} from '/imports/ui/components/elements';
 
 /* Functions */
 import {searchSLAList, getScheduleText} from '/imports/utils';
+/* Notify */
+import * as Notify from '/imports/api/notifications';
 
 class ListSLA extends Component {
   constructor(props) {
@@ -39,14 +43,14 @@ class ListSLA extends Component {
       dialog: false,
       slaId: '',
       action: '',
-      country: ''
+      country: '',
+      publishedUrl: ''
     };
 
     this._getListData = this._getListData.bind(this);
     // handlers
     this.onClickEdit = this.onClickEdit.bind(this);
-    this.onClickCopy = this.onClickCopy.bind(this);
-    this.onClickPublish = this.onClickPublish.bind(this);
+    this.onClickMoreAction = this.onClickMoreAction.bind(this);
     this._onChooseCountry = this._onChooseCountry.bind(this);
 
     this._renderDialog = this._renderDialog.bind(this);
@@ -60,12 +64,8 @@ class ListSLA extends Component {
     FlowRouter.setQueryParams({mode, id});
   }
 
-  onClickCopy(action, slaId) {
-    this.setState({dialog: {action}, slaId, country: ''});
-  }
-
-  onClickPublish(action, slaId) {
-    this.setState({dialog: {action}, slaId, country: ''});
+  onClickMoreAction(action, slaId) {
+    this.setState({dialog: true, action, slaId, country: ''});
   }
 
   _onChooseCountry(country) {
@@ -118,20 +118,46 @@ class ListSLA extends Component {
   }
 
   _renderDialog() {
-    const {dialog} = this.state;
+    const {dialog} = this.state,
+      {Countries} = this.props;
 
     if (!dialog) {
       return null;
     }
 
-    const {action} = dialog, {country} = this.state;
+    const {action, publishedUrl, country} = this.state;
+    const countryOptions = Countries.map(c => ({name: c.code, label: c.name}));
+    countryOptions.splice(0, 0, {name: '', label: ''});
+    const
+      showPublishedUrl = (action === 'publish' && !_.isEmpty(publishedUrl)),
+      showSelectCountry = (action === 'copy' || (action === 'publish' && _.isEmpty(publishedUrl)));
+    let message = '', confirmLabel = '';
+    if(action === 'remove')
+      confirmLabel = 'Yes';
+      message = 'This action can not be undo, are you sure about this?';
+    if(action === 'publish') {
+      if(!_.isEmpty(publishedUrl)) {
+        confirmLabel = 'Visit';
+        message = 'Published SLA to production, SLA URL is: ';
+      } else {
+        confirmLabel = 'Ok';
+        message = `Choose country to ${action}`;
+      }
+    }
+    if(action === 'copy') {
+      confirmLabel = 'Ok';
+      message = `Choose country to ${action}`;
+    }
 
     return (
       <Dialog
         modal={true}
         bodyClass="text-left"
+        className={showPublishedUrl && 'DialogMedium'}
         header={`${S(action).capitalize().s} SLA`}
-        confirmLabel="Ok"
+        href={showPublishedUrl && publishedUrl}
+        openTab={true}
+        confirmLabel={confirmLabel}
         hasCancel={true}
         onAction={this._closeDialog}
       >
@@ -140,34 +166,66 @@ class ListSLA extends Component {
             <div className="caption">
               <i className="icon-edit font-dark"/>
               <span className="caption-subject font-dark bold uppercase">
-                {`Choose country to ${action}`}
+                {message}
               </span>
             </div>
           </div>
-          <div className="form-group form-inline">
-            <FormInput
-              type="select"
-              value={country}
-              options={[
-              {name: '', label: ''},
-              {name: 'vn', label: 'Vietnam'},
-              {name: 'kh', label: 'Cambodia'},
-              {name: 'la', label: 'Laos'}
-              ]}
-              handleOnChange={this._onChooseCountry}
-            />
-          </div>
+          {showPublishedUrl && (
+            <div className="alert alert-info">
+              {publishedUrl}
+            </div>
+          )}
+          {showSelectCountry && (
+            <div className="form-group form-inline">
+              <FormInput
+                type="select"
+                value={country}
+                options={countryOptions}
+                handleOnChange={this._onChooseCountry}
+              />
+            </div>
+          )}
         </div>
       </Dialog>
     );
   }
 
-  _closeDialog(action) {
-    if(action === 'confirm') {
-      const {slaId: copied, country} = this.state;
-      FlowRouter.go('setup', {page: 'setup', country}, {tab: 'sla', mode: 'edit', copied});
+  _closeDialog(dialogAction) {
+    this.setState({dialog: null});
+    if(dialogAction === 'confirm') {
+      const {action, slaId, country, publishedUrl} = this.state;
+      if(action === 'remove') {
+        return this.props.onRemove(action, slaId);
+      }
+      if(action === 'copy') {
+        Notify.info({
+          title: 'Copy SLA',
+          message: `Current country is ${this.props.Countries.filter(c => c.code === country)[0].name}`
+        });
+        return FlowRouter.go('setup', {page: 'setup', country}, {tab: 'sla', mode: 'edit', copied: slaId});
+      }
+      if(action === 'publish') {
+        if(!_.isEmpty(publishedUrl)) {
+          return this.setState({publishedUrl: ''});
+        } else {
+          this.setState({publishing: true});
+          Methods[action].call({_id: slaId, country}, (err, res) => {
+            if (err) {
+              Notify.error({
+                title: 'Publish SLA',
+                message: err.message
+              });
+              return this.setState({publishing: false, dialog: false});
+            } else {
+              // publish success, the publishUrl of SLA in production will be returned
+              const {publishedUrl} = res;
+              return this.setState({dialog: true, publishedUrl});
+            }
+          });
+        }
+      }
     } else {
-      this.setState({dialog: null});
+      return this.setState({action: '', publishedUrl: ''});
     }
   }
 
@@ -175,7 +233,7 @@ class ListSLA extends Component {
     const {
       ready, filter,
       onFilter, onSearch,
-      onClickAdd, onClickRemove,
+      onClickAdd,
       onClickActivate, onClickInactivate
     } = this.props;
 
@@ -201,20 +259,21 @@ class ListSLA extends Component {
       moreActions: [
         {
           id: 'copy', label: 'Copy',
-          icon: '', onClick: this.onClickCopy
-        },
-        {
-          id: 'publish', label: 'Publish',
-          icon: '', onClick: this.onClickPublish
+          icon: '', onClick: this.onClickMoreAction
         },
         {
           id: 'remove', label: 'Remove',
-          icon: '', onClick: onClickRemove
+          icon: '', onClick: this.onClickMoreAction
         }
       ]
     };
-
-    console.log('dialog', this.state.dialog);
+    // only show publish action in stage environment
+    if(Meteor.settings.public.env === 'stage' && Session.get('isSuperAdmin')) {
+      listProps.moreActions.splice(1, 0, {
+        id: 'publish', label: 'Publish',
+        icon: '', onClick: this.onClickMoreAction
+      });
+    }
 
     if (ready) {
       return (
@@ -260,9 +319,7 @@ ListSLA.propTypes = {
   onChangeModeEdit: PropTypes.func,
   onClickActivate: PropTypes.func,
   onClickInactivate: PropTypes.func,
-  onCopySLA: PropTypes.func,
-  onPublishSLA: PropTypes.func,
-  onClickRemove: PropTypes.func
+  onRemove: PropTypes.func
 };
 
 const ListSLAContainer = createContainer((props) => {
@@ -272,8 +329,10 @@ const ListSLAContainer = createContainer((props) => {
     slaStatus = filter === 'all' ? undefined : filter,
     subWp = Meteor.subscribe('groups'),
     subSLAs = Meteor.subscribe('slasList'),
-    ready = subWp.ready() && subSLAs.ready(),
-    WPs = WPCollection.find({country}).fetch();
+    subCountries = Meteor.subscribe('countries'),
+    ready = subWp.ready() && subSLAs.ready() && subCountries.ready(),
+    WPs = WPCollection.find({country}).fetch(),
+    Countries = CountriesCollection.find().fetch();
 
   const selector = {country};
   // filter by status
@@ -289,6 +348,7 @@ const ListSLAContainer = createContainer((props) => {
     search,
     WPs,
     SLAs,
+    Countries
   };
 }, ListSLA);
 
@@ -315,9 +375,7 @@ const mapDispatchToProps = dispatch => ({
   onChangeModeEdit: SLA => dispatch(onChangeModeEdit(SLA)),
   onClickActivate: (action, _id) => dispatch(actionOnSLA(SLA_ACTIVATE, action, _id)),
   onClickInactivate: (action, _id) => dispatch(actionOnSLA(SLA_INACTIVATE, action, _id)),
-  onCopySLA: (action, _id, country) => dispatch(actionOnSLA(SLA_COPY, action, _id, country)),
-  onPublishSLA: (action, _id, country) => dispatch(actionOnSLA(SLA_PUBLISH, action, _id, country)),
-  onClickRemove: (action, _id) => dispatch(actionOnSLA(SLA_REMOVE, action, _id))
+  onRemove: (action, _id) => dispatch(actionOnSLA(SLA_REMOVE, action, _id))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ListSLAContainer)

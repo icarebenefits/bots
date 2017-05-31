@@ -178,3 +178,9 @@ Validators.slaMessage = (message) => {
     "${invalidVars.join(', ')}".`;
 
 };
+
+Validators.copySLA = (data) => {
+  const {SLA, originalSLA} = data;
+  console.log('validators copySLA', data);
+  return 'gonna validate copied SLA';
+};
