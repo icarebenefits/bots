@@ -2,7 +2,7 @@ import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
 import ListItem from './ListItem';
-import {NoContent} from '../common';
+import {NoContent} from '/imports/ui/components/common';
 
 const List = (props) => {
   const
@@ -11,7 +11,7 @@ const List = (props) => {
       headers = [],
       data = [],
       actions = [],
-      onClickAction = () => {},
+      moreActions = [],
       onDoubleClick = () => {},
       readonly = true
     } = props;
@@ -47,6 +47,7 @@ const List = (props) => {
             _id={_id}
             readonly={readonly}
             actions={actions}
+            moreActions={moreActions}
           />
         );
       })}

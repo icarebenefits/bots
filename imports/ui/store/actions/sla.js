@@ -4,6 +4,8 @@
 import {
   SLA_ACTIVATE,
   SLA_INACTIVATE,
+  SLA_COPY,
+  SLA_PUBLISH,
   SLA_REMOVE,
   SLA_INIT_SLA,
   SLA_RESET_SLA,
@@ -69,6 +71,20 @@ export const startAction = (actionType, _id) => {
           inactivating: _id
         }
       };
+    case SLA_COPY:
+      return {
+        type: actionType,
+        payload: {
+          copying: _id
+        }
+      };
+    case SLA_PUBLISH:
+      return {
+        type: actionType,
+        payload: {
+          publishing: _id
+        }
+      };
     case SLA_REMOVE:
       return {
         type: actionType,
@@ -116,6 +132,28 @@ export const endAction = payload => {
         };
         break;
       }
+      case SLA_COPY:
+      {
+        action.payload = {
+          copying: null,
+          copied: _id,
+          dialog: {
+            action: 'copy'
+          }
+        };
+        break;
+      }
+      case SLA_PUBLISH:
+      {
+        action.payload = {
+          publishing: null,
+          published: _id,
+          dialog: {
+            action: 'publish'
+          }
+        };
+        break;
+      }
       case SLA_REMOVE:
       {
         action.payload = {
@@ -151,6 +189,22 @@ export const endAction = payload => {
         };
         break;
       }
+      case SLA_COPY:
+      {
+        action.payload = {
+          copying: null,
+          copied: null
+        };
+        break;
+      }
+      case SLA_PUBLISH:
+      {
+        action.payload = {
+          publishing: null,
+          published: null
+        };
+        break;
+      }
       case SLA_REMOVE:
       {
         action.payload = {
@@ -162,7 +216,3 @@ export const endAction = payload => {
     return action;
   }
 };
-
-/* Set SLA */
-export const initSLA = actionCreator(SLA_INIT_SLA);
-export const resetSLA = () => ({type: SLA_RESET_SLA, payload: {SLA: {}}});

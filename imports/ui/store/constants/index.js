@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 /* SLOGANS */
 export const SLOGANS = {
   vn: 'Vietnam',
@@ -48,7 +49,7 @@ export const AGGS_OPTIONS = [
   {name: 'min', label: 'min'},
   {name: 'avg', label: 'average'}
 ];
-
+/* SCHEDULER OPTIONS */
 export const SCHEDULER_OPTIONS = {
   firstPart: {
     prepsOpts: [
@@ -148,8 +149,5 @@ export const SLA_RESET_SLA = 'SLA::RESET_SLA';
 export const SLA_ACTIVATE = 'SLA::ACTIVATE';
 export const SLA_INACTIVATE = 'SLA::INACTIVATE';
 export const SLA_REMOVE = 'SLA::REMOVE';
-export const SLA_VALIDATE = 'SLA::VALIDATE';
-export const SLA_PREVIEW = 'SLA::PREVIEW';
-export const SLA_SAVE = 'SLA::SAVE';
-export const SLA_SAVE_EXECUTE = 'SLA::SAVE_EXECUTE';
-export const SLA_CANCEL = 'SLA::CANCEL';
+export const SLA_COPY = 'SLA::COPY';
+export const SLA_PUBLISH = 'SLA::PUBLISH';

@@ -34,3 +34,7 @@
 .EditSelectBox:hover .EditButton {
   visibility: visible;
 }
+
+.overflow {
+  overflow: visible !important;
+}
