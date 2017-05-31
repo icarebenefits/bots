@@ -211,6 +211,7 @@ class ListSLA extends Component {
           this.setState({publishing: true});
           Methods[action].call({_id: slaId, country}, (err, res) => {
             if (err) {
+              console.log('error', err);
               Notify.error({
                 title: 'Publish SLA',
                 message: err.message

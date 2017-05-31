@@ -504,7 +504,7 @@ Methods.publish = new ValidatedMethod({
     if (!_.isEmpty(sla)) {
       try {
         // connect to production with DDP protocol
-        const {host} = Meteor.settings.prod;
+        const {host} = Meteor.settings.public.prod;
         const BotsProd = DDP.connect(`http://${host}`);
 
         const
@@ -536,6 +536,7 @@ Methods.publish = new ValidatedMethod({
 
               const {_id} = res;
               // return the published SLA URL
+              console.log('host', host);
               publishedUrl = `http://${host}/app/setup/${country}?tab=sla&mode=edit&id=${_id}`;
 
               // disconnect from production

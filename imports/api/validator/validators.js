@@ -8,6 +8,10 @@ import {makeExpression, validateConditions} from '/imports/api/query-builder';
 /* Utils */
 import {Parser, getVarsFromString} from '/imports/utils';
 
+// fields
+import {Field, getESField} from '/imports/api/fields';
+import {QueryBuilder} from '/imports/api/query-builder';
+
 const Validators = validate.validators;
 
 /**
@@ -124,23 +128,23 @@ Validators.slaMessage = (message) => {
     if (_.isEmpty(field))
       return 'field is required.';
     if (hasOption) {
-      if(_.isEmpty(options))
+      if (_.isEmpty(options))
         return 'interval is required';
     }
     let compareGroup = '';
     variables.forEach((v, i) => {
       const {bucket: vBucket, group: vGroup} = v;
-      if(vBucket) {
-        if(group !== vGroup) {
+      if (vBucket) {
+        if (group !== vGroup) {
           compareGroup = `summary - row ${i + 1} - field is unacceptable.`;
           return;
         }
       }
     });
-    if(!_.isEmpty(compareGroup))
+    if (!_.isEmpty(compareGroup))
       return compareGroup;
   }
-  
+
   // number of template open & close
   const
     numOpen = S(messageTemplate).count('{'),
@@ -179,8 +183,50 @@ Validators.slaMessage = (message) => {
 
 };
 
-Validators.copySLA = (data) => {
-  const {SLA, originalSLA} = data;
-  console.log('validators copySLA', data);
-  return 'gonna validate copied SLA';
+Validators.copiedSLA = (copiedSLA) => {
+  const {SLA, originalSLA} = copiedSLA;
+  let isSame = true;
+  const {conditions, message: {useBucket, bucket, variables}} = originalSLA;
+  variables.map((aggregation, i) => {
+    const {error, query: {query: originalQuery}} = QueryBuilder('conditions').build(conditions, aggregation);
+    const {error: aggsErr, aggs: originalAggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+
+    if (error || aggsErr) {
+      return error;
+    } else {
+      // build the query
+      const originalESQuery = JSON.stringify({
+        query: originalQuery,
+        aggs: originalAggs,
+        size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+      });
+      console.log('originalESQuery', originalESQuery);
+
+      const {conditions, message: {useBucket, bucket, variables}} = SLA,
+        aggregation = variables[i];
+      const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
+      const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+
+      if (error || aggsErr) {
+        return error;
+      } else {
+        // build the query
+        const ESQuery = JSON.stringify({
+          query,
+          aggs,
+          size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+        });
+        console.log('ESQuery', ESQuery);
+
+        if(originalESQuery !== ESQuery)
+          isSame = false;
+      }
+    }
+  });
+
+  if(originalSLA.message.messageTemplate !== SLA.message.messageTemplate)
+    isSame = false;
+
+  if(isSame)
+    return 'can not be saved with same conditions and message with original SLA.';
 };

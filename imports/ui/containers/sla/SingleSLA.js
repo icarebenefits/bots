@@ -99,15 +99,15 @@ class SingleSLA extends Component {
     /* Validate for copied SLA */
     if(!_.isEmpty(originalSLA)) {
       const constraints = {
-        data: {
-          copySLA: true
+        copiedSLA: {
+          copiedSLA: true
         }
       };
-      const validateCopy = validate({data: {SLA, originalSLA}}, constraints);
+      const validateCopy = validate({copiedSLA: {SLA, originalSLA}}, constraints);
       console.log('validateCopy', validateCopy);
       if (validateCopy) {
         const result = Object.keys(validateCopy)
-          .map(v => validateValue[v].join());
+          .map(v => validateCopy[v].join());
         return {validated: false, detail: result};
       }
     }
@@ -445,7 +445,7 @@ class SingleSLA extends Component {
     const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
-    !_.isEmpty(SLA) && (slaId = SLA._id);
+    (!_.isEmpty(SLA) && !copied) && (slaId = SLA._id);
     this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
@@ -457,7 +457,11 @@ class SingleSLA extends Component {
           });
           this.setState({validating: false});
         } else {
-          const {validated, detail} = this._onValidate(newSLA);
+          let originalSLA = null;
+          if(copied) {
+            originalSLA = SLA;
+          }
+          const {validated, detail} = this._onValidate(newSLA, originalSLA);
           if (!validated) {
             Notify.error({
               title: 'Save and Execute',
@@ -486,7 +490,7 @@ class SingleSLA extends Component {
   }
 
   onClickCancel() {
-    FlowRouter.setQueryParams({mode: 'list', id: null})
+    FlowRouter.setQueryParams({mode: 'list', id: null, copied: null})
   }
 
   _renderDialog() {
