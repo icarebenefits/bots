@@ -128,6 +128,9 @@ class ListSLA extends Component {
     const {action, publishedUrl, country} = this.state;
     const countryOptions = Countries.map(c => ({name: c.code, label: c.name}));
     countryOptions.splice(0, 0, {name: '', label: ''});
+    if(action === 'publish') {
+      countryOptions.splice(1, 0, {name: 'all', label: 'All'});
+    }
     const
       showPublishedUrl = (action === 'publish' && !_.isEmpty(publishedUrl)),
       showSelectCountry = (action === 'copy' || (action === 'publish' && _.isEmpty(publishedUrl)));
