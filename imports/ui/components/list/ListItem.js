@@ -42,7 +42,6 @@ const ListItem = (props) => {
                     className="btn btn-default  btn-outline dropdown-toggle"
                     data-toggle="dropdown">
                     <i className="fa fa-caret-down"/>
-                    {' More'}
                   </button>
                   <ul className="dropdown-menu pull-right">
                     {moreActions.map(action => {
