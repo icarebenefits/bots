@@ -502,9 +502,16 @@ Methods.publish = new ValidatedMethod({
   async run({_id, country}) {
     if(!this.isSimulation) {
       try {
-        const {publishedUrl} = await publishSLA(_id, country);
-        console.log('publishedUrl', publishedUrl);
-        return {publishedUrl};
+        if(country === 'all') {
+          // Quick code for publish SLA to all countries
+          await publishSLA(_id, 'la');
+          await publishSLA(_id, 'kh');
+          const {publishedUrl} = await publishSLA(_id, 'vn');
+          return {publishedUrl};
+        } else {
+          const {publishedUrl} = await publishSLA(_id, country);
+          return {publishedUrl};
+        }
       } catch (err) {
         throw new Meteor.Error('SLA.publish', err.message);
       }
