@@ -3,11 +3,11 @@ import {DDP} from 'meteor/ddp-client';
 
 /* Collections */
 import SLAs from './slas';
+import {Countries} from '/imports/api/collections/countries';
 
 export const publishSLA = (_id, country) => {
-  let publishedUrl = '';
-  // get SLA info
   return new Promise((resolve, reject) => {
+    // get SLA info
     const sla = SLAs.findOne({_id});
     if (!_.isEmpty(sla)) {
       try {
@@ -21,7 +21,7 @@ export const publishSLA = (_id, country) => {
             frequency, conditions, message
           } = sla;
         const
-          name = `${originalName}_published`,
+          name = `${country} - ${originalName}_published`,
           workplace = '',
           status = 'draft';
 
@@ -45,7 +45,7 @@ export const publishSLA = (_id, country) => {
 
                 const {_id} = res;
                 // return the published SLA URL
-                publishedUrl = `http://${host}/app/setup/${country}?tab=sla&mode=edit&id=${_id}`;
+                const publishedUrl = `http://${host}/app/setup/${country}?tab=sla&mode=edit&id=${_id}`;
 
                 // disconnect from production
                 BotsProd.disconnect();
