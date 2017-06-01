@@ -158,6 +158,14 @@ SLAs.schema = new SimpleSchema({
     type: String,
     optional: true,
   },
+  "message.bucket.options.orderBy": {
+    type: String,
+    optional: true,
+  },
+  "message.bucket.options.orderIn": {
+    type: String,
+    optional: true,
+  },
   "message.variables": {
     type: [Object],
     optional: true

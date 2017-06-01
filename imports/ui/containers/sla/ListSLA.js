@@ -219,7 +219,6 @@ class ListSLA extends Component {
             } else {
               // publish success, the publishUrl of SLA in production will be returned
               const {publishedUrl} = res;
-              console.log('publishedUrl', publishedUrl);
               return this.setState({dialog: true, publishedUrl});
             }
           });
