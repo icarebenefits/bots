@@ -7,11 +7,9 @@ class SLAsCollection extends Mongo.Collection {
   insert(doc, callback) {
     // add created and updated Date for document
     doc.createdAt = doc.updatedAt = new Date();
-    doc.createdBy = doc.updatedBy = Meteor.userId();
-    // add default status of SLA
-    // if(!doc.status) {
-    //   doc.status = SLAs.status.active;
-    // }
+    // add created and updated By if user is logged in
+    if(Meteor.userId())
+      doc.createdBy = doc.updatedBy = Meteor.userId();
 
     return super.insert(doc, callback);
   }
@@ -35,16 +33,16 @@ const SLAs = new SLAsCollection('slas');
 
 SLAs.status = {
   active: 'active',
-  inactive: 'inactive',
+  inactive: 'inactive'
 };
 
 SLAs.schema = new SimpleSchema({
   name: {
-    type: String,
+    type: String
   },
   description: {
     type: String,
-    optional: true,
+    optional: true
   },
   workplace: {
     type: String,
@@ -52,75 +50,75 @@ SLAs.schema = new SimpleSchema({
   },
   frequency: {
     type: Object,
-    optional: true,
+    optional: true
   },
   'frequency.preps': {
     type: String,
-    optional: true,
+    optional: true
   },
   'frequency.range': {
     type: String,
-    optional: true,
+    optional: true
   },
   'frequency.unit': {
     type: String,
-    optional: true,
+    optional: true
   },
   'frequency.preps2': {
     type: String,
-    optional: true,
+    optional: true
   },
   'frequency.range2': {
     type: String,
-    optional: true,
+    optional: true
   },
   conditions: {
     type: [Object],
-    optional: true,
+    optional: true
   },
   "conditions.$.not": {
     type: Boolean,
-    optional: true,
+    optional: true
   },
   "conditions.$.openParens": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.group": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.filter": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.field": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.operator": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.values": {
     type: [Object],
-    optional: true,
+    optional: true
   },
   "conditions.$.values.$.type": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.values.$.value": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.closeParens": {
     type: String,
-    optional: true,
+    optional: true
   },
   "conditions.$.bitwise": {
     type: String,
-    optional: true,
+    optional: true
   },
   message: {
     type: Object,
@@ -128,7 +126,7 @@ SLAs.schema = new SimpleSchema({
   },
   "message.useBucket": {
     type: Boolean,
-    defaultValue: false,
+    defaultValue: false
   },
   "message.bucket": {
     type: Object,
@@ -156,7 +154,7 @@ SLAs.schema = new SimpleSchema({
   },
   "message.bucket.options.interval": {
     type: String,
-    optional: true,
+    optional: true
   },
   "message.bucket.options.orderBy": {
     type: String,
@@ -172,23 +170,23 @@ SLAs.schema = new SimpleSchema({
   },
   "message.variables.$.summaryType": {
     type: String,
-    optional: true,
+    optional: true
   },
   "message.variables.$.group": {
     type: String,
-    optional: true,
+    optional: true
   },
   "message.variables.$.field": {
     type: String,
-    optional: true,
+    optional: true
   },
   "message.variables.$.name": {
     type: String,
-    optional: true,
+    optional: true
   },
   "message.variables.$.bucket": {
     type: Boolean,
-    optional: true,
+    optional: true
   },
   "message.messageTemplate": {
     type: String,
@@ -197,25 +195,26 @@ SLAs.schema = new SimpleSchema({
   status: {
     type: String,
     allowedValues: ['draft', 'active', 'inactive'],
-    defaultValue: 'draft',
+    defaultValue: 'draft'
   },
   country: {
     type: String,
     allowedValues: COUNTRIES
   },
   createdAt: {
-    type: Date,
+    type: Date
   },
   createdBy: {
     type: String,
-    optional: true,
+    optional: true
   },
   updatedAt: {
     type: Date,
-    optional: true,
+    optional: true
   },
   updatedBy: {
     type: String,
+    optional: true
   },
   lastExecutedAt: {
     type: Date,
