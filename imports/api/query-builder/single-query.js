@@ -374,7 +374,7 @@ const buildAggregation = (useBucket, bucket, agg) => {
             if(orderBy === field) {
               aggOptions.order = {"_term": orderIn};
             } else {
-              aggOptions.order = {[`agg_${ESField}_${ESField}`]: orderIn};
+              aggOptions.order = {[`agg_${summaryType}_${ESField}`]: orderIn};
             }
           }
           body = body
