@@ -9,23 +9,11 @@ import {PageSideBar} from '/imports/ui/components';
 import SingleSLA from './SingleSLA';
 import ListSLA from './ListSLA';
 
-const SLA = (props) => {
-  const {
-    params: {country, page},
-    queryParams: {tab, mode = 'list'}
-  } = FlowRouter.current();
-
-  const onClickSidebar = (e, mode) => {
-    FlowRouter.setQueryParams({mode, id: null});
-  };
+const SLA = () => {
+  const {queryParams: {mode = 'list'}} = FlowRouter.current();
 
   return (
     <div className="page-content-row">
-      {<PageSideBar
-        options={SIDEBAR['sla']}
-        active={mode}
-        onClick={onClickSidebar}
-      />}
       <div className="page-content-col">
         <div className="note note-info">
           <h2>
