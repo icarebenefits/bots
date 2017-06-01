@@ -8,6 +8,8 @@ import Bucket from './Bucket';
 import Summary from './Summary';
 /* Fields */
 import {Field} from '/imports/api/fields';
+/* Notify */
+import * as Notify from '/imports/api/notifications';
 
 class MessageBuilder extends Component {
   constructor(props) {
@@ -138,11 +140,19 @@ class MessageBuilder extends Component {
         });
       }
       case 'interval':
-      {
         return this.setState({
           bucketOptions: {interval: value}
         });
-      }
+      case 'orderBy':
+        return this.setState({
+          bucketOptions: {...this.state.bucketOptions, orderBy: value}
+        });
+      case 'orderIn':
+        return this.setState({
+          bucketOptions: {...this.state.bucketOptions, orderIn: value}
+        });
+      default:
+        return Notify.error({title:'Bucket', message: `Unknown bucket option: ${key}`});
     }
   }
 
@@ -230,12 +240,14 @@ class MessageBuilder extends Component {
         )}
         {useBucket && (
           <div className="row">
-            <div className={bucketHasOption ? "col-md-6" : "col-md-3" }>
+            <div className={bucketHasOption ? "col-md-12" : "col-md-8" }>
               <Bucket
                 group={bucketGroup}
                 field={bucketField}
                 hasOption={bucketHasOption}
                 options={bucketOptions}
+                orderBy={bucketOptions.orderBy}
+                orderIn={bucketOptions.orderIn}
                 onChange={this.handleBucketChange}
               />
             </div>

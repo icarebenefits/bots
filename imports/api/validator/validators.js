@@ -128,7 +128,7 @@ Validators.slaMessage = (message) => {
     if (_.isEmpty(field))
       return 'field is required.';
     if (hasOption) {
-      if (_.isEmpty(options))
+      if (_.isEmpty(options.interval))
         return 'interval is required';
     }
     let compareGroup = '';
