@@ -209,9 +209,8 @@ class ListSLA extends Component {
           return this.setState({publishedUrl: ''});
         } else {
           this.setState({publishing: true});
-          Methods[action].call({_id: slaId, country}, (err, res) => {
+          Meteor.call(`sla.${action}`, {_id: slaId, country}, (err, res) => {
             if (err) {
-              console.log('error', err);
               Notify.error({
                 title: 'Publish SLA',
                 message: err.message
@@ -220,6 +219,7 @@ class ListSLA extends Component {
             } else {
               // publish success, the publishUrl of SLA in production will be returned
               const {publishedUrl} = res;
+              console.log('publishedUrl', publishedUrl);
               return this.setState({dialog: true, publishedUrl});
             }
           });
