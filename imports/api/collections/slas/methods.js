@@ -3,7 +3,6 @@ import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
-import {DDP} from 'meteor/ddp-client'
 
 import SLAs from './slas';
 // query builder
@@ -15,6 +14,9 @@ import {Field} from '/imports/api/fields';
 import {startJob, cancelJob, removeJob, createJob, editJob} from '/imports/api/jobs';
 
 import {Facebook} from '/imports/api/facebook-graph';
+
+/* Functions */
+import {publishSLA} from './functions';
 
 /* Utils */
 import {getScheduleText} from '/imports/utils';
@@ -497,60 +499,15 @@ Methods.publish = new ValidatedMethod({
       type: String
     }
   }).validator(),
-  run({_id, country}) {
-    let publishedUrl = '';
-    // get SLA info
-    const sla = SLAs.findOne({_id});
-    if (!_.isEmpty(sla)) {
+  async run({_id, country}) {
+    if(!this.isSimulation) {
       try {
-        // connect to production with DDP protocol
-        const {host} = Meteor.settings.public.prod;
-        const BotsProd = DDP.connect(`http://${host}`);
-
-        const
-          {
-            name: originalName, description,
-            frequency, conditions, message
-          } = sla;
-        const
-          name = `${originalName}_published`,
-          workplace = '',
-          status = 'draft';
-
-        // validate name for published SLA
-        BotsProd.call('sla.validateName', {name, country}, (err, res) => {
-          if (err)
-            throw new Meteor.Error('VALIDATE_NAME_IN_PROD', err.reason);
-          const {validated, detail} = res;
-          if (!validated) {
-            throw new Meteor.Error('VALIDATE_NAME_IN_PROD', detail[0]);
-          } else {
-            // publish SLA to production
-            BotsProd.call('sla.create', {
-              name, description, workplace,
-              frequency, conditions, message,
-              status, country
-            }, (err, res) => {
-              if (err)
-                throw new Meteor.Error('CREATE_SLA_IN_PROD', err.reason);
-
-              const {_id} = res;
-              // return the published SLA URL
-              console.log('host', host);
-              publishedUrl = `http://${host}/app/setup/${country}?tab=sla&mode=edit&id=${_id}`;
-
-              // disconnect from production
-              DDP.disconnect();
-
-              return {publishedUrl};
-            });
-          }
-        });
+        const {publishedUrl} = await publishSLA(_id, country);
+        console.log('publishedUrl', publishedUrl);
+        return {publishedUrl};
       } catch (err) {
-        throw new Meteor.Error('SLA.remove', err.message);
+        throw new Meteor.Error('SLA.publish', err.message);
       }
-    } else {
-      throw new Meteor.Error('SLA.remove', 'SLA not found.')
     }
   }
 });

@@ -9,10 +9,6 @@ import {formatMessage} from '/imports/utils/defaults';
 /* Scripts */
 import Scripts from './scripts';
 
-
-const checkReindexFinish = (taskId) => {
-};
-
 const ETL = (country) => {
   check(country, String);
 
