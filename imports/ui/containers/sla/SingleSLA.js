@@ -95,7 +95,6 @@ class SingleSLA extends Component {
   }
 
   _onValidate(SLA, originalSLA) {
-    console.log('_onValidate', SLA, originalSLA);
     /* Validate for copied SLA */
     if(!_.isEmpty(originalSLA)) {
       const constraints = {
@@ -104,7 +103,6 @@ class SingleSLA extends Component {
         }
       };
       const validateCopy = validate({copiedSLA: {SLA, originalSLA}}, constraints);
-      console.log('validateCopy', validateCopy);
       if (validateCopy) {
         const result = Object.keys(validateCopy)
           .map(v => validateCopy[v].join());
@@ -207,7 +205,6 @@ class SingleSLA extends Component {
   }
 
   _onDraft(_id, SLA) {
-    const {copied} = this.props;
     this.setState({saving: true});
     if (_.isEmpty(SLA)) {
       Notify.error({
