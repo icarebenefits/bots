@@ -96,7 +96,8 @@ class SingleSLA extends Component {
 
   _onValidate(SLA, originalSLA) {
     /* Validate for copied SLA */
-    if(!_.isEmpty(originalSLA)) {
+    console.log('SLA org', SLA, originalSLA);
+    if(!_.isEmpty(originalSLA) && SLA.country === originalSLA.country) {
       const constraints = {
         copiedSLA: {
           copiedSLA: true
