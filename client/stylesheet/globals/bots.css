@@ -25,3 +25,16 @@
   margin-top: 15px;
   margin-bottom: 15px;
 }
+
+.EditSelectBox .EditButton {
+  visibility: hidden;
+}
+
+
+.EditSelectBox:hover .EditButton {
+  visibility: visible;
+}
+
+.overflow {
+  overflow: visible !important;
+}

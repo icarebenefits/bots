@@ -12,10 +12,13 @@ import {
   SET_SLA_SIDE_BAR,
   SLA_SET_FILTER,
   SLA_SET_SEARCH,
+  CLOSE_DIALOG,
   ADD_NOTIFICATION,
   REMOVE_NOTIFICATION,
   SLA_ACTIVATE,
   SLA_INACTIVATE,
+  SLA_COPY,
+  SLA_PUBLISH,
   SLA_REMOVE,
   SLA_INIT_SLA,
   SLA_RESET_SLA,
@@ -124,6 +127,8 @@ const sla = (state = initialState.sla, action) => {
       };
     case SLA_ACTIVATE:
     case SLA_INACTIVATE:
+    case SLA_COPY:
+    case SLA_PUBLISH:
     case SLA_REMOVE:
     case SLA_INIT_SLA:
     case SLA_RESET_SLA:

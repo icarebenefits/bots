@@ -3,7 +3,6 @@ import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
-import S from 'string';
 
 import SLAs from './slas';
 // query builder
@@ -15,6 +14,9 @@ import {Field} from '/imports/api/fields';
 import {startJob, cancelJob, removeJob, createJob, editJob} from '/imports/api/jobs';
 
 import {Facebook} from '/imports/api/facebook-graph';
+
+/* Functions */
+import {publishSLA} from './functions';
 
 /* Utils */
 import {getScheduleText} from '/imports/utils';
@@ -43,10 +45,11 @@ Methods.create = new ValidatedMethod({
           country
         };
         const createResult = await createJob(jobParams);
-        console.log('createJob', createResult);
+        return {_id, createResult};
       }
+      return {_id};
     } catch (err) {
-      throw new Meteor.Error('slas.create', err.message);
+      throw new Meteor.Error('SLA_CREATE', err.message);
     }
   }
 });
@@ -304,11 +307,11 @@ Methods.postMessage = new ValidatedMethod({
   name: 'sla.postMessage',
   validate: null,
   async run({workplace, message}) {
-    if(!this.isSimulation) {
+    if (!this.isSimulation) {
       try {
         const result = await Facebook().postMessage(workplace, message);
         return result;
-      } catch(err) {
+      } catch (err) {
         throw new Meteor.Error('POST_MESSAGE_TO_WORKPLACE', err.message);
       }
     }
@@ -450,7 +453,7 @@ Methods.validateConditions = new ValidatedMethod({
 });
 
 /**
- * Method remove an SLA
+ * Method remove a SLA
  * @param {} name - description
  * @return {}
  */
@@ -482,5 +485,38 @@ Methods.remove = new ValidatedMethod({
   }
 });
 
+/**
+ * Method publish a SLA to production
+ * @param {String} _id
+ * @param {String} country
+ * @returns {String} publishedURL
+ */
+Methods.publish = new ValidatedMethod({
+  name: 'sla.publish',
+  validate: new SimpleSchema({
+    ...IDValidator,
+    country: {
+      type: String
+    }
+  }).validator(),
+  async run({_id, country}) {
+    if(!this.isSimulation) {
+      try {
+        if(country === 'all') {
+          // Quick code for publish SLA to all countries
+          await publishSLA(_id, 'la');
+          await publishSLA(_id, 'kh');
+          const {publishedUrl} = await publishSLA(_id, 'vn');
+          return {publishedUrl};
+        } else {
+          const {publishedUrl} = await publishSLA(_id, country);
+          return {publishedUrl};
+        }
+      } catch (err) {
+        throw new Meteor.Error('SLA.publish', err.message);
+      }
+    }
+  }
+});
 
 export default Methods

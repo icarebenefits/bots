@@ -9,15 +9,12 @@ import validate from 'validate.js';
 /* Components */
 import ReactMarkdown from 'react-markdown';
 import {
-  Label,
-  FormInput,
-  FormActions,
-  Dialog,
-  Checkbox
-} from '../components/elements';
+  Label, FormInput, FormActions,
+  Dialog, Checkbox
+} from '/imports/ui/components/elements';
 
-import {NoContent} from '../components/common';
-import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '../components';
+import {NoContent} from '/imports/ui/components/common';
+import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '/imports/ui/components';
 
 /* Collections */
 import {SLAs, Methods} from '/imports/api/collections/slas';
@@ -46,6 +43,7 @@ class SingleSLA extends Component {
     this._closeDialog = this._closeDialog.bind(this);
     this._renderDialog = this._renderDialog.bind(this);
     this._onShowPreviewQuery = this._onShowPreviewQuery.bind(this);
+    this._onValidate = this._onValidate.bind(this);
 
     this._onPreview = this._onPreview.bind(this);
     this._onDraft = this._onDraft.bind(this);
@@ -96,7 +94,23 @@ class SingleSLA extends Component {
     });
   }
 
-  _onValidate(SLA) {
+  _onValidate(SLA, originalSLA) {
+    /* Validate for copied SLA */
+    console.log('SLA org', SLA, originalSLA);
+    if(!_.isEmpty(originalSLA) && SLA.country === originalSLA.country) {
+      const constraints = {
+        copiedSLA: {
+          copiedSLA: true
+        }
+      };
+      const validateCopy = validate({copiedSLA: {SLA, originalSLA}}, constraints);
+      if (validateCopy) {
+        const result = Object.keys(validateCopy)
+          .map(v => validateCopy[v].join());
+        return {validated: false, detail: result};
+      }
+    }
+
     /* Field Values */
     const constraints = {
       workplace: {
@@ -156,7 +170,7 @@ class SingleSLA extends Component {
   }
 
   _onCreateSLA(SLA) {
-    Methods.create.call(SLA, (err, res) => {
+    Methods.create.call(SLA, err => {
       if (err) {
         Notify.error({
           title: 'CREATE_SLA',
@@ -174,7 +188,7 @@ class SingleSLA extends Component {
   }
 
   _onEditSLA(SLA) {
-    const result = Methods.edit.call(SLA, (err, res) => {
+    const result = Methods.edit.call(SLA, err => {
       if (err) {
         Notify.error({
           title: 'EDIT_SLA',
@@ -200,20 +214,17 @@ class SingleSLA extends Component {
       });
     }
     try {
-      let result = null;
-      if (_id) {
-        // edit SLA
-        result = this._onEditSLA({...SLA, _id, status: 'draft'});
-      } else {
-        // create SLA
-        result = this._onCreateSLA({...SLA, status: 'draft'});
-      }
+      // edit SLA
+      if (_id)
+        return this._onEditSLA({...SLA, _id, status: 'draft'});
+      // create SLA
+      return this._onCreateSLA({...SLA, status: 'draft'});
     } catch (err) {
       Notify.error({
         title: 'SLA save as draft',
         message: err.message
       });
-      this.setState({saving: false});
+      return this.setState({saving: false});
     }
   }
 
@@ -226,14 +237,12 @@ class SingleSLA extends Component {
       });
     }
     try {
-      let result = null;
-      if (_id) {
-        // edit SLA
-        result = this._onEditSLA({...SLA, _id, status: 'active'});
-      } else {
-        // create SLA
-        result = this._onCreateSLA({...SLA, status: 'active'});
-      }
+      // edit SLA
+      if (_id)
+        return this._onEditSLA({...SLA, _id, status: 'active'});
+
+      // create SLA
+      return this._onCreateSLA({...SLA, status: 'active'});
     } catch (err) {
       Notify.error({
         title: 'SLA save',
@@ -263,7 +272,7 @@ class SingleSLA extends Component {
           {workplace} = SLA;
         Notify.info({title: 'SLA executing', message: ''});
         Methods.postMessage.call({workplace, message}, (err, res) => {
-          if(err) {
+          if (err) {
             Notify.error({
               title: 'SLA execute',
               message: err.reason
@@ -347,10 +356,10 @@ class SingleSLA extends Component {
   }
 
   onClickSaveAsDraft() {
-    const {SLA} = this.props;
+    const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
-    !_.isEmpty(SLA) && (slaId = SLA._id);
+    (!_.isEmpty(SLA) && _.isEmpty(copied)) && (slaId = SLA._id);
     this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
@@ -383,10 +392,10 @@ class SingleSLA extends Component {
   }
 
   onClickSave() {
-    const {SLA} = this.props;
+    const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
-    !_.isEmpty(SLA) && (slaId = SLA._id);
+    (!_.isEmpty(SLA) && !copied) && (slaId = SLA._id);
     this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
@@ -398,7 +407,11 @@ class SingleSLA extends Component {
           });
           this.setState({validating: false});
         } else {
-          const {validated, detail} = this._onValidate(newSLA);
+          let originalSLA = null;
+          if(copied) {
+            originalSLA = SLA;
+          }
+          const {validated, detail} = this._onValidate(newSLA, originalSLA);
           if (!validated) {
             Notify.error({
               title: 'Save',
@@ -427,10 +440,10 @@ class SingleSLA extends Component {
   }
 
   onClickSaveAndExecute() {
-    const {SLA} = this.props;
+    const {SLA, copied} = this.props;
     const newSLA = this._getSLA();
     let slaId = null;
-    !_.isEmpty(SLA) && (slaId = SLA._id);
+    (!_.isEmpty(SLA) && !copied) && (slaId = SLA._id);
     this.setState({validating: true, newSLA});
     this._onValidateName(newSLA.country, newSLA.name, slaId)
       .then(res => {
@@ -442,7 +455,11 @@ class SingleSLA extends Component {
           });
           this.setState({validating: false});
         } else {
-          const {validated, detail} = this._onValidate(newSLA);
+          let originalSLA = null;
+          if(copied) {
+            originalSLA = SLA;
+          }
+          const {validated, detail} = this._onValidate(newSLA, originalSLA);
           if (!validated) {
             Notify.error({
               title: 'Save and Execute',
@@ -471,7 +488,7 @@ class SingleSLA extends Component {
   }
 
   onClickCancel() {
-    FlowRouter.setQueryParams({mode: 'list', id: null})
+    FlowRouter.setQueryParams({mode: 'list', id: null, copied: null})
   }
 
   _renderDialog() {
@@ -487,7 +504,7 @@ class SingleSLA extends Component {
     return (
       <Dialog
         modal={true}
-        width={600}
+        className="DialogMedium"
         bodyClass="text-left"
         header="Preview SLA"
         confirmLabel="Ok"
@@ -539,7 +556,7 @@ class SingleSLA extends Component {
   }
 
   render() {
-    const {ready, mode, SLA: currentSLA, WPs,} = this.props;
+    const {ready, mode, SLA: currentSLA, WPs, copied} = this.props;
     const {newSLA, executing, previewing, saving, validating} = this.state;
     const disabled = executing || previewing || saving || validating;
     const
@@ -618,7 +635,9 @@ class SingleSLA extends Component {
                           <FormInput
                             ref="name"
                             type="text"
-                            value={isEditMode ? SLA.name : ''}
+                            value={isEditMode ?
+                            (copied ? `${SLA.name}_1` : SLA.name) :
+                            ''}
                             className="form-control input-medium"
                             placeholder="SLA name"
                             handleOnChange={() => {}}
@@ -736,18 +755,19 @@ export default createContainer(() => {
   const
     {
       params: {country},
-      queryParams: {mode, id}
+      queryParams: {mode, id, copied}
     } = FlowRouter.current(),
     subSLAs = Meteor.subscribe('slasList'),
     subWPs = Meteor.subscribe('groups'),
     ready = subSLAs.ready() && subWPs.ready(),
-    SLA = SLAs.findOne({_id: id}),
+    SLA = SLAs.findOne({_id: id || copied}),
     WPs = WPCollection.find({country}).fetch();
 
   return {
     ready,
     country,
     mode,
+    copied,
     SLA,
     WPs
   };

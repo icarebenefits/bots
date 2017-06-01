@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 /* SLOGANS */
 export const SLOGANS = {
   vn: 'Vietnam',
@@ -48,6 +49,83 @@ export const AGGS_OPTIONS = [
   {name: 'min', label: 'min'},
   {name: 'avg', label: 'average'}
 ];
+/* SCHEDULER OPTIONS */
+export const SCHEDULER_OPTIONS = {
+  firstPart: {
+    prepsOpts: [
+      {name: '', label: ''},
+      {name: 'on the', label: 'on the'},
+      {name: 'at', label: 'at'},
+      {name: 'every', label: 'every'}
+    ],
+    rangeOpts: {
+      'on the': [
+        {name: '', label: ''},
+        {name: 'first', label: 'first'},
+        {name: 'last', label: 'last'}
+      ],
+      at: [
+        {name: '', label: ''},
+        {name: '1', label: '1'}, {name: '2', label: '2'}, {name: '3', label: '3'},
+        {name: '4', label: '4'}, {name: '5', label: '5'}, {name: '6', label: '6'},
+        {name: '7', label: '7'}, {name: '8', label: '8'}, {name: '9', label: '9'},
+        {name: '10', label: '10'}, {name: '11', label: '11'}, {name: '12', label: '12'},
+        {name: '13', label: '13'}, {name: '14', label: '14'}, {name: '15', label: '15'},
+        {name: '16', label: '16'}, {name: '17', label: '17'}, {name: '18', label: '18'},
+        {name: '19', label: '19'}, {name: '20', label: '20'}, {name: '21', label: '21'},
+        {name: '22', label: '22'}, {name: '23', label: '23'}, {name: '24', label: '24'}
+      ],
+      every: [
+        {name: '', label: ''},
+        {name: '1', label: '1'}, {name: '2', label: '2'}, {name: '3', label: '3'},
+        {name: '4', label: '4'}, {name: '6', label: '6'}, {name: '8', label: '8'},
+        {name: '12', label: '12'}
+      ]
+    },
+    unitOpts: {
+      'on the': [
+        {name: '', label: ''},
+        {name: 'day of the week', label: 'day of the week'},
+        {name: 'day of the month', label: 'day of the month'},
+        {name: 'week of the month', label: 'week of the month'},
+        {name: 'week of the year', label: 'week of the year'}
+      ],
+      at: [
+        {name: '', label: ''},
+        {name: '00', label: '00'}, {name: '10', label: '10'}, {name: '20', label: '20'},
+        {name: '30', label: '30'}, {name: '40', label: '40'}, {name: '50', label: '50'}
+      ],
+      every: [
+        {name: '', label: ''}, {name: 'days', label: 'days'},
+        {name: 'weeks', label: 'weeks'}, {name: 'months', label: 'months'}
+      ]
+    }
+  },
+  secondPart: {
+    prepsOpts: [
+      {name: '', label: 'daily'},
+      {name: 'on', label: 'on'},
+      {name: 'every', label: 'on every'}
+    ],
+    rangeOpts: {
+      on: [
+        {name: '', label: ''},
+        {name: 'monday', label: 'monday'},
+        {name: 'tuesday', label: 'tuesday'},
+        {name: 'wednesday', label: 'wednesday'},
+        {name: 'thursday', label: 'thursday'},
+        {name: 'friday', label: 'friday'},
+        {name: 'saturday', label: 'saturday'},
+        {name: 'sunday', label: 'sunday'}
+      ],
+      every: [
+        {name: '', label: ''},
+        {name: 'weekday', label: 'weekday'},
+        {name: 'weekend', label: 'weekend'}
+      ]
+    }
+  }
+};
 
 /* ACTION TYPES */
 
@@ -71,8 +149,5 @@ export const SLA_RESET_SLA = 'SLA::RESET_SLA';
 export const SLA_ACTIVATE = 'SLA::ACTIVATE';
 export const SLA_INACTIVATE = 'SLA::INACTIVATE';
 export const SLA_REMOVE = 'SLA::REMOVE';
-export const SLA_VALIDATE = 'SLA::VALIDATE';
-export const SLA_PREVIEW = 'SLA::PREVIEW';
-export const SLA_SAVE = 'SLA::SAVE';
-export const SLA_SAVE_EXECUTE = 'SLA::SAVE_EXECUTE';
-export const SLA_CANCEL = 'SLA::CANCEL';
+export const SLA_COPY = 'SLA::COPY';
+export const SLA_PUBLISH = 'SLA::PUBLISH';

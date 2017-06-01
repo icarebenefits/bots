@@ -16,7 +16,7 @@ const MainLayout = (props) => {
             <div className="page-content">
               {/* Breadcrumbs */}
 
-              <div className="page-content-container">
+              <div className="page-content-container overflow">
                 {/* Content */}
                 {props.content()}
               </div>

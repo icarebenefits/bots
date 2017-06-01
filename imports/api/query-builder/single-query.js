@@ -368,17 +368,34 @@ const buildAggregation = (useBucket, bucket, agg) => {
       switch (type) {
         case 'terms':
         {
-          const options = Meteor.settings.elastic.aggregation.bucket.terms;
+          const {terms: aggOptions, size} = Meteor.settings.public.elastic.aggregation.bucket;
+          const {orderBy, orderIn = 'desc'} = options;
+          if(!_.isEmpty(orderBy)) {
+            if(orderBy === field) {
+              aggOptions.order = {"_term": orderIn};
+            } else {
+              aggOptions.order = {[`agg_${summaryType}_${ESField}`]: orderIn};
+            }
+          }
           body = body
-            .aggregation(type, `${bucketField}.keyword`, {...options}, a => {
+            .aggregation(type, `${bucketField}.keyword`, {...aggOptions}, a => {
               return a.aggregation(summaryType, ESField)
             });
           break;
         }
         case 'date_histogram':
         {
+          const {orderBy, orderIn = 'desc', interval} = options;
+          const aggOptions = {interval};
+          if(!_.isEmpty(orderBy)) {
+            if(orderBy === field) {
+              aggOptions.order = {"_key": orderIn};
+            } else {
+              aggOptions.order = {[`agg_${summaryType}_${ESField}`]: orderIn};
+            }
+          }
           body = body
-            .aggregation(type, bucketField, {...options}, a => {
+            .aggregation(type, bucketField, {...aggOptions}, a => {
               return a.aggregation(summaryType, ESField)
             });
           break;

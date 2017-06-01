@@ -90,14 +90,23 @@ export class Condition extends Component {
           }
         </td>
         <td data-row={id}>
-          {readonly
-            ? filter
-            : (<SelectboxGrouped
-            className="form-control"
-            value={filter}
-            grpOptions={filters}
-            handleOnChange={value => handleFieldChange(id, 'filter', value)}
-          />)
+          {readonly ?
+            filter :
+            (
+              <div className="EditSelectBox form-group form-inline">
+                <SelectboxGrouped
+                  className="form-control"
+                  value={filter}
+                  grpOptions={filters}
+                  handleOnChange={value => handleFieldChange(id, 'filter', value)}
+                />
+                <Button
+                  className="btn-default EditButton"
+                  onClick={e => {e.preventDefault(); handleFieldChange(id, 'edit')}}
+                ><i className="fa fa-edit" ></i>
+                </Button>
+              </div>
+            )
           }
         </td>
         <td data-row={id}>
@@ -138,16 +147,16 @@ export class Condition extends Component {
           {readonly
             ? null
             : <div>
-              <Button
-                onClick={e => {e.preventDefault(); handleInsertCondition(id);}}
-                className="btn-default"
-              >Insert</Button>
-              {' '}
-              <Button
-                onClick={e => {e.preventDefault(); handleRemoveCondition(id);}}
-                className="btn-danger"
-              >Remove</Button>
-            </div>
+            <Button
+              onClick={e => {e.preventDefault(); handleInsertCondition(id);}}
+              className="btn-default"
+            >Insert</Button>
+            {' '}
+            <Button
+              onClick={e => {e.preventDefault(); handleRemoveCondition(id);}}
+              className="btn-danger"
+            >Remove</Button>
+          </div>
           }
         </td>
       </tr>

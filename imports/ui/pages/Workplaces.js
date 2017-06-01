@@ -15,15 +15,15 @@ import * as Notify from '/imports/api/notifications';
 import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 
 /* Components */
-import {ListPlace} from '../containers';
-import {PageSideBar} from '../components';
-import {Button, Suggest} from '../components/elements';
+import {ListPlace} from '/imports/ui/containers';
+import {PageSideBar} from '/imports/ui/components';
+import {Button, Suggest} from '/imports/ui/components/elements';
 
 import {
   Label,
   FormInput,
   FormActions,
-} from '../components/elements';
+} from '/imports/ui/components/elements';
 
 
 class Workplaces extends Component {
