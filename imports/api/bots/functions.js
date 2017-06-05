@@ -3,6 +3,7 @@ import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
 import _ from 'lodash';
 import moment from 'moment';
+import {Promise} from 'meteor/promise';
 // collections
 import {SLAs} from '../collections/slas';
 // fields
@@ -67,7 +68,7 @@ const fistSLACheck = () => {
  * @param preview
  * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
-export const executeSLA = ({SLA}) => {
+export const executeSLA = async ({SLA}) => {
   if (_.isEmpty(SLA)) {
     throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
   }
@@ -85,17 +86,18 @@ export const executeSLA = ({SLA}) => {
   /* For every variable - build appropriated query
    * and get the aggregation result */
   const vars = {};
-  variables.map(aggregation => {
+  const
+    {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
+    index = `${indexPrefix}_${country}_${env}`;
+
+  const promiseArray = variables.map(async (aggregation) => {
     const
       {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
       {type} = Field()[group]().elastic();
-    const
-      {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
-      index = `${indexPrefix}_${country}_${env}`;
 
     const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
     const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
-    
+
     if (error || aggsErr) {
       throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
     } else {
@@ -110,7 +112,7 @@ export const executeSLA = ({SLA}) => {
 
       const {Elastic} = require('../elastic');
       // validate query before run
-      const {valid} = Elastic.indices.validateQuery({
+      const {valid} = await Elastic.indices.validateQuery({
         index,
         type,
         body: {query}
@@ -120,7 +122,7 @@ export const executeSLA = ({SLA}) => {
       } else {
         let agg = {};
         try {
-          const {aggregations} = Elastic.search({
+          const {aggregations} = await Elastic.search({
             index,
             type,
             body: ESQuery
@@ -171,10 +173,14 @@ export const executeSLA = ({SLA}) => {
       }
     }
   });
+  await Promise.all(promiseArray);
+
+  const {lastUpdatedDate: lastUpdatedOn} = await ESFuncs.getIndexingDate({alias: index, country})
 
   /* Build message */
   let message = `## ${name} \n`;
   message = message + format(messageTemplate, vars);
+  message = formatMessage({message, quote: `Data are updated on: ${lastUpdatedOn}`});
 
   return {
     executed: true,
@@ -193,21 +199,26 @@ const checkSLA = (slaId) => {
   try {
     const SLA = SLAs.findOne({_id: slaId});
     if (!_.isEmpty(SLA)) {
-      const result = executeSLA({SLA, slaId});
-      if (result.executed) {
-        const {message, queries} = result;
-        let mess = message;
-        /* Send message to workplace */
-        const {level} = Meteor.settings.log;
-        if (level === 'debug') {
-          mess = `${mess} \n **Query** \n \`\`\`${JSON.stringify(queries, null, 2)} \n \`\`\``;
-        }
-        Facebook().postMessage(SLA.workplace, mess)
-          .then(res => console.log('postMessage', JSON.stringify(res)))
-          .catch(e => console.log('postMessage.Error', JSON.stringify(e)));
-        // Track execute SLA
-        Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
-      }
+      executeSLA({SLA, slaId})
+        .then(result => {
+          if (result.executed) {
+            const {message, queries} = result;
+            let mess = message;
+            /* Send message to workplace */
+            const {level} = Meteor.settings.log;
+            if (level === 'debug') {
+              mess = `${mess} \n **Query** \n \`\`\`${JSON.stringify(queries, null, 2)} \n \`\`\``;
+            }
+            Facebook().postMessage(SLA.workplace, mess)
+              .then(res => console.log('postMessage', JSON.stringify(res)))
+              .catch(e => console.log('postMessage.Error', JSON.stringify(e)));
+            // Track execute SLA
+            Methods.setLastExecutedAt.call({_id: slaId, lastExecutedAt: new Date()});
+          }
+        })
+        .catch(err => {
+          throw new Meteor.Error('EXECUTE_SLA', err.message);
+        });
     } else {
       throw new Meteor.Error('EXECUTE_SLA', 'SLA not found.');
     }
