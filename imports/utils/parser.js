@@ -1,5 +1,6 @@
-import {check} from 'meteor/check';
+import {check, Match} from 'meteor/check';
 import _ from 'lodash';
+import momentTZ from 'moment-timezone';
 /**
  * Parse a schedule object to later.js schedule text
  * @param {Object} schedule
@@ -20,8 +21,27 @@ const parseScheduleText = (schedule) => {
   return text.trim();
 };
 
+/**
+ * Function parse Date into a specific timezone
+ * @param date
+ * @param timezone
+ * @returns {*} a moment object
+ */
+const parseDateInTimezone = (date, timezone) => {
+  // date in string date format or Date type
+  check(date, Match.OneOf(String, Date));
+  check(timezone, String);
+  if(! momentTZ(date).isValid()) 
+    throw new Meteor.Error('parseDateInTimezone', 'date parameter is not a valid Date format.')
+  
+  // set default timezone
+  momentTZ.tz.setDefault('UTC');
+  return momentTZ(date).tz(timezone);
+};
+
 const Parser = () => ({
-  scheduleText: parseScheduleText
+  scheduleText: parseScheduleText,
+  dateInTimezone: parseDateInTimezone
 });
 
 export default Parser
