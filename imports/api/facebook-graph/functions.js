@@ -115,3 +115,10 @@ const Facebook = () => {
 };
 
 export default Facebook
+
+/* Test */
+// const moment = require('moment');
+// const {facebook: {adminWorkplace}} = Meteor.settings;
+// const {formatMessage} = require('/imports/utils/defaults');
+// const message = formatMessage({quote: `@Updated on: ${moment().format('LLL')}`});
+// Facebook().postMessage(adminWorkplace, message);

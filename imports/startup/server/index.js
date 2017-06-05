@@ -34,9 +34,9 @@ import {Facebook} from '/imports/api/facebook-graph';
 Meteor.startup(function () {
   /* Initiation data for countries */
   if (Countries.find().count() === 0) {
-    Countries.insert({code: 'vn', name: 'Vietnam', status: 'active'});
-    Countries.insert({code: 'kh', name: 'Cambodia', status: 'active'});
-    Countries.insert({code: 'la', name: 'Laos', status: 'active'});
+    Countries.insert({code: 'vn', name: 'Vietnam', timezone: 'Asia/Saigon', status: 'active'});
+    Countries.insert({code: 'kh', name: 'Cambodia', timezone: 'Asia/Phnom_Penh', status: 'active'});
+    Countries.insert({code: 'la', name: 'Laos', timezone: 'Asia/Vientiane', status: 'active'});
   } else {
     /* Create migration data job for every country */
     if (Meteor.settings.elastic.migration.enable) {
