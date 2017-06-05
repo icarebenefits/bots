@@ -21,13 +21,14 @@ export const COUNTRIES = [
  * @param code
  * @return {*}
  */
-export const formatMessage = ({message = '', heading1, heading2, bold, link, code}) => {
+export const formatMessage = ({message = '', heading1, heading2, bold, link, quote, code}) => {
   let newMess = message;
 
   (heading1) && (newMess = `${newMess} \n ## ${heading1}`);
   (heading2) && (newMess = `${newMess} \n # ${heading2}`);
   (bold) && (newMess = `${newMess} \n **${bold}**`);
   (link) && (newMess = `${newMess} \n [${link.title}](${link.link})`);
+  (quote) && (newMess = `${newMess} \n > ${quote}`);
   if(code) {
     const c = JSON.stringify(code);
     newMess = `${newMess} \n \`\`\` \n ${c} \n \`\`\``;
