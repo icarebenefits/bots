@@ -85,7 +85,10 @@ const getIndexingDate = async({alias, country}) => {
       lastUpdatedDate = indexSplited[1] + 'T' + indexSplited[2];
 
     // console.log('index, timezone', lastUpdatedDate, timezone);
-    return {lastUpdatedDate: Parser().dateInTimezone(lastUpdatedDate, timezone).format('LLL')};
+    return {
+      lastUpdatedDate: Parser().dateInTimezone(lastUpdatedDate, timezone).format('LLL'),
+      timezone
+    };
   } catch (err) {
     throw new Meteor.Error('getIndexingDate', err.message);
   }
