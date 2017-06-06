@@ -24,7 +24,7 @@ const ListItem = (props) => {
         })}
         {!_.isEmpty(actions)
           ? <td>
-            <div className="btn-group">
+            <div className="btn-group btn-group-sm">
               {actions.map(action => {
                 const {id, icon, label, className, onClick} = action;
                 return (
@@ -37,7 +37,7 @@ const ListItem = (props) => {
                 );
               })}
               {!_.isEmpty(moreActions) && (
-                <div className="btn-group pull-right">
+                <div className="btn-group btn-group-sm pull-right">
                   <button
                     className="btn btn-default  btn-outline dropdown-toggle"
                     data-toggle="dropdown">
