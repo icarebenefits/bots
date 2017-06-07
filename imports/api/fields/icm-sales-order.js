@@ -220,6 +220,57 @@ const iCMSalesOrder = () => ({
         })
       }
     ),
+    soItemSKU: () => Object.assign(
+      {},
+      Standard().String(),
+      {
+        props: () => ({
+          id: 'soItemSKU',
+          name: 'Item SKU',
+          type: 'string',
+          placeHolder: '...ICARE-SHOES001'
+        }),
+        elastic: () => ({
+          field: 'items.sku',
+          type: 'nested',
+          path: 'items'
+        })
+      }
+    ),
+    soItemName: () => Object.assign(
+      {},
+      Standard().String(),
+      {
+        props: () => ({
+          id: 'soItemName',
+          name: 'Item name',
+          type: 'string',
+          placeHolder: '...Cooker'
+        }),
+        elastic: () => ({
+          field: 'items.name',
+          type: 'nested',
+          path: 'items'
+        })
+      }
+    ),
+    soItemQuantity: () => Object.assign(
+      {},
+      Standard().Number(),
+      {
+        props: () => ({
+          id: 'soItemQuantity',
+          name: 'Item quantity',
+          type: 'number',
+          placeHolder: ''
+        }),
+        elastic: () => ({
+          field: 'items.quantity',
+          type: 'nested',
+          path: 'items'
+        })
+      }
+    )
   })
 });
 
