@@ -27,7 +27,7 @@ import {SLAs as SLACollection, Methods} from '/imports/api/collections/slas';
 import {Countries as CountriesCollection} from '/imports/api/collections/countries';
 
 /* Components */
-import {List, Toolbar} from '/imports/ui/components';
+import {List, Toolbar, ListFooter} from '/imports/ui/components';
 import {FormInput, Dialog} from '/imports/ui/components/elements';
 
 /* Functions */
@@ -67,6 +67,16 @@ class ListSLA extends Component {
   onClickMoreAction(action, slaId) {
     this.setState({dialog: true, action, slaId, country: ''});
   }
+
+  handlePageClick = (data) => {
+    let selected = data.selected;
+    let offset = Math.ceil(selected * this.props.pageLimit);
+
+    console.log('selected offset', selected, offset);
+    // this.setState({offset: offset}, () => {
+    //   this.loadCommentsFromServer();
+    // });
+  };
 
   _onChooseCountry(country) {
     this.setState({country});
@@ -128,18 +138,18 @@ class ListSLA extends Component {
     const {action, publishedUrl, country} = this.state;
     const countryOptions = Countries.map(c => ({name: c.code, label: c.name}));
     countryOptions.splice(0, 0, {name: '', label: ''});
-    if(action === 'publish') {
+    if (action === 'publish') {
       countryOptions.splice(1, 0, {name: 'all', label: 'All'});
     }
     const
       showPublishedUrl = (action === 'publish' && !_.isEmpty(publishedUrl)),
       showSelectCountry = (action === 'copy' || (action === 'publish' && _.isEmpty(publishedUrl)));
     let message = '', confirmLabel = '';
-    if(action === 'remove')
+    if (action === 'remove')
       confirmLabel = 'Yes';
-      message = 'This action can not be undo, are you sure about this?';
-    if(action === 'publish') {
-      if(!_.isEmpty(publishedUrl)) {
+    message = 'This action can not be undo, are you sure about this?';
+    if (action === 'publish') {
+      if (!_.isEmpty(publishedUrl)) {
         confirmLabel = 'Visit';
         message = 'Published SLA to production, SLA URL is: ';
       } else {
@@ -147,7 +157,7 @@ class ListSLA extends Component {
         message = `Choose country to ${action}`;
       }
     }
-    if(action === 'copy') {
+    if (action === 'copy') {
       confirmLabel = 'Ok';
       message = `Choose country to ${action}`;
     }
@@ -195,20 +205,20 @@ class ListSLA extends Component {
 
   _closeDialog(dialogAction) {
     this.setState({dialog: null});
-    if(dialogAction === 'confirm') {
+    if (dialogAction === 'confirm') {
       const {action, slaId, country, publishedUrl} = this.state;
-      if(action === 'remove') {
+      if (action === 'remove') {
         return this.props.onRemove(action, slaId);
       }
-      if(action === 'copy') {
+      if (action === 'copy') {
         Notify.info({
           title: 'Copy SLA',
           message: `Current country is ${this.props.Countries.filter(c => c.code === country)[0].name}`
         });
         return FlowRouter.go('setup', {page: 'setup', country}, {tab: 'sla', mode: 'edit', copied: slaId});
       }
-      if(action === 'publish') {
-        if(!_.isEmpty(publishedUrl)) {
+      if (action === 'publish') {
+        if (!_.isEmpty(publishedUrl)) {
           return this.setState({publishedUrl: ''});
         } else {
           this.setState({publishing: true});
@@ -234,11 +244,12 @@ class ListSLA extends Component {
 
   render() {
     const {
-      ready, filter,
-      onFilter, onSearch,
-      onClickAdd,
-      onClickActivate, onClickInactivate
-    } = this.props;
+        ready, filter,
+        SLAListCount, pageLimit,
+        onFilter, onSearch,
+        onClickAdd,
+        onClickActivate, onClickInactivate
+      } = this.props;
 
     const listProps = {
       headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
@@ -271,7 +282,7 @@ class ListSLA extends Component {
       ]
     };
     // only show publish action in stage environment
-    if(Meteor.settings.public.env === 'stage' && Session.get('isSuperAdmin')) {
+    if (Meteor.settings.public.env === 'stage' && Session.get('isSuperAdmin')) {
       listProps.moreActions.splice(1, 0, {
         id: 'publish', label: 'Publish',
         icon: '', onClick: this.onClickMoreAction
@@ -293,9 +304,16 @@ class ListSLA extends Component {
           <List
             {...listProps}
             data={this._getListData()}
+            listCount={SLAListCount}
           />
 
           {/*<ListFooter />*/}
+          {SLAListCount > pageLimit && (
+            <ListFooter
+              handlePageClick={this.handlePageClick}
+              pageCount={Math.ceil(SLAListCount / pageLimit)}
+            />
+          )}
 
           {/* Dialog */}
           {this._renderDialog()}
@@ -328,21 +346,24 @@ ListSLA.propTypes = {
 const ListSLAContainer = createContainer((props) => {
   const
     country = FlowRouter.getParam('country'),
+    pageLimit = Meteor.settings.public.pagination.limit,
     {filter, search} = props,
-    slaStatus = filter === 'all' ? undefined : filter,
+    status = filter === 'all' ? undefined : filter,
     subWp = Meteor.subscribe('groups'),
-    subSLAs = Meteor.subscribe('slasList'),
+    subSLAs = Meteor.subscribe('slasList', {country, status}, {skip: 5, limit: pageLimit}),
     subCountries = Meteor.subscribe('countries'),
     ready = subWp.ready() && subSLAs.ready() && subCountries.ready(),
     WPs = WPCollection.find({country}).fetch(),
-    Countries = CountriesCollection.find().fetch();
+    Countries = CountriesCollection.find().fetch(),
+    SLAs = SLACollection.find({}).fetch(),
+    SLAListCount = SLACollection.find({}).count();
 
-  const selector = {country};
+  console.log('SLAs', SLAs);
+  // const selector = {country};
   // filter by status
-  if (slaStatus) {
-    selector.status = slaStatus;
-  }
-  const SLAs = SLACollection.find(selector).fetch();
+  // if (slaStatus) {
+  //   selector.status = slaStatus;
+  // }
 
   return {
     ready,
@@ -350,8 +371,10 @@ const ListSLAContainer = createContainer((props) => {
     filter,
     search,
     WPs,
+    Countries,
     SLAs,
-    Countries
+    SLAListCount,
+    pageLimit
   };
 }, ListSLA);
 

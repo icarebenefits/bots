@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
@@ -10,13 +11,15 @@ const List = (props) => {
       noContentLabel = 'content',
       headers = [],
       data = [],
+      listCount = 0,
       actions = [],
       moreActions = [],
-      onDoubleClick = () => {},
+      onDoubleClick = () => {
+      },
       readonly = true
     } = props;
 
-  if(_.isEmpty(data)) {
+  if (_.isEmpty(data)) {
     return (
       <NoContent
         message={`There is no ${noContentLabel}.`}
@@ -25,7 +28,7 @@ const List = (props) => {
   }
 
   return (
-    <table className="table table-hover">
+    <table className="table table-hover table-striped">
       <thead>
       <tr>
         {headers.map((header, idx) => (
