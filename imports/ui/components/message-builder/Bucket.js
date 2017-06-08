@@ -6,6 +6,7 @@ import {Selectbox, SelectboxGrouped} from '../elements';
 import {Field} from '/imports/api/fields';
 
 const Bucket = (props) => {
+  console.log('props', props);
   const _getFilters = () => {
     const filters = Object
       .keys(Field())
@@ -31,7 +32,7 @@ const Bucket = (props) => {
     });
 
     return filters;
-  }
+  };
 
   const {
     group = '', field = '',
@@ -41,11 +42,14 @@ const Bucket = (props) => {
   } = props;
   const
     filters = _getFilters(),
-    fieldLabel = filters
-        .filter(f => f.name === group)[0].options
-        .filter(o => o.name === field)[0].label || '',
     hasField = !_.isEmpty(field),
     hasOrder = !_.isEmpty(orderBy);
+  let fieldLabel = '';
+  if (group && field) {
+    fieldLabel = filters
+        .filter(f => f.name === group)[0].options
+        .filter(o => o.name === field)[0].label || '';
+  }
 
   return (
     <table className="table table-striped">

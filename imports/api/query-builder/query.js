@@ -23,7 +23,12 @@ const Query = () => ({
       default:
       {
         const {aggGroup, field: fieldGroup, values: value} = params;
-        const query = SingleQuery().buildQuery('parentChild', {aggGroup, operator, fieldGroup, value});
+        let query = {};
+        if(fieldGroup.elastic.type === 'nested') {
+          query = SingleQuery().buildQuery('nested', {aggGroup, operator, fieldGroup, value});
+        } else {
+          query = SingleQuery().buildQuery('parentChild', {aggGroup, operator, fieldGroup, value});
+        }
         return query;
       }
     }

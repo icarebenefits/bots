@@ -42,10 +42,6 @@ Countries.schema = new SimpleSchema({
     defaultValue: 'active',
     optional: true,
   },
-  timezone: {
-    type: String,
-    optional: true
-  },
   createdAt: {
     type: Date,
     optional: true

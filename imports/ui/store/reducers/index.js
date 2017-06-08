@@ -12,7 +12,6 @@ import {
   SET_SLA_SIDE_BAR,
   SLA_SET_FILTER,
   SLA_SET_SEARCH,
-  CLOSE_DIALOG,
   ADD_NOTIFICATION,
   REMOVE_NOTIFICATION,
   SLA_ACTIVATE,
@@ -22,7 +21,8 @@ import {
   SLA_REMOVE,
   SLA_INIT_SLA,
   SLA_RESET_SLA,
-  SLA_CHANGE_MODE_EDIT
+  SLA_CHANGE_MODE_EDIT,
+  SLA_CHANGE_PAGE
 } from '../constants';
 
 /* SELECTORS */
@@ -47,7 +47,8 @@ const initialState = {
   sla: {
     SLA: {},
     filter: 'all',
-    search: '',
+    search: false,
+    searchText: '',
     id: '', // current working sla
     validated: true, // is sla validated or not
     activating: '', // activating sla id in progress
@@ -56,6 +57,8 @@ const initialState = {
     inactivated: '', // the last inactivated sla id
     removing: '', // removing sla id in progress
     removed: '', // the last removed sla id
+    pageSelected: 0,
+    pageSkip: 0
   },
   notification: {} // {notifyType: (error | info | warning), title, message}
 };
@@ -123,7 +126,7 @@ const sla = (state = initialState.sla, action) => {
     case SLA_SET_SEARCH:
       return {
         ...state,
-        search: payload.toLowerCase()
+        searchText: payload.toLowerCase()
       };
     case SLA_ACTIVATE:
     case SLA_INACTIVATE:
@@ -133,6 +136,7 @@ const sla = (state = initialState.sla, action) => {
     case SLA_INIT_SLA:
     case SLA_RESET_SLA:
     case SLA_CHANGE_MODE_EDIT:
+    case SLA_CHANGE_PAGE:
       return {
         ...state,
         ...payload
