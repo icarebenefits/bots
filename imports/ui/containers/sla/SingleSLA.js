@@ -70,7 +70,6 @@ class SingleSLA extends Component {
       message: message.getData(),
       country
     };
-
     return SLA;
   }
 
