@@ -121,7 +121,9 @@ const sla = (state = initialState.sla, action) => {
     case SLA_SET_FILTER:
       return {
         ...state,
-        filter: payload
+        filter: payload,
+        pageSelected: 0, // reset pagination
+        pageSkip: 0
       }
     case SLA_SET_SEARCH:
       return {
