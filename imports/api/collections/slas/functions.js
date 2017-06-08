@@ -85,8 +85,7 @@ export const getSearchText = ({name, workplace, frequency, lastExecutedAt}) => {
   let searchText = name;
   // add Workplace name
   if (!_.isEmpty(workplace)) {
-    const {name} = wp;
-    searchText = `${searchText} ${name}`;
+    searchText = `${searchText} ${workplace}`;
   }
   // add Frequency text
   if (!_.isEmpty(frequency)) {
