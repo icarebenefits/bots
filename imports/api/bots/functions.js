@@ -175,12 +175,12 @@ export const executeSLA = async ({SLA}) => {
   });
   await Promise.all(promiseArray);
 
-  const {lastUpdatedDate: lastUpdatedOn} = await ESFuncs.getIndexingDate({alias: index, country})
+  const {lastUpdatedDate: lastUpdatedOn, timezone} = await ESFuncs.getIndexingDate({alias: index, country})
 
   /* Build message */
   let message = `## ${name} \n`;
   message = message + format(messageTemplate, vars);
-  message = formatMessage({message, quote: `Data are updated on: ${lastUpdatedOn}`});
+  message = formatMessage({message, quote: `Data are updated on: ${lastUpdatedOn} (${timezone})`});
 
   return {
     executed: true,
