@@ -189,40 +189,52 @@ const formatNestedInput = ({operator, fieldGroup, value}) => {
 /** Example:
  const query = SingleQuery().buildQuery('nested', { operator, fieldGroup: field, value}, 'query');
  */
-const buildNestedQuery = ({operator, fieldGroup, value}, queryType = 'query') => {
-  const input = formatNestedInput({operator, fieldGroup, value});
-  const customers = buildTree(input, null).child;
+/*
+ const buildNestedQuery = ({operator, fieldGroup, value}, queryType = 'query') => {
+ const input = formatNestedInput({operator, fieldGroup, value});
+ const customers = buildTree(input, null).child;
 
-  const {type, field} = customers;
-  let body = bodybuilder();
-  if (type === 'nested') {
-    const {nest} = nested(customers.child, queryType);
-    if (queryType === 'agg') {
-      let name = '';
-      field.path ? name = field.path : name = field;
-      body = body
-        .agg(type, field, name, nest)
-        .build()
-      ;
-    } else {
-      body = body
-        .query(type, field, nest)
-        .build()
-      ;
-    }
-  } else {
-    const {value} = customers;
-    if (queryType === 'agg') {
-      body = body
-        .agg(type, field)
-        .build()
-    } else {
-      body = body
-        .query(type, field, value)
-        .build()
-    }
-  }
-  return body;
+ const {type, field} = customers;
+ let body = bodybuilder();
+ if (type === 'nested') {
+ const {nest} = nested(customers.child, queryType);
+ if (queryType === 'agg') {
+ let name = '';
+ field.path ? name = field.path : name = field;
+ body = body
+ .agg(type, field, name, nest)
+ .build()
+ ;
+ } else {
+ body = body
+ .query(type, field, nest)
+ .build()
+ ;
+ }
+ } else {
+ const {value} = customers;
+ if (queryType === 'agg') {
+ body = body
+ .agg(type, field)
+ .build()
+ } else {
+ body = body
+ .query(type, field, value)
+ .build()
+ }
+ }
+ return body;
+ };
+ */
+const buildNestedQuery = ({operator, fieldGroup, value}) => {
+  const {group: queryGroup, elastic: {field: name, path}} = fieldGroup;
+  const {type, field, value: val} = Operator()[operator]().getParams(name, value);
+
+  return bodybuilder()
+    .query('nested', 'path', path, (q) => {
+      return q.query(type, field, val);
+    })
+    .build();
 };
 
 /**
@@ -231,7 +243,7 @@ const buildNestedQuery = ({operator, fieldGroup, value}, queryType = 'query') =>
  * @param queryGroup - (grandParent, parent, type, child, grandChild)
  */
 const buildParentChildQuery = ({aggGroup, operator, fieldGroup, value}) => {
-  const {group: queryGroup, name} = fieldGroup;
+  const {group: queryGroup, elastic: {field: name}} = fieldGroup;
   const agg = Field()[aggGroup]().elastic();
   const query = Field()[queryGroup]().elastic();
   const {type, field, value: val} = Operator()[operator]().getParams(name, value);
@@ -330,7 +342,7 @@ const buildQuery = (type, {aggGroup, operator, fieldGroup, value}, queryType = '
     }
     case 'nested':
     {
-      return buildNestedQuery({operator, fieldGroup, value}, queryType);
+      return buildNestedQuery({operator, fieldGroup, value});
     }
     case 'parentChild':
     {
@@ -370,8 +382,8 @@ const buildAggregation = (useBucket, bucket, agg) => {
         {
           const {terms: aggOptions, size} = Meteor.settings.public.elastic.aggregation.bucket;
           const {orderBy, orderIn = 'desc'} = options;
-          if(!_.isEmpty(orderBy)) {
-            if(orderBy === field) {
+          if (!_.isEmpty(orderBy)) {
+            if (orderBy === field) {
               aggOptions.order = {"_term": orderIn};
             } else {
               aggOptions.order = {[`agg_${summaryType}_${ESField}`]: orderIn};
@@ -387,8 +399,8 @@ const buildAggregation = (useBucket, bucket, agg) => {
         {
           const {orderBy, orderIn = 'desc', interval} = options;
           const aggOptions = {interval};
-          if(!_.isEmpty(orderBy)) {
-            if(orderBy === field) {
+          if (!_.isEmpty(orderBy)) {
+            if (orderBy === field) {
               aggOptions.order = {"_key": orderIn};
             } else {
               aggOptions.order = {[`agg_${summaryType}_${ESField}`]: orderIn};

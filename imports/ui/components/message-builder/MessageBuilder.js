@@ -132,6 +132,7 @@ class MessageBuilder extends Component {
         // type (currently, only support 2 type of bucket: date_histogram and terms)
         const type = isDateField ? 'date_histogram' : 'terms';
 
+        console.log('group', group);
         return this.setState({
           bucketType: type,
           bucketGroup: group,
@@ -194,7 +195,10 @@ class MessageBuilder extends Component {
   }
 
   render() {
-    const {variables, messageTemplate, useBucket, bucketGroup, bucketField, bucketHasOption, bucketOptions} = this.state;
+    const {
+      variables, messageTemplate,
+      useBucket, bucketGroup, bucketField, bucketHasOption, bucketOptions
+    } = this.state;
     let {handlers} = this.props;
     if (_.isEmpty(handlers)) {
       handlers = this._getDefaultHandlers();

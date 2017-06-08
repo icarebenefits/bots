@@ -12,11 +12,12 @@ class FormDialog extends Component {
       {operator, field} = condition
       ;
 
+    console.log('fields', fields);
     if (!_.isEmpty(fields)) {
       // Dialog field props
       const options = Object.keys(fields)
           .map(f => {
-            const {id: name, name: label} = fields[f].props;
+            const {id: name, name: label} = fields[f]().props();
             return {name, label};
           })
         ;
@@ -24,10 +25,10 @@ class FormDialog extends Component {
       // Dialog operator props
       let opOptions = [];
       if (!_.isEmpty(field)) {
-        const {operators} = fields[field];
+        const operators = fields[field]().operator();
         opOptions = Object.keys(operators)
           .map(op => {
-            const {id: name, name: label} = operators[op].props;
+            const {id: name, name: label} = operators[op].props();
             return {name, label};
           })
         ;

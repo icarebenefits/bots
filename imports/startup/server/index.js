@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import {Roles} from 'meteor/alanning:roles';
 import {Accounts} from 'meteor/accounts-base';
+import {Migrations} from 'meteor/percolate:migrations';
 
 /* Collections */
 import {AccessList} from '/imports/api/collections/access-list';
@@ -32,6 +33,18 @@ import {formatMessage} from '/imports/utils/defaults';
 import {Facebook} from '/imports/api/facebook-graph';
 
 Meteor.startup(function () {
+  /* Migrations */
+  const {enable, version} = Meteor.settings.migration;
+  Migrations.config({
+    log: true,
+    logger: null,
+    logIfLatest: true,
+    collectionName: "migrations"
+  });
+  if(enable) {
+    Migrations.migrateTo(version);
+  }
+  
   /* Initiation data for countries */
   if (Countries.find().count() === 0) {
     Countries.insert({code: 'vn', name: 'Vietnam', status: 'active'});
