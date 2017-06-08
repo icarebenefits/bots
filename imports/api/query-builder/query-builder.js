@@ -8,9 +8,13 @@ const operators = Object.keys(Operator());
 operators.push('(');
 operators.push(')');
 
-const getField = (group, fieldId) => {
-  const {field} = Field()[group]().field()[fieldId]().elastic();
-  return field;
+const getField = (group, filter, field) => {
+  let ESField = '';
+  if(field) {
+    return Field()[group]().field()[filter]().field()[field]().elastic();
+  } else {
+    return Field()[group]().field()[filter]().elastic();
+  }
 };
 
 /**
@@ -30,10 +34,10 @@ export const makeExpression = conditions => {
       parens.map(p => stack.push(p));
     }
     if (!_.isEmpty(field)) {
-      stack.push({group, name: getField(group, field)});
+      stack.push({group, elastic: getField(group, filter, field)});
     } else {
       if (!_.isEmpty(filter)) {
-        stack.push({group, name: getField(group, filter)});
+        stack.push({group, elastic: getField(group, filter)});
       }
     }
     if (!_.isEmpty(operator)) {
