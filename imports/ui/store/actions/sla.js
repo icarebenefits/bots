@@ -7,9 +7,9 @@ import {
   SLA_COPY,
   SLA_PUBLISH,
   SLA_REMOVE,
-  SLA_INIT_SLA,
-  SLA_RESET_SLA,
-  SLA_CHANGE_MODE_EDIT
+  SLA_CHANGE_MODE_EDIT,
+  SLA_CHANGE_PAGE,
+  SLA_SEARCH
 } from '../constants/index';
 
 import {addNotification} from './';
@@ -34,6 +34,9 @@ export const onChangeModeEdit = SLA => ({
   type: SLA_CHANGE_MODE_EDIT,
   payload: {SLA}
 });
+
+/* Change page */
+export const onChangePage = actionCreator(SLA_CHANGE_PAGE);
 
 /* Activate */
 export const startAction = (actionType, _id) => {

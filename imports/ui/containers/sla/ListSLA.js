@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import S from 'string';
 import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
+import {Counts} from 'meteor/tmeasday:publish-counts';
 
 /* CONSTANTS */
 import {
@@ -18,7 +19,7 @@ import {
 /* Actions */
 import {
   setFilter, setSearch, closeDialog,
-  actionOnSLA, onChangeModeEdit
+  actionOnSLA, onChangeModeEdit, onChangePage
 } from '/imports/ui/store/actions';
 
 /* Collections */
@@ -27,7 +28,7 @@ import {SLAs as SLACollection, Methods} from '/imports/api/collections/slas';
 import {Countries as CountriesCollection} from '/imports/api/collections/countries';
 
 /* Components */
-import {List, Toolbar} from '/imports/ui/components';
+import {List, Toolbar, ListFooter} from '/imports/ui/components';
 import {FormInput, Dialog} from '/imports/ui/components/elements';
 
 /* Functions */
@@ -51,6 +52,7 @@ class ListSLA extends Component {
     // handlers
     this.onClickEdit = this.onClickEdit.bind(this);
     this.onClickMoreAction = this.onClickMoreAction.bind(this);
+    this.handlePageClick = this.handlePageClick.bind(this);
     this._onChooseCountry = this._onChooseCountry.bind(this);
 
     this._renderDialog = this._renderDialog.bind(this);
@@ -67,6 +69,13 @@ class ListSLA extends Component {
   onClickMoreAction(action, slaId) {
     this.setState({dialog: true, action, slaId, country: ''});
   }
+
+  handlePageClick(data) {
+    const {selected: pageSelected} = data;
+    const pageSkip = Math.ceil(pageSelected * this.props.pageLimit);
+
+    this.props.onChangePage({pageSelected, pageSkip});
+  };
 
   _onChooseCountry(country) {
     this.setState({country});
@@ -128,18 +137,18 @@ class ListSLA extends Component {
     const {action, publishedUrl, country} = this.state;
     const countryOptions = Countries.map(c => ({name: c.code, label: c.name}));
     countryOptions.splice(0, 0, {name: '', label: ''});
-    if(action === 'publish') {
+    if (action === 'publish') {
       countryOptions.splice(1, 0, {name: 'all', label: 'All'});
     }
     const
       showPublishedUrl = (action === 'publish' && !_.isEmpty(publishedUrl)),
       showSelectCountry = (action === 'copy' || (action === 'publish' && _.isEmpty(publishedUrl)));
     let message = '', confirmLabel = '';
-    if(action === 'remove')
+    if (action === 'remove')
       confirmLabel = 'Yes';
-      message = 'This action can not be undo, are you sure about this?';
-    if(action === 'publish') {
-      if(!_.isEmpty(publishedUrl)) {
+    message = 'This action can not be undo, are you sure about this?';
+    if (action === 'publish') {
+      if (!_.isEmpty(publishedUrl)) {
         confirmLabel = 'Visit';
         message = 'Published SLA to production, SLA URL is: ';
       } else {
@@ -147,7 +156,7 @@ class ListSLA extends Component {
         message = `Choose country to ${action}`;
       }
     }
-    if(action === 'copy') {
+    if (action === 'copy') {
       confirmLabel = 'Ok';
       message = `Choose country to ${action}`;
     }
@@ -195,20 +204,20 @@ class ListSLA extends Component {
 
   _closeDialog(dialogAction) {
     this.setState({dialog: null});
-    if(dialogAction === 'confirm') {
+    if (dialogAction === 'confirm') {
       const {action, slaId, country, publishedUrl} = this.state;
-      if(action === 'remove') {
+      if (action === 'remove') {
         return this.props.onRemove(action, slaId);
       }
-      if(action === 'copy') {
+      if (action === 'copy') {
         Notify.info({
           title: 'Copy SLA',
           message: `Current country is ${this.props.Countries.filter(c => c.code === country)[0].name}`
         });
         return FlowRouter.go('setup', {page: 'setup', country}, {tab: 'sla', mode: 'edit', copied: slaId});
       }
-      if(action === 'publish') {
-        if(!_.isEmpty(publishedUrl)) {
+      if (action === 'publish') {
+        if (!_.isEmpty(publishedUrl)) {
           return this.setState({publishedUrl: ''});
         } else {
           this.setState({publishing: true});
@@ -234,13 +243,15 @@ class ListSLA extends Component {
 
   render() {
     const {
-      ready, filter,
-      onFilter, onSearch,
-      onClickAdd,
-      onClickActivate, onClickInactivate
-    } = this.props;
+        ready, filter, searchText,
+        hasPagination, pageCount, pageSelected,
+        onFilter, onSearch,
+        onClickAdd,
+        onClickActivate, onClickInactivate
+      } = this.props;
 
     const listProps = {
+      noContentLabel: `${filter} SLA`,
       headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
       actions: [
         {
@@ -271,7 +282,7 @@ class ListSLA extends Component {
       ]
     };
     // only show publish action in stage environment
-    if(Meteor.settings.public.env === 'stage' && Session.get('isSuperAdmin')) {
+    if (Meteor.settings.public.env === 'stage' && Session.get('isSuperAdmin')) {
       listProps.moreActions.splice(1, 0, {
         id: 'publish', label: 'Publish',
         icon: '', onClick: this.onClickMoreAction
@@ -285,6 +296,7 @@ class ListSLA extends Component {
             {...TOOLBARS['listSLA']}
             toolLabel={`${S(filter).capitalize().s} SLA`}
             onFilter={onFilter}
+            searchText={searchText}
             onSearch={onSearch}
             onClick={onClickAdd}
           />
@@ -296,6 +308,13 @@ class ListSLA extends Component {
           />
 
           {/*<ListFooter />*/}
+          {hasPagination && (
+            <ListFooter
+              handlePageClick={this.handlePageClick}
+              pageCount={pageCount}
+              pageSelected={pageSelected}
+            />
+          )}
 
           {/* Dialog */}
           {this._renderDialog()}
@@ -325,33 +344,33 @@ ListSLA.propTypes = {
   onRemove: PropTypes.func
 };
 
-const ListSLAContainer = createContainer((props) => {
+const ListSLAContainer = createContainer(props => {
   const
     country = FlowRouter.getParam('country'),
-    {filter, search} = props,
-    slaStatus = filter === 'all' ? undefined : filter,
+    pageLimit = Meteor.settings.public.pagination.limit,
+    {filter, searchText, pageSelected, pageSkip} = props,
+    status = filter === 'all' ? undefined : filter,
     subWp = Meteor.subscribe('groups'),
-    subSLAs = Meteor.subscribe('slasList'),
+    subSLAs = Meteor.subscribe('slasList', {country, status}, searchText, {skip: pageSkip, limit: pageLimit}),
     subCountries = Meteor.subscribe('countries'),
     ready = subWp.ready() && subSLAs.ready() && subCountries.ready(),
     WPs = WPCollection.find({country}).fetch(),
-    Countries = CountriesCollection.find().fetch();
-
-  const selector = {country};
-  // filter by status
-  if (slaStatus) {
-    selector.status = slaStatus;
-  }
-  const SLAs = SLACollection.find(selector).fetch();
+    Countries = CountriesCollection.find().fetch(),
+    SLAs = SLACollection.find({}).fetch(),
+    SLAListCount = Counts.get('SLAListCount');
 
   return {
     ready,
     country,
     filter,
-    search,
+    searchText,
     WPs,
+    Countries,
     SLAs,
-    Countries
+    pageSelected,
+    hasPagination: SLAListCount > pageLimit,
+    pageCount: Math.ceil(SLAListCount / pageLimit),
+    pageLimit
   };
 }, ListSLA);
 
@@ -361,19 +380,24 @@ const mapStateToProps = state => {
     pageControl: {country},
     sla: {
       filter,
-      search
+      searchText,
+      pageSkip,
+      pageSelected
     }
   } = state;
   return {
     country,
     filter,
-    search
+    searchText,
+    pageSkip,
+    pageSelected
   };
 };
 
 const mapDispatchToProps = dispatch => ({
   onFilter: f => dispatch(setFilter(SLA_SET_FILTER)(f)),
   onSearch: s => dispatch(setSearch(SLA_SET_SEARCH)(s)),
+  onChangePage: p => dispatch(onChangePage(p)),
   onClickAdd: mode => FlowRouter.setQueryParams({mode}),
   onChangeModeEdit: SLA => dispatch(onChangeModeEdit(SLA)),
   onClickActivate: (action, _id) => dispatch(actionOnSLA(SLA_ACTIVATE, action, _id)),
