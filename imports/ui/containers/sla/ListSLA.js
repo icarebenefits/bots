@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import S from 'string';
 import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
+import {Counts} from 'meteor/tmeasday:publish-counts';
 
 /* CONSTANTS */
 import {
@@ -18,7 +19,7 @@ import {
 /* Actions */
 import {
   setFilter, setSearch, closeDialog,
-  actionOnSLA, onChangeModeEdit
+  actionOnSLA, onChangeModeEdit, onChangePage
 } from '/imports/ui/store/actions';
 
 /* Collections */
@@ -51,6 +52,7 @@ class ListSLA extends Component {
     // handlers
     this.onClickEdit = this.onClickEdit.bind(this);
     this.onClickMoreAction = this.onClickMoreAction.bind(this);
+    this.handlePageClick = this.handlePageClick.bind(this);
     this._onChooseCountry = this._onChooseCountry.bind(this);
 
     this._renderDialog = this._renderDialog.bind(this);
@@ -68,14 +70,11 @@ class ListSLA extends Component {
     this.setState({dialog: true, action, slaId, country: ''});
   }
 
-  handlePageClick = (data) => {
-    let selected = data.selected;
-    let offset = Math.ceil(selected * this.props.pageLimit);
+  handlePageClick(data) {
+    const {selected: pageSelected} = data;
+    const pageSkip = Math.ceil(pageSelected * this.props.pageLimit);
 
-    console.log('selected offset', selected, offset);
-    // this.setState({offset: offset}, () => {
-    //   this.loadCommentsFromServer();
-    // });
+    this.props.onChangePage({pageSelected, pageSkip});
   };
 
   _onChooseCountry(country) {
@@ -244,14 +243,15 @@ class ListSLA extends Component {
 
   render() {
     const {
-        ready, filter,
-        SLAListCount, pageLimit,
+        ready, filter, searchText,
+        hasPagination, pageCount, pageSelected,
         onFilter, onSearch,
         onClickAdd,
         onClickActivate, onClickInactivate
       } = this.props;
 
     const listProps = {
+      noContentLabel: `${filter} SLA`,
       headers: ['Name', 'Workplace', 'Frequency', 'Last Execution'],
       actions: [
         {
@@ -296,6 +296,7 @@ class ListSLA extends Component {
             {...TOOLBARS['listSLA']}
             toolLabel={`${S(filter).capitalize().s} SLA`}
             onFilter={onFilter}
+            searchText={searchText}
             onSearch={onSearch}
             onClick={onClickAdd}
           />
@@ -304,14 +305,14 @@ class ListSLA extends Component {
           <List
             {...listProps}
             data={this._getListData()}
-            listCount={SLAListCount}
           />
 
           {/*<ListFooter />*/}
-          {SLAListCount > pageLimit && (
+          {hasPagination && (
             <ListFooter
               handlePageClick={this.handlePageClick}
-              pageCount={Math.ceil(SLAListCount / pageLimit)}
+              pageCount={pageCount}
+              pageSelected={pageSelected}
             />
           )}
 
@@ -343,37 +344,32 @@ ListSLA.propTypes = {
   onRemove: PropTypes.func
 };
 
-const ListSLAContainer = createContainer((props) => {
+const ListSLAContainer = createContainer(props => {
   const
     country = FlowRouter.getParam('country'),
     pageLimit = Meteor.settings.public.pagination.limit,
-    {filter, search} = props,
+    {filter, searchText, pageSelected, pageSkip} = props,
     status = filter === 'all' ? undefined : filter,
     subWp = Meteor.subscribe('groups'),
-    subSLAs = Meteor.subscribe('slasList', {country, status}, {skip: 5, limit: pageLimit}),
+    subSLAs = Meteor.subscribe('slasList', {country, status}, searchText, {skip: pageSkip, limit: pageLimit}),
     subCountries = Meteor.subscribe('countries'),
     ready = subWp.ready() && subSLAs.ready() && subCountries.ready(),
     WPs = WPCollection.find({country}).fetch(),
     Countries = CountriesCollection.find().fetch(),
     SLAs = SLACollection.find({}).fetch(),
-    SLAListCount = SLACollection.find({}).count();
-
-  console.log('SLAs', SLAs);
-  // const selector = {country};
-  // filter by status
-  // if (slaStatus) {
-  //   selector.status = slaStatus;
-  // }
+    SLAListCount = Counts.get('SLAListCount');
 
   return {
     ready,
     country,
     filter,
-    search,
+    searchText,
     WPs,
     Countries,
     SLAs,
-    SLAListCount,
+    pageSelected,
+    hasPagination: SLAListCount > pageLimit,
+    pageCount: Math.ceil(SLAListCount / pageLimit),
     pageLimit
   };
 }, ListSLA);
@@ -384,19 +380,24 @@ const mapStateToProps = state => {
     pageControl: {country},
     sla: {
       filter,
-      search
+      searchText,
+      pageSkip,
+      pageSelected
     }
   } = state;
   return {
     country,
     filter,
-    search
+    searchText,
+    pageSkip,
+    pageSelected
   };
 };
 
 const mapDispatchToProps = dispatch => ({
   onFilter: f => dispatch(setFilter(SLA_SET_FILTER)(f)),
   onSearch: s => dispatch(setSearch(SLA_SET_SEARCH)(s)),
+  onChangePage: p => dispatch(onChangePage(p)),
   onClickAdd: mode => FlowRouter.setQueryParams({mode}),
   onChangeModeEdit: SLA => dispatch(onChangeModeEdit(SLA)),
   onClickActivate: (action, _id) => dispatch(actionOnSLA(SLA_ACTIVATE, action, _id)),

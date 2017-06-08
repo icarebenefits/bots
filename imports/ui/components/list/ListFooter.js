@@ -3,7 +3,7 @@ import React, {PropTypes} from 'react';
 import Pagination from '../common/Pagination';
 
 const ListFooter = (props) => {
-  const {handlePageClick, pageCount} = props;
+  const {handlePageClick, pageCount, pageSelected} = props;
   return (
     <div className="row">
       <div className="col-md-12 col-sm-12">
@@ -11,6 +11,7 @@ const ListFooter = (props) => {
           <Pagination
             handlePageClick={handlePageClick}
             pageCount={pageCount}
+            pageSelected={pageSelected}
           />
         </div>
       </div>

@@ -2,8 +2,7 @@ import React from 'react';
 import ReactPaginate from 'react-paginate';
 
 const Pagination = (props) => {
-  const {handlePageClick, pageCount} = props;
-  console.log('pageCount', pageCount);
+  const {handlePageClick, pageCount, pageSelected} = props;
   return (
     <div className="paginate">
       <ReactPaginate
@@ -12,6 +11,7 @@ const Pagination = (props) => {
         breakLabel={<a href="">...</a>}
         breakClassName={"break-me"}
         pageCount={pageCount}
+        initialPage={pageSelected}
         marginPagesDisplayed={2}
         pageRangeDisplayed={5}
         onPageChange={handlePageClick}

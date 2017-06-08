@@ -11,7 +11,6 @@ const List = (props) => {
       noContentLabel = 'content',
       headers = [],
       data = [],
-      listCount = 0,
       actions = [],
       moreActions = [],
       onDoubleClick = () => {
