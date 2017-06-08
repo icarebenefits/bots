@@ -35,6 +35,7 @@ const ETL = (country) => {
           etl: {
             index: `etl_${alias}`,
             types: {
+              icare_member: 'icare_member',
               sales_order: 'sales_order',
               ticket_icare_member: 'ticket_icare_member',
             }
@@ -64,6 +65,7 @@ const ETL = (country) => {
         source = {},
         dest = {},
         script = {},
+        field = '',
         options = {refresh: true, waitForCompletion: true, requestTimeout: 120000},
         message = formatMessage({
 
@@ -245,19 +247,36 @@ const ETL = (country) => {
         /* Customer - number_iCMs (calculate the number of iCare members) */
         actions = ['customer', 'number_iCMs'];
         source = {
-          // index: indices.new.index,
+          // index: 'bots_vn_stage-2017.06.07-10.28',
           index: indices.new.index,
           type: indices.new.types.icare_member
         };
         dest = {
-          // index: indices.new.index,
+          // index: 'bots_vn_stage-2017.06.07-10.28',
           index: indices.new.index,
-          type: indices.new.types.customer,
+          type: indices.new.types.customer
         };
         script = {};
-        const field = 'number_iCMs';
+        field = 'number_iCMs';
         const etlNumberICMs = await Functions().etlField({actions, source, dest, field});
-        debug && console.log('etlNumberICMs', etlNumberICMs)
+        debug && console.log('etlNumberICMs', etlNumberICMs);
+
+        /* iCare member - is_activated (icare member had activated the iCM app or not) */
+        actions = ['icare_member', 'is_activated'];
+        source = {
+          // index: indices.new.index,
+          index: indices.etl.index,
+          type: indices.etl.types.icare_member
+        };
+        dest = {
+          // index: 'bots_vn_stage-2017.06.07-10.28',
+          index: indices.new.index,
+          type: indices.new.types.icare_member
+        };
+        script = {};
+        field = 'is_activated';
+        const etlIsActivated = await Functions().etlField({actions, source, dest, field, options: {mode: 1, _source: true}});
+        debug && console.log('etlIsActivated', etlIsActivated);
 
         /* Consume result into message */
         const totalTime = Functions().getRunTime(runDate);
@@ -270,6 +289,7 @@ const ETL = (country) => {
         message = formatMessage({message, bold: 'iCM Loan', code: {reindexLoan}});
         message = formatMessage({message, bold: 'iCM Ticket', code: {reindexTicket}});
         message = formatMessage({message, bold: 'Customer - number_iCMs', code: {etlNumberICMs}});
+        message = formatMessage({message, bold: 'iCM - is_activated', code: {etlIsActivated}});
         message = formatMessage({message, bold: 'Get Bots Elastic Alias', code: {getAliasIndices}});
         message = formatMessage({message, bold: 'Update Bots Elastic Alias', code: {updateAliases}});
         
@@ -286,7 +306,7 @@ export default ETL
 /* Test */
 // const {Facebook} = require('/imports/api/facebook-graph');
 // const {facebook: {adminWorkplace}} = Meteor.settings;
-// ETL('kh').customer()
+// ETL('vn').customer()
 //   .then(res => {
 //     // console.log('res', res);
 //     /* Post result to Workplace */

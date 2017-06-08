@@ -146,12 +146,12 @@ class ConditionsBuilder extends Component {
           let FieldData = {};
           if (!_.isEmpty(field)) {
             // field group
-            // FieldData = Object.assign({}, Fields[filter]().fields[field]);
+            console.log('field filter Fields', field, filter, Fields());
+            FieldData = Object.assign({}, Fields().field()[filter]().field()[field]());
           } else {
             FieldData = Object.assign({}, Fields().field()[filter]())
           }
 
-          // const {type, params} = FieldData.operator()[value].props();
           const {type: opType, params} = FieldData.operator()[value].props();
           const {type: fieldType, placeholder, suggests} = FieldData.props();
           let type = opType;
@@ -344,10 +344,18 @@ class ConditionsBuilder extends Component {
     }
 
     const
-      fields = {},
       FieldData = Field()[groupId]().field()[fieldId](),
-      operators = FieldData.operator(),
+      // operators = FieldData.operator(),
+      // fields = FieldData.field(),
       {name: header} = FieldData.props();
+
+    let operators = {}, fields = {};
+    if(FieldData.operator) {
+      operators = FieldData.operator();
+    }
+    if(FieldData.field) {
+      fields = FieldData.field();
+    }
 
     return (
       <Dialog

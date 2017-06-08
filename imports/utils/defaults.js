@@ -34,6 +34,8 @@ export const formatMessage = ({message = '', heading1, heading2, bold, link, quo
     newMess = `${newMess} \n \`\`\` \n ${c} \n \`\`\``;
   };
 
+  newMess += '\n';
+
   return newMess;
 };
 

@@ -10,7 +10,7 @@ const Toolbar = (props) => {
     tools, toolLabel,
     searchBox, searchPlaceHolder,
     onFilter,
-    onSearch,
+    searchText, onSearch,
     onClick
   } = props;
 
@@ -37,8 +37,9 @@ const Toolbar = (props) => {
         <div className="col-md-5 pull-right" style={{marginTop: 2, paddingRight: 0}}>
           <Search
             className=""
+            value={searchText}
             placeHolder={searchPlaceHolder}
-            handleOnChange={value => onSearch(value)}
+            handleOnChange={onSearch}
           />
         </div>
       )}

@@ -5,6 +5,9 @@ import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
 
 import SLAs from './slas';
+
+/* Collections */
+import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
 // query builder
 import {QueryBuilder} from '/imports/api/query-builder';
 // fields
@@ -17,6 +20,7 @@ import {Facebook} from '/imports/api/facebook-graph';
 
 /* Functions */
 import {publishSLA} from './functions';
+import {getSearchText} from '/imports/api/collections/slas';
 
 /* Utils */
 import {getScheduleText} from '/imports/utils';
@@ -35,7 +39,26 @@ Methods.create = new ValidatedMethod({
   validate: null,
   async run({name, description, workplace, frequency, conditions, message, status, country}) {
     try {
-      const _id = SLAs.insert({name, description, workplace, frequency, conditions, message, status, country});
+      /* skip searchText for workplace for now */
+      // let wp = '';
+      // if (!this.isSimulation) {
+      //   const WP = WPCollection.findOne({id: Number(wp)}, {fields: {name: true}});
+      //   if (!_.isEmpty(WP)) {
+      //     wp = WP.name;
+      //   }
+      // }
+      const searchText = getSearchText({name, frequency});
+      const _id = SLAs.insert({
+        name,
+        description,
+        workplace,
+        frequency,
+        conditions,
+        message,
+        status,
+        country,
+        searchText
+      });
       if (status === 'active') {
         const freqText = getScheduleText(frequency);
         const jobParams = {
@@ -226,15 +249,64 @@ Methods.edit = new ValidatedMethod({
 
       // edit SLA in Database
       const selector = {_id}, modifier = {};
+      const search = {}; // object for building the searchText of SLA
 
-      !_.isEmpty(name) && (modifier.name = name);
-      !_.isEmpty(description) && (modifier.description = description);
-      !_.isEmpty(workplace) && (modifier.workplace = workplace);
-      !_.isEmpty(frequency) && (modifier.frequency = frequency);
-      !_.isEmpty(conditions) && (modifier.conditions = conditions);
-      (!_.isEmpty(status) || status === 0) && (modifier.status = status);
-      !_.isEmpty(country) && (modifier.country = country);
-      !_.isEmpty(message) && (modifier.message = message);
+      // edit name
+      if (!_.isEmpty(name)) {
+        modifier.name = name;
+        search.name = name;
+      } else {
+        search.name = currentSLA.name;
+      }
+      // edit description
+      if (!_.isEmpty(description)) {
+        modifier.description = description;
+        search.description = description;
+      } else {
+        search.description = currentSLA.description;
+      }
+      // edit workplace
+      let wp = '';
+      if (!_.isEmpty(workplace)) {
+        modifier.workplace = workplace;
+        wp = workplace;
+      } else {
+        wp = currentSLA.workplace;
+      }
+      // skip searchText for workplace for now
+      // if(!this.isSimulation) {
+      //   console.log('wp', wp);
+      //   const WPlace = WPCollection.findOne({id: Number(wp)}, {fields: {name: true}});
+      //   if(!_.isEmpty(WPlace)) {
+      //     search.workplace = WPlace.name;
+      //   }
+      // }
+      // edit frequency
+      if (!_.isEmpty(frequency)) {
+        modifier.frequency = frequency;
+        search.frequency = frequency;
+      } else {
+        search.frequency = currentSLA.frequency;
+      }
+      // edit conditions
+      if (!_.isEmpty(conditions)) {
+        modifier.conditions = conditions;
+      }
+      // edit status
+      if ((!_.isEmpty(status) || status === 0)) {
+        modifier.status = status;
+      }
+      // edit country
+      if (!_.isEmpty(country)) {
+        modifier.country = country;
+      }
+      // edit message
+      if (!_.isEmpty(message)) {
+        modifier.message = message;
+      }
+
+      const searchText = getSearchText(search);
+      console.log('searchText', searchText);
 
       const result = SLAs.update(selector, {$set: modifier});
       return result;
@@ -290,13 +362,14 @@ Methods.validateName = new ValidatedMethod({
 Methods.preview = new ValidatedMethod({
   name: 'sla.preview',
   validate: null,
-  run({SLA}) {
+  async run({SLA}) {
     if (!this.isSimulation) {
       try {
         const {executeSLA} = require('/imports/api/bots');
-        const result = executeSLA({SLA});
+        const result = await executeSLA({SLA});
         return result;
       } catch (err) {
+        console.log('err', err);
         throw new Meteor.Error('PREVIEW_SLA', err.message);
       }
     }
@@ -500,9 +573,9 @@ Methods.publish = new ValidatedMethod({
     }
   }).validator(),
   async run({_id, country}) {
-    if(!this.isSimulation) {
+    if (!this.isSimulation) {
       try {
-        if(country === 'all') {
+        if (country === 'all') {
           // Quick code for publish SLA to all countries
           await publishSLA(_id, 'la');
           await publishSLA(_id, 'kh');

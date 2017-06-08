@@ -224,17 +224,17 @@ const iCareMember = () => ({
         }),
       }
     ),
-    icmInactivate: () => Object.assign(
+    icmIsActivated: () => Object.assign(
       {},
       Standard().Bool(),
       {
         props: () => ({
-          id: 'icmInactivate',
-          name: 'Inactivate',
+          id: 'icmIsActivated',
+          name: 'Is activated',
           type: 'bool'
         }),
         elastic: () => ({
-          field: 'inactivate'
+          field: 'is_activated'
         }),
       }
     ),

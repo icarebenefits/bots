@@ -469,55 +469,103 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
  * @param {Object} source - {index, type, ...options}
  * @param {Object} dest - {index, type, ...options}
  * @param {String} field - field name
- * @param {Object} options - ex: batches: 1000
+ * @param {Object} options - ex: batches: 1000,
+ *                         - mode: 0 or undefined - add field by loop on dest,
+ *                                 1 - add field by loop on source
  * @param {Func} calculator(index, id) - function execute calculation for value of field
  * @return {*}
  */
-const etlField = async({source, dest, field, options = {batches: 1000}}) => {
-  const {batches} = options;
-
-  // get total source docs
-  const
-    {index, type} = dest,
-    body = bodybuilder()
-      .query('match_all', {})
-      .build();
-  let stats = [];
+const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, _source: false}}) => {
   try {
-    let count = 0;
+    const {batches = 1000, mode = 0, _source = false} = options;
+    // get total dest docs
+    const
+      body = bodybuilder()
+        .query('match_all', {})
+        .build();
+    let updated = [], failed = [], count = 0,
+      index = '', type = '';
+
+    switch (mode) {
+      case 0:
+      {
+        index = dest.index;
+        type = dest.type;
+        break;
+      }
+      case 1:
+      {
+        index = source.index;
+        type = source.type;
+        break;
+      }
+      default:
+      {
+        index = dest.index;
+        type = dest.type;
+      }
+    }
+
     const {count: total} = await Elastic.count({index, type, body});
     for (let i = 0; i < total; i += batches) {
       body.from = i;
       body.size = batches;
-      body._source = false;
+      body._source = _source;
 
+      console.log('search', {body});
       const {hits: {hits}} = await Elastic.search({index, type, body});
-      await Promise.all(hits.map(async ({_id}) => {
+      console.log('hits', hits);
+      await Promise.all(hits.map(async(document) => {
+        const {_id} = document;
         // calculate field value
-        const {numberICMs} = await Functions().countNumberICMs(source, _id);
+        let value, parent;
+        switch (field) {
+          case 'number_iCMs':
+          {
+            const {numberICMs} = await Functions().countNumberICMs(source, _id);
+            value = numberICMs;
+          }
+          case 'is_activated':
+          {
+            const {parent: iCMParent} = await Functions().getICMParent(dest, _id);
+            value = document._source[field];
+            parent = iCMParent;
+          }
+        }
+
         const doc = {
-          [`${field}`]: numberICMs
+          [`${field}`]: value
         };
 
         // add field into dest
         const {index, type} = dest;
-        const addField = await Elastic.update({
+        const updateBody = {
           index,
           type,
           id: _id,
           body: {doc}
-        });
-
-        stats.push({[`${_id}`]: numberICMs, addField});
-
+        };
+        let addField;
+        if (parent) {
+          if (parent !== -1) {  // only update the document has parent
+            updateBody.parent = parent;
+            addField = await Elastic.update(updateBody);
+          } else {
+            failed.push({[`${_id}`]: value});
+          }
+        } else {
+          addField = await Elastic.update(updateBody);
+        }
+        updated.push({[`${_id}`]: value, addField});
       }));
     }
 
-    debug && console.log('ETL_ADDITIONAL_FIELD', stats);
+    debug && console.log('ETL_ADDITIONAL_FIELD.UPDATED', updated);
+    debug && console.log('ETL_ADDITIONAL_FIELD.FAILED', failed);
 
-    return {total, updated: stats.length};
-  } catch (e) {
-    throw new Meteor.Error('ETL_ADDITIONAL_FIELD', {detail: e});
+    return {total, updated: updated.length, failed: failed.length};
+  } catch (err) {
+    throw new Meteor.Error('ETL_ADDITIONAL_FIELD', {detail: err.message});
   }
 };
 
@@ -610,13 +658,36 @@ const countNumberICMs = async(source, netsuite_customer_id) => {
     body = bodybuilder()
       .query('term', 'netsuite_customer_id', netsuite_customer_id)
       .query('term', 'inactivate', false)
-      .build(),
-    response = {};
+      .build();
   try {
     const {count: total} = await Elastic.count({index, type, body});
     return {numberICMs: total};
-  } catch (e) {
-    throw new Meteor.Error('COUNT_NUMBER_ICM', {detail: e});
+  } catch (err) {
+    throw new Meteor.Error('COUNT_NUMBER_ICM', err.message);
+  }
+};
+
+const getICMParent = async(dest, magento_customer_id) => {
+  const
+    {index, type} = dest,
+    body = bodybuilder()
+      .query('term', 'magento_customer_id', magento_customer_id)
+      .build();
+
+  body._source = false;
+
+  try {
+    const {hits} = await Elastic.search({index, type, body});
+    if (!_.isEmpty(hits)) {
+      const {hits: docs} = hits;
+      let parent = -1;
+      if (!_.isEmpty(docs)) {
+        parent = docs[0]._parent;
+      }
+      return {parent};
+    }
+  } catch (err) {
+    throw new Meteor.Error('GET_ICM_PARENT', err.message);
   }
 };
 
@@ -631,6 +702,7 @@ const Functions = () => ({
   updateAliases,
   deleteIndices,
   countNumberICMs,
+  getICMParent
 });
 
 export default Functions
