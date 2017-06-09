@@ -306,8 +306,6 @@ Methods.edit = new ValidatedMethod({
       }
 
       const searchText = getSearchText(search);
-      console.log('searchText', searchText);
-
       const result = SLAs.update(selector, {$set: modifier});
       return result;
     } catch (err) {
