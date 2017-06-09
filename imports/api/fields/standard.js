@@ -11,10 +11,7 @@ const Standard = () => ({
       name: 'boolean',
     }),
     operator: () => ({
-      is: Object.assign({}, Operator().is()),
-      contains: Object.assign({}, Operator().contains()),
-      startsWith: Object.assign({}, Operator().startsWith()),
-      empty: Object.assign({}, Operator().empty()),
+      bool: Object.assign({}, Operator().bool())
     })
   }),
   String: () => ({
