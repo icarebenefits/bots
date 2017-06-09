@@ -180,7 +180,7 @@ export const executeSLA = async ({SLA}) => {
   /* Build message */
   let message = `## ${name} \n`;
   message = message + format(messageTemplate, vars);
-  message = formatMessage({message, quote: `Data are updated on: ${lastUpdatedOn} (${timezone})`});
+  message = formatMessage({message, quote: `Data was last updated: ${lastUpdatedOn} (${timezone})`});
 
   return {
     executed: true,
