@@ -64,7 +64,10 @@ const Operator = () => ({
       params: 2,
     }),
     getParams: (field, values) => {
-      const bool = Boolean(values[0].value);
+      let bool = false;
+      if(values[0].value === 'true') {
+        bool = true;
+      }
       return {type: 'term', field, value: bool};
     },
   }),
