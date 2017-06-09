@@ -512,9 +512,7 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
       body.size = batches;
       body._source = _source;
 
-      console.log('search', {body});
       const {hits: {hits}} = await Elastic.search({index, type, body});
-      console.log('hits', hits);
       await Promise.all(hits.map(async(document) => {
         const {_id} = document;
         // calculate field value
@@ -522,14 +520,20 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
         switch (field) {
           case 'number_iCMs':
           {
-            const {numberICMs} = await Functions().countNumberICMs(source, _id);
+            const result = await countNumberICMs(source, _id);
+            const {numberICMs} = result;
             value = numberICMs;
+            break;
           }
           case 'is_activated':
           {
-            const {parent: iCMParent} = await Functions().getICMParent(dest, _id);
+            const {parent: iCMParent} = await getICMParent(dest, _id);
             value = document._source[field];
             parent = iCMParent;
+            break;
+          }
+          default: {
+            
           }
         }
 
@@ -660,8 +664,17 @@ const countNumberICMs = async(source, netsuite_customer_id) => {
       .query('term', 'inactivate', false)
       .build();
   try {
-    const {count: total} = await Elastic.count({index, type, body});
-    return {numberICMs: total};
+    let numberICMs = 0;
+    // const {count} = await Elastic.count({index, type, body});
+    const result = await Elastic.count({index, type, body});
+
+    // console.log('netsuite_customer_id', netsuite_customer_id);
+    // console.log('countNumberICMs', JSON.stringify({index, type, body}, null, 2));
+    // console.log('result', result);
+    if(result.count) {
+      numberICMs = result.count;
+    }
+    return {numberICMs};
   } catch (err) {
     throw new Meteor.Error('COUNT_NUMBER_ICM', err.message);
   }
