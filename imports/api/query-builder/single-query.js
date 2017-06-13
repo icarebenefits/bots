@@ -150,6 +150,7 @@ const createInput = ({field, parent, operator, value}, output) => {
  * @param value
  * @return {*}
  */
+/*
 const formatNestedInput = ({operator, fieldGroup, value}) => {
   /*
    Input
@@ -164,7 +165,7 @@ const formatNestedInput = ({operator, fieldGroup, value}) => {
    {field: 'business_units.icare_members.loans', parent: 'business_units.icare_members'},
    {field: 'business_units.icare_members.loans.totalPrincipalAmount', parent: 'business_units.icare_members.loans', type: 'range', value: {gte: 430}},
    ];
-   */
+   /
 
   const {group, name} = fieldGroup;
   const {parent,} = Field()[group]().elastic();
@@ -177,6 +178,7 @@ const formatNestedInput = ({operator, fieldGroup, value}) => {
 
   return input;
 };
+*/
 
 /**
  * Build the nested query - support both query and aggregation query
@@ -227,7 +229,7 @@ const formatNestedInput = ({operator, fieldGroup, value}) => {
  };
  */
 const buildNestedQuery = ({operator, fieldGroup, value}) => {
-  const {group: queryGroup, elastic: {field: name, path}} = fieldGroup;
+  const {elastic: {field: name, path}} = fieldGroup;
   const {type, field, value: val} = Operator()[operator]().getParams(name, value);
 
   return bodybuilder()
@@ -334,7 +336,7 @@ const buildNormalQuery = () => {
  * @param value
  * @param queryType
  */
-const buildQuery = (type, {aggGroup, operator, fieldGroup, value}, queryType = 'query') => {
+const buildQuery = (type, {aggGroup, operator, fieldGroup, value}) => {
   switch (type) {
     case 'normal':
     {
@@ -380,7 +382,7 @@ const buildAggregation = (useBucket, bucket, agg) => {
       switch (type) {
         case 'terms':
         {
-          const {terms: aggOptions, size} = Meteor.settings.public.elastic.aggregation.bucket;
+          const {terms: aggOptions} = Meteor.settings.public.elastic.aggregation.bucket;
           const {orderBy, orderIn = 'desc'} = options;
           if (!_.isEmpty(orderBy)) {
             if (orderBy === field) {

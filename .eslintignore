@@ -6,3 +6,4 @@ client/*
 private/*
 public/*
 imports/api/notifications/index.js
+imports/api/bots/methods.js

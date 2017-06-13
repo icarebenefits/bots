@@ -1,4 +1,3 @@
-import {Meteor} from 'meteor/meteor';
 /* SLOGANS */
 export const SLOGANS = {
   vn: 'Vietnam',

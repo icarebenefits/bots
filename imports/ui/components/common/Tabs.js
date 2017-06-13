@@ -1,9 +1,8 @@
-import React, {Component, PropTypes} from 'react';
+import React, {PropTypes} from 'react';
 import classNames from 'classnames';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {connect} from 'react-redux';
-
-import {setActiveTab} from '/imports/ui/store/actions';
+import _ from 'lodash';
 
 const Tabs = (props) => {
   const {tabs} = props;

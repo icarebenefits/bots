@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import {Promise} from 'meteor/promise';
 import {DDP} from 'meteor/ddp-client';
 import _ from 'lodash';
@@ -5,7 +6,6 @@ import moment from 'moment';
 
 /* Collections */
 import SLAs from './slas';
-import {Countries} from '/imports/api/collections/countries';
 import {getScheduleText} from '/imports/utils';
 
 /**

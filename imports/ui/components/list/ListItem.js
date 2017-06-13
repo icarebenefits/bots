@@ -2,7 +2,7 @@ import React, {PropTypes} from 'react';
 import classNames from 'classnames';
 import _ from 'lodash';
 
-import {FormInput, Button,} from '/imports/ui/components/elements';
+import {Button} from '/imports/ui/components/elements';
 
 const ListItem = (props) => {
   const

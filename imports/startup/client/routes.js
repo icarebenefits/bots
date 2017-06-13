@@ -4,7 +4,6 @@ import {FlowRouter} from 'meteor/kadira:flow-router';
 import {mount} from 'react-mounter';
 import {Session} from 'meteor/session';
 import {Accounts} from 'meteor/accounts-base';
-import {Roles} from 'meteor/alanning:roles';
 
 /* Layout */
 import {MainLayout} from '../../ui/layouts';

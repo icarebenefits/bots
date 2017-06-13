@@ -55,6 +55,11 @@ import '/imports/api/query-builder';
 import '/imports/api/olap';
 
 /**
+ * RFM
+ */
+import '/imports/api/rfm';
+
+/**
  * Admin Tasks
  */
 import '/imports/api/admin';

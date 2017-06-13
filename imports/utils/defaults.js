@@ -32,7 +32,7 @@ export const formatMessage = ({message = '', heading1, heading2, bold, link, quo
   if(code) {
     const c = JSON.stringify(code);
     newMess = `${newMess} \n \`\`\` \n ${c} \n \`\`\``;
-  };
+  }
 
   newMess += '\n';
 

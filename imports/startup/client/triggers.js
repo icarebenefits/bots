@@ -26,7 +26,7 @@ export const ensureSignedIn = (context, redirect) => {
   }
 };
 
-export const ensureIsAdmin = (context, redirect) => {
+export const ensureIsAdmin = () => {
 
 };
 

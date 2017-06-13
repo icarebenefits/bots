@@ -1,7 +1,7 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
 import UserProfile from './UserProfile';
 
-const TopBarActions = (props) => {
+const TopBarActions = () => {
   return (
     <div className="topbar-actions">
       {/* GROUP NOTIFICATION */}
