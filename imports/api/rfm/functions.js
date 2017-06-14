@@ -26,9 +26,9 @@ import Scripts from './scripts';
 const getRFMDataSet = async({index, type, batches, scroll}) => {
   try {
     const
-      RDataSet = [], // Recency data set
-      FDataSet = [], // Frequency data set
-      MDataSet = [], // Monetary data set
+      recencyDataSet = [], // Recency data set
+      frequencyDataSet = [], // Frequency data set
+      monetaryDataSet = [], // Monetary data set
       body = bodybuilder()
         .query('exists', 'field', 'has_rfm')
         .build();
@@ -40,9 +40,9 @@ const getRFMDataSet = async({index, type, batches, scroll}) => {
     const {hits: {hits, total}, _scroll_id} = await Elastic.search({index, type, scroll, body});
     hits.map(hit => {
       const {_source: {recency, frequency, monetary}} = hit;
-      RDataSet.push(recency);
-      FDataSet.push(frequency);
-      MDataSet.push(monetary);
+      recencyDataSet.push(recency);
+      frequencyDataSet.push(frequency);
+      monetaryDataSet.push(monetary);
       count++;
     });
     scrollId = _scroll_id;
@@ -51,9 +51,9 @@ const getRFMDataSet = async({index, type, batches, scroll}) => {
       const {hits: {hits}, _scroll_id} = await Elastic.scroll({scrollId, scroll});
       hits.map(hit => {
         const {_source: {recency, frequency, monetary}} = hit;
-        RDataSet.push(recency);
-        FDataSet.push(frequency);
-        MDataSet.push(monetary);
+        recencyDataSet.push(recency);
+        frequencyDataSet.push(frequency);
+        monetaryDataSet.push(monetary);
         count++;
       });
       scrollId = _scroll_id;
@@ -62,9 +62,9 @@ const getRFMDataSet = async({index, type, batches, scroll}) => {
 
     // return the dataset which have unique elements
     return {
-      RDataSet: _.uniq(RDataSet),
-      FDataSet: _.uniq(FDataSet),
-      MDataSet: _.uniq(MDataSet)
+      recencyDataSet: _.uniq(recencyDataSet),
+      frequencyDataSet: _.uniq(frequencyDataSet),
+      monetaryDataSet: _.uniq(monetaryDataSet)
     };
   } catch (err) {
     throw new Meteor.Error('GET_RFM_DATASET', err.message);
@@ -127,19 +127,19 @@ const calculateQuantiles = (dataset) => {
 const calculateRFMQuantiles = async({index, type, batches, scroll}) => {
   try {
     // get all dataset of RFM
-    const {RDataSet, FDataSet, MDataSet} = await getRFMDataSet({index, type, batches, scroll});
+    const {recencyDataSet, frequencyDataSet, monetaryDataSet} = await getRFMDataSet({index, type, batches, scroll});
 
 
     /* Calculate RFM Quantiles */
     const
-      RQuantiles = calculateQuantiles(RDataSet), // Recency
-      FQuantiles = calculateQuantiles(FDataSet), // Frequency
-      MQuantiles = calculateQuantiles(MDataSet); // Monetary
+      recencyQuantiles = calculateQuantiles(recencyDataSet), // Recency
+      frequencyQuantiles = calculateQuantiles(frequencyDataSet), // Frequency
+      monetaryQuantiles = calculateQuantiles(monetaryDataSet); // Monetary
     // The more recent the better recency
     // RQuantiles.reverse();
 
 
-    return {RQuantiles, FQuantiles, MQuantiles};
+    return {recencyQuantiles, frequencyQuantiles, monetaryQuantiles};
   } catch (err) {
     throw new Meteor.Error('CALCULATE_RFM_SCORE', err.message);
   }
@@ -234,24 +234,25 @@ const updateRFMValues = async({hits, source, dest, period, runDate, count}) => {
 
 const getScore = ({quantiles, value}) => {
   const n = quantiles.length;
-  let score = 0;
 
-  // console.log('getScore', JSON.stringify({quantiles, value, n, score}))
   for (let i = 0; i < n; i++) {
-    // console.log('quantiles i value', quantiles[i], i, value);
     if (value <= quantiles[i]) {
-      // console.log('score', i + 1);
       return i + 1;
     }
     if (i === (n - 1) && value > quantiles[i]) {
-      // console.log('score', i + 2);
       return i + 2;
     }
   }
 };
 
-
-export const getRFMSegment = async({RScore, FScore, MScore}) => {
+/**
+ * Get segment of customer from Gandalf Decision making with RFM
+ * @param recencyScore
+ * @param frequencyScore
+ * @param monetaryScore
+ * @returns {{segment}}
+ */
+export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}) => {
   try {
     const request = {
       method: 'POST',
@@ -260,9 +261,8 @@ export const getRFMSegment = async({RScore, FScore, MScore}) => {
         'X-Application': '5941020ae79e855ac4301714'
       },
       body: {
-        recency_score: RScore,
-        frequency_score: FScore,
-        monetary_score: MScore
+        recency_score: recencyScore,
+        frequency_monetary_score: Math.floor((frequencyScore + monetaryScore) / 2)
       }, json: true
     };
     const {meta: {code}, data: {final_decision}} = await RequestPromise(request);
@@ -276,30 +276,87 @@ export const getRFMSegment = async({RScore, FScore, MScore}) => {
   }
 };
 
+const indexGroupSegments = async ({hits, index, type, count}) => {
+  try {
+    for (const hit of hits) {
+      const {_id: id,
+        _source: {recency_score: recencyScore, frequency_score: frequencyScore, monetary_score: monetaryScore}
+      } = hit;
+      const {segment} = await getRFMSegment({recencyScore, frequencyScore, monetaryScore});
+      const body = {doc: {segment}};
+      count++;
+      await Elastic.update({index, type, id, body});
+    }
+    return {count};
+  } catch (err) {
+    throw new Meteor.Error('INDEX_GROUP_SEGMENTS', err.message);
+  }
+};
+
+export const indexAllSegments = async ({country}) => {
+  try {
+    const
+      {
+        elastic: {indices: {rfm: rfmIndex}},
+        public: {env, elastic: {batches, scroll}}
+      } = Meteor.settings,
+      index = `${rfmIndex.prefix}_${country}_${env}`,
+      type = rfmIndex.types.year,
+      body = bodybuilder()
+        .query('exists', 'field', 'has_rfm')
+        .build();
+    let count = 0, scrollId = '';
+
+    body.size = batches;
+    body._source = ["recency_score", "frequency_score", "monetary_score"];
+
+    const {hits: {hits, total}, _scroll_id} = await Elastic.search({index, type, scroll, body});
+    const {count: runCount} = await indexGroupSegments({hits, index, type, count});
+    count = runCount;
+    scrollId = _scroll_id;
+    while (count < total) {
+      const {hits: {hits}, _scroll_id} = await Elastic.scroll({scrollId, scroll});
+      const {count: runCount} = await indexGroupSegments({hits, index, type, count});
+      count = runCount;
+      scrollId = _scroll_id;
+    }
+
+    return {count};
+  } catch (err) {
+    throw new Meteor.Error('INDEX_ALL_SEGMENTS', err.message);
+  }
+};
+
+/**
+ * Index RFM scores for the group of iCare members
+ * @param quantiles
+ * @param hits
+ * @param index
+ * @param type
+ * @param count
+ * @returns {{count: *}}
+ */
 const indexGroupRFMScores = async({quantiles, hits, index, type, count}) => {
   try {
-    const {RQuantiles, FQuantiles, MQuantiles} = quantiles;
+    const {recencyQuantiles, frequencyQuantiles, monetaryQuantiles} = quantiles;
     await Promise.all(hits.map(
       async hit => {
         const
           {_id: id, _source: {recency, frequency, monetary}} = hit,
-          FScore = getScore({quantiles: FQuantiles, value: frequency}),
-          MScore = getScore({quantiles: MQuantiles, value: monetary});
+          frequency_score = getScore({quantiles: frequencyQuantiles, value: frequency}),
+          monetary_score = getScore({quantiles: monetaryQuantiles, value: monetary});
         let
-          RScore = getScore({quantiles: RQuantiles, value: recency});
+          recency_score = getScore({quantiles: recencyQuantiles, value: recency});
 
-        // Calculate RScore
-        const q = RQuantiles.length + 1;
-        RScore = q - RScore + 1;
-        // console.log('RFM Score', JSON.stringify({id, RScore, FScore, MScore}));
-        const {segment} = await getRFMSegment({RScore, FScore, MScore});
+        // Calculate recency_score
+        const q = recencyQuantiles.length + 1;
+        recency_score = q - recency_score + 1;
 
         const body = {
           doc: {
-            recency_score: RScore,
-            frequency_score: FScore,
-            monetary_score: MScore,
-            segment
+            recency_score,
+            frequency_score,
+            monetary_score
           }
         };
         await Elastic.update({index, type, id, body});
@@ -311,6 +368,11 @@ const indexGroupRFMScores = async({quantiles, hits, index, type, count}) => {
   }
 };
 
+/**
+ * Index RFM scores for all of iCare members
+ * @param country
+ * @returns {{count: number}}
+ */
 export const indexAllRFMScores = async({country}) => {
   try {
     const
@@ -327,15 +389,15 @@ export const indexAllRFMScores = async({country}) => {
 
     const quantiles = await calculateRFMQuantiles({index, type, batches, scroll});
     // update option quantitles
-    const {RQuantiles, FQuantiles, MQuantiles} = quantiles;
-    RQuantiles.reverse();
+    const {recencyQuantiles, frequencyQuantiles, monetaryQuantiles} = quantiles;
+    recencyQuantiles.reverse();
     await Elastic.update({
       index, type: 'options', id: 'quantiles',
       body: {
         doc: {
-          recency_quantiles: RQuantiles,
-          frequency_quantiles: FQuantiles,
-          monetary_quantiles: MQuantiles
+          recency_quantiles: recencyQuantiles,
+          frequency_quantiles: frequencyQuantiles,
+          monetary_quantiles: monetaryQuantiles
         },
         doc_as_upsert: true
       }
@@ -430,7 +492,7 @@ export const indexRFMModel = async({country}) => {
           .map(s => iCMsScripts[s])
           .join(';')
       };
-    const {segment} = await getRFMSegment({RScore: 0, FScore: 0, MScore: 0});
+    const {segment} = await getRFMSegment({recencyScore: 0, frequencyScore: 0, monetaryScore: 0});
     script.inline += `;ctx._source.segment = \"${segment}\"`;
     // console.log('source', JSON.stringify({source: reindexSource, dest, script, options}));
     // console.log('dest', dest);

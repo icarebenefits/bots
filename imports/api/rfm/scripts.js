@@ -8,9 +8,9 @@ const Scripts = () => ({
       recency: "ctx._source.recency = 0",
       frequency: "ctx._source.frequency = 0",
       monetary: "ctx._source.monetary = 0",
-      RScore: "ctx._source.RScore = 0",
-      FScore: "ctx._source.FScore = 0",
-      MScore: "ctx._source.MScore = 0"
+      recencyScore: "ctx._source.recency_score = 0",
+      frequencyScore: "ctx._source.frequency_score = 0",
+      monetaryScore: "ctx._source.monetary_score = 0"
     }
   }
 });
