@@ -200,8 +200,8 @@ const asyncReindex = async({source, dest, script, options}) => {
     const isFinished = await isReindexFinish({index: dest.index, type: dest.type, total, created});
     debug && console.log('isFinished', isFinished);
     return isFinished;
-  } catch (e) {
-    throw new Meteor.Error('REINDEX', {detail: e});
+  } catch (err) {
+    throw new Meteor.Error('REINDEX', err.message);
   }
 };
 
