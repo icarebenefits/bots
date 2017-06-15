@@ -254,9 +254,10 @@ const getScore = ({quantiles, value}) => {
  */
 export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}) => {
   try {
+    const {domain, clientId, clientSecret, tableId} = Meteor.settings.gandalf;
     const request = {
       method: 'POST',
-      uri: 'http://465d2755261b93e5f67613437921e0aeac26e919:f4d7ccafb99625cbde14b5cbc8ed070b2bbc52db@gandalf.b2b.stage.icbsys.net/api/v1/tables/594109a8e79e855ada2fb1c5/decisions',
+      uri: `http://${clientId}:${clientSecret}@${domain}/api/v1/tables/${tableId}/decisions`,
       headers: {
         'X-Application': '5941020ae79e855ac4301714'
       },
@@ -266,7 +267,7 @@ export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}
       }, json: true
     };
     const {meta: {code}, data: {final_decision}} = await RequestPromise(request);
-    if(code === 200) {
+    if (code === 200) {
       const {segment} = JSON.parse(final_decision);
       return {segment};
     }
@@ -276,24 +277,39 @@ export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}
   }
 };
 
-const indexGroupSegments = async ({hits, index, type, count}) => {
+const indexGroupSegments = async({hits, index, type, count}) => {
   try {
-    for (const hit of hits) {
-      const {_id: id,
-        _source: {recency_score: recencyScore, frequency_score: frequencyScore, monetary_score: monetaryScore}
-      } = hit;
-      const {segment} = await getRFMSegment({recencyScore, frequencyScore, monetaryScore});
-      const body = {doc: {segment}};
-      count++;
-      await Elastic.update({index, type, id, body});
-    }
+    /* Update sequential */
+    /*
+     for (const hit of hits) {
+     const {_id: id,
+     _source: {recency_score: recencyScore, frequency_score: frequencyScore, monetary_score: monetaryScore}
+     } = hit;
+     const {segment} = await getRFMSegment({recencyScore, frequencyScore, monetaryScore});
+     const body = {doc: {segment}};
+     count++;
+     await Elastic.update({index, type, id, body});
+     }
+     */
+    /* Update parallel */
+    await Promise.all(hits.map(
+      async hit => {
+        const {
+          _id: id,
+          _source: {recency_score: recencyScore, frequency_score: frequencyScore, monetary_score: monetaryScore}
+        } = hit;
+        const {segment} = await getRFMSegment({recencyScore, frequencyScore, monetaryScore});
+        const body = {doc: {segment}};
+        await Elastic.update({index, type, id, body});
+        count++;
+      }));
     return {count};
   } catch (err) {
     throw new Meteor.Error('INDEX_GROUP_SEGMENTS', err.message);
   }
 };
 
-export const indexAllSegments = async ({country}) => {
+export const indexAllSegments = async({country}) => {
   try {
     const
       {
@@ -307,7 +323,7 @@ export const indexAllSegments = async ({country}) => {
         .build();
     let count = 0, scrollId = '';
 
-    body.size = batches;
+    // body.size = batches;
     body._source = ["recency_score", "frequency_score", "monetary_score"];
 
     const {hits: {hits, total}, _scroll_id} = await Elastic.search({index, type, scroll, body});
@@ -464,7 +480,7 @@ export const indexRFMModel = async({country}) => {
     const reindexSource = {
         index: `${baseIndex.prefix}_${env}_${country}`,
         type: baseIndex.types.icare_member,
-        _source: ["id", "full_name", "gender", "company", "business_unit", "email", "telephone"],
+        _source: ["id", "organization_id", "full_name", "gender", "company", "business_unit", "email", "telephone"],
         query: {
           bool: {
             filter: {
@@ -502,14 +518,20 @@ export const indexRFMModel = async({country}) => {
     index = source.index;
     type = botsIndex.types.icare_member;
     body = bodybuilder()
-      .query('has_child', {type: source.type}, (q) => {
+      .query('has_child', {type: "sales_order"}, (q) => {
         return q
           .filter('range', 'purchase_date', {gte: period})
-          .query('exists', 'field', 'magento_customer_id')
+          .filter('exists', 'field', 'magento_customer_id')
+          .notFilter('term', 'so_status.keyword', 'canceled')
+          .notFilter('nested', 'path', 'items', q => {
+            return q
+              .query('term', 'items.sku.keyword', 'LOAN-MIGRATION')
+          })
       })
-      .build()
+      .build();
+
     body.size = batches;
-    body._source = ["name", "gender", "company", "business_unit", "email", "phone"];
+    body._source = ["magento_customer_id", "netsuite_customer_id", "name", "gender", "company", "business_unit", "email", "phone"];
 
     const {hits: {hits, total}, _scroll_id} = await Elastic.search({index, type, scroll, body});
     const {count: runCount} = await updateRFMValues({hits, source, dest, period, runDate, count});
