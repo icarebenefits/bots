@@ -12,6 +12,7 @@ import '/imports/api/collections/countries/register.server';
 import '/imports/api/collections/slas/register.server';
 import '/imports/api/collections/access-list/register.server';
 import '/imports/api/collections/users/register.server';
+import '/imports/api/collections/rfm/register.server';
 import '/imports/api/collections/workplaces';
 
 /**

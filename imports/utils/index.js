@@ -75,7 +75,13 @@ export const getIndexSuffix = (runDate, unit) => {
   }
 };
 
-/* Parser */
+export const conciseNumber = (n,d) => {
+  x=(''+n).length,p=Math.pow,d=p(10,d)
+  x-=x%3
+  return Math.round(n*d/p(10,x))/d+" kmbTPE"[x/3]
+};
+
+  /* Parser */
 export {default as Parser} from './parser';
 
 /* Defaults */

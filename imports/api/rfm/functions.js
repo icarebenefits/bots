@@ -6,6 +6,8 @@ import {Promise} from 'meteor/promise';
 import RequestPromise from 'request-promise';
 import _ from 'lodash';
 
+/* Collections */
+import {RFMScoreBoard, RFMTopTen} from '/imports/api/collections/rfm';
 /* Elastic */
 import {ElasticClient as Elastic} from '/imports/api/elastic';
 /* Utils */
@@ -266,7 +268,7 @@ export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}
         frequency_monetary_score: null
       }, json: true
     };
-    if(recencyScore && recencyScore && monetaryScore) {
+    if (recencyScore && recencyScore && monetaryScore) {
       request.body = {
         recency_score: recencyScore,
         frequency_monetary_score: Math.floor((frequencyScore + monetaryScore) / 2)
@@ -565,5 +567,241 @@ export const indexRFMModel = async({country}) => {
     return {reindexICM, updateRFMValues: count, updateAliases};
   } catch (err) {
     throw new Meteor.Error('INDEX_RFM_MODEL', err.message);
+  }
+};
+
+export const getRFMScoreBoard = async({country}) => {
+  check(country, String);
+
+  try {
+    const
+      {
+        elastic: {indices: {rfm: rfmIndex}},
+        public: {env, elastic: {batches, scroll}}
+      } = Meteor.settings,
+      index = `${rfmIndex.prefix}_${country}_${env}`,
+      type = rfmIndex.types.year,
+      scoreboard = {
+        total: 0,
+        purchased: 0,
+        champion: 0,
+        loyal: 0,
+        potential: 0,
+        new: 0,
+        promissing: 0,
+        attention: 0,
+        sleep: 0,
+        risk: 0,
+        losing: 0,
+        hibernating: 0,
+        lost: 0,
+        theBestChampion: {},
+        theBestLoyal: {},
+        theBestPotential: {},
+        country,
+        date: new Date()
+      },
+      _source = ["name", "company", "recency", "frequency", "monetary"];
+    let body = bodybuilder()
+        .size(0)
+        .aggregation('terms', 'segment.keyword', {size: 12})
+        .build(),
+      segment = 'champion';
+
+    const {hits: {total}, aggregations} = await Elastic.search({index, type, body});
+    const {buckets} = aggregations['agg_terms_segment.keyword'];
+
+    // total iCMs
+    scoreboard.total = total;
+    // segmentation iCMs
+    buckets.map(bucket => {
+      const {key, doc_count} = bucket;
+      if (key === 'champion') {
+        scoreboard.champion = doc_count;
+      }
+      if (key === 'loyal customers') {
+        scoreboard.loyal = doc_count;
+      }
+      if (key === 'potential loyalist') {
+        scoreboard.potential = doc_count;
+      }
+      if (key === 'new customers') {
+        scoreboard.new = doc_count;
+      }
+      if (key === 'promising') {
+        scoreboard.promissing = doc_count;
+      }
+      if (key === 'customers needing attention') {
+        scoreboard.attention = doc_count;
+      }
+      if (key === 'about to sleep') {
+        scoreboard.sleep = doc_count;
+      }
+      if (key === 'at risk') {
+        scoreboard.risk = doc_count;
+      }
+      if (key === "can't lose them") {
+        scoreboard.losing = doc_count;
+      }
+      if (key === 'hibernating') {
+        scoreboard.hibernating = doc_count;
+      }
+      if (key === 'lost') {
+        scoreboard.lost = doc_count;
+      }
+    });
+
+    // purchased iCMs
+    body = bodybuilder()
+      .size(0)
+      .filter('exists', 'field', "has_rfm")
+      .build();
+    const {hits: {total: purchased}} = await Elastic.search({index, type, body});
+    scoreboard.purchased = purchased;
+
+    // the best champion
+    body = bodybuilder()
+      .size(1)
+      .filter('term', 'segment.keyword', {value: segment})
+      .sort('_script', {
+        "type": "number", "script": {
+          "lang": "painless",
+          "inline": "params['_source']['recency_score'] + params['_source']['frequency_score'] + params['_source']['monetary_score']",
+          "params": {
+            "factor": 1.1
+          }
+        },
+        "order": "desc"
+      })
+      .build();
+    body._source = _source;
+    const {hits: {hits: champions}} = await Elastic.search({index, type, body});
+    if (!_.isEmpty(champions)) {
+      scoreboard.theBestChampion = {...champions[0]._source};
+    }
+
+    // the best loyal
+    segment = 'loyal customers';
+    body = bodybuilder()
+      .size(1)
+      .filter('term', 'segment.keyword', {value: segment})
+      .sort('_script', {
+        "type": "number", "script": {
+          "lang": "painless",
+          "inline": "params['_source']['recency_score'] + params['_source']['frequency_score'] + params['_source']['monetary_score']",
+          "params": {
+            "factor": 1.1
+          }
+        },
+        "order": "desc"
+      })
+      .build();
+    body._source = _source;
+    const {hits: {hits: loyals}} = await Elastic.search({index, type, body});
+    if (!_.isEmpty(loyals)) {
+      scoreboard.theBestLoyal = {...loyals[0]._source};
+    }
+
+    // the best potential
+    segment = 'potential loyalist';
+    body = bodybuilder()
+      .size(1)
+      .filter('term', 'segment.keyword', {value: segment})
+      .sort('_script', {
+        "type": "number", "script": {
+          "lang": "painless",
+          "inline": "params['_source']['recency_score'] + params['_source']['frequency_score'] + params['_source']['monetary_score']",
+          "params": {
+            "factor": 1.1
+          }
+        },
+        "order": "desc"
+      })
+      .build();
+    body._source = _source;
+    const {hits: {hits: potentials}} = await Elastic.search({index, type, body});
+    if (!_.isEmpty(potentials)) {
+      scoreboard.theBestPotential = {...potentials[0]._source};
+    }
+
+    return RFMScoreBoard.insert(scoreboard);
+
+  } catch (err) {
+    throw new Meteor.Error('GET_RFM_SCOREBOARD', err.message);
+  }
+};
+
+export const getRFMTopTen = async({country}) => {
+  check(country, String);
+
+  try {
+    const
+      {
+        elastic: {indices: {rfm: rfmIndex}},
+        public: {env, elastic: {batches, scroll}}
+      } = Meteor.settings,
+      index = `${rfmIndex.prefix}_${country}_${env}`,
+      type = rfmIndex.types.year,
+      topten = {
+        champions: [],
+        loyals: [],
+        potentials: [],
+        news: [],
+        promissings: [],
+        attentions: [],
+        sleeps: [],
+        risks: [],
+        losings: [],
+        hibernatings: [],
+        losts: [],
+        country,
+        date: new Date()
+      },
+      _source = ["name", "company", "recency", "frequency", "monetary"],
+      segments = [
+        {champions: 'champion'},
+        {loyals: 'loyal customers'},
+        {potentials: 'potential loyalist'},
+        {news: 'new customers'},
+        {promissings: 'promising'},
+        {attentions: 'customers needing attention'},
+        {sleeps: 'about to sleep'},
+        {risks: 'at risk'},
+        {losings: "can't lose them"},
+        {hibernatings: 'hibernating'},
+        {losts: 'lost'}
+      ];
+
+    for (const segment of segments) {
+      const
+        key = Object.keys(segment)[0],
+        value = segment[key],
+        body = bodybuilder()
+          .size(10)
+          .rawOption('_source', _source)
+          .filter('term', 'segment.keyword', {value})
+          .sort('_script', {
+            "type": "number", "script": {
+              "lang": "painless",
+              "inline": "params['_source']['recency_score'] + params['_source']['frequency_score'] + params['_source']['monetary_score']",
+              "params": {
+                "factor": 1.1
+              }
+            },
+            "order": "desc"
+          })
+          .build();
+
+      const {hits: {hits}} = await Elastic.search({index, type, body});
+      if (!_.isEmpty(hits)) {
+        topten[key] = hits.map(hit => hit._source);
+      }
+    }
+
+    // console.log('topten', JSON.stringify(topten, null, 2));
+    return RFMTopTen.insert(topten);
+
+  } catch (err) {
+    throw new Meteor.Error('GET_RFM_TOPTEN', err.message);
   }
 };
