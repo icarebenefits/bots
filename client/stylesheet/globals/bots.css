@@ -38,3 +38,12 @@
 .overflow {
   overflow: visible !important;
 }
+
+.btn-graphic {
+  height: 52px !important;
+  font-size: 11px !important;
+}
+
+.img-widget {
+  width: 120px !important;
+}

@@ -262,10 +262,16 @@ export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}
         'X-Application': '5941020ae79e855ac4301714'
       },
       body: {
-        recency_score: recencyScore,
-        frequency_monetary_score: Math.floor((frequencyScore + monetaryScore) / 2)
+        recency_score: null,
+        frequency_monetary_score: null
       }, json: true
     };
+    if(recencyScore && recencyScore && monetaryScore) {
+      request.body = {
+        recency_score: recencyScore,
+        frequency_monetary_score: Math.floor((frequencyScore + monetaryScore) / 2)
+      };
+    }
     const {meta: {code}, data: {final_decision}} = await RequestPromise(request);
     if (code === 200) {
       const {segment} = JSON.parse(final_decision);
@@ -480,7 +486,7 @@ export const indexRFMModel = async({country}) => {
     const reindexSource = {
         index: `${baseIndex.prefix}_${env}_${country}`,
         type: baseIndex.types.icare_member,
-        _source: ["id", "organization_id", "full_name", "gender", "company", "business_unit", "email", "telephone"],
+        _source: ["id", "organization_id", "full_name", "gender", "company", "business_unit", "email", "telephone", "created_at"],
         query: {
           bool: {
             filter: {
@@ -508,7 +514,7 @@ export const indexRFMModel = async({country}) => {
           .map(s => iCMsScripts[s])
           .join(';')
       };
-    const {segment} = await getRFMSegment({recencyScore: 0, frequencyScore: 0, monetaryScore: 0});
+    const {segment} = await getRFMSegment({});
     script.inline += `;ctx._source.segment = \"${segment}\"`;
     // console.log('source', JSON.stringify({source: reindexSource, dest, script, options}));
     // console.log('dest', dest);
@@ -531,7 +537,7 @@ export const indexRFMModel = async({country}) => {
       .build();
 
     body.size = batches;
-    body._source = ["magento_customer_id", "netsuite_customer_id", "name", "gender", "company", "business_unit", "email", "phone"];
+    body._source = ["magento_customer_id", "netsuite_customer_id", "name", "gender", "company", "business_unit", "email", "phone", "created_at"];
 
     const {hits: {hits, total}, _scroll_id} = await Elastic.search({index, type, scroll, body});
     const {count: runCount} = await updateRFMValues({hits, source, dest, period, runDate, count});

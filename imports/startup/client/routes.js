@@ -6,14 +6,15 @@ import {Session} from 'meteor/session';
 import {Accounts} from 'meteor/accounts-base';
 
 /* Layout */
-import {MainLayout} from '../../ui/layouts';
+import {MainLayout} from '/imports/ui/layouts';
 /* Pages */
 import {
   HomePage,
   SetupPage,
   AccessListPage,
   ErrorPage,
-} from '../../ui/pages';
+  RFMPage,
+} from '/imports/ui/pages';
 
 /* Notify */
 import * as Notify from '/imports/api/notifications';
@@ -93,12 +94,23 @@ const userRoutes = FlowRouter.group({
 
 userRoutes.route('/:page/:country', {
   name: 'setup',
-  action() {
-    mount(MainLayout, {
-      content() {
-        return <SetupPage />;
-      }
-    });
+  action(params) {
+    switch (params.page) {
+      case 'setup':
+        return mount(MainLayout, {
+          content() {
+            return <SetupPage />;
+          }
+        });
+      case 'segmentation':
+        return mount(RFMPage);
+      default:
+        mount(MainLayout, {
+          content() {
+            return <SetupPage />;
+          }
+        });
+    }
   }
 });
 
