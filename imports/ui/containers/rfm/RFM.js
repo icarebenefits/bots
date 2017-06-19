@@ -4,6 +4,7 @@ import {createContainer} from 'meteor/react-meteor-data';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import _ from 'lodash';
 import accounting from 'accounting';
+import moment from 'moment';
 
 /* Collections */
 import {RFMScoreBoard, RFMTopTen} from '/imports/api/collections/rfm';
@@ -72,7 +73,7 @@ class RFM extends Component {
           champion, loyal, potential, new: newCustomer,
           promissing, attention, sleep, risk,
           losing, hibernating, lost,
-          theBestChampion, theBestLoyal, theBestPotential
+          theBestChampion, theBestLoyal, theBestPotential, date
         } = scoreboard,
         filters = [
           {name: 'champions', label: 'Champions'},
@@ -112,7 +113,7 @@ class RFM extends Component {
             <div className="note note-info">
               <h2>
                 <span className="label label-primary uppercase">
-                  {`Data was last updated on: June 15, 2017`}
+                  {`Data was last updated on: ${moment(date).format('LLL')}`}
                 </span>
               </h2>
             </div>
@@ -381,8 +382,8 @@ const RFMContainer = createContainer(() => {
     subSB = Meteor.subscribe('rfm.scoreboard', country),
     subTT = Meteor.subscribe('rfm.topten', country),
     ready = subSB.ready() && subTT.ready(),
-    ScoreBoard = RFMScoreBoard.find().fetch(),
-    TopTen = RFMTopTen.find().fetch();
+    ScoreBoard = RFMScoreBoard.find({}, {sort: {date: -1}, limit: 1}).fetch(),
+    TopTen = RFMTopTen.find({}, {sort: {date: -1}, limit: 1}).fetch();
   let currency = 'VND';
   if(country === 'kh') {
     currency = 'KHR';

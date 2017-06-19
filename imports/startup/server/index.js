@@ -161,7 +161,7 @@ Meteor.startup(function () {
     }
   }
 
-  /* Job cleanup indices */
+  /* Job cleanup logs */
   if (Meteor.settings.admin.cleanup.log.enable) {
     const {frequency: freqText} = Meteor.settings.admin.cleanup.log;
     const params = {
@@ -189,6 +189,42 @@ Meteor.startup(function () {
       })
       .catch(err => {
         message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_LOG', code: err.message});
+      });
+
+    if(!_.isEmpty(message)) {
+      const {adminWorkplace} = Meteor.settings.facebook;
+      Facebook().postMessage(adminWorkplace, message);
+    }
+  }
+
+  /* Job index RFM */
+  if (Meteor.settings.elastic.indexRFM.enable) {
+    const {frequency: freqText} = Meteor.settings.elastic.indexRFM;
+    const params = {
+      name: 'indexRFM',
+      priority: 'normal',
+      freqText,
+      info: {
+        method: 'bots.indexRFM',
+      },
+      country: 'admin'
+    };
+    let message = '';
+
+    getJobs({name: params.name, country: params.country})
+      .then(jobs => {
+        if (_.isEmpty(jobs)) {
+          return createJob(params);
+        }
+        return {};
+      })
+      .then(res => {
+        if(!_.isEmpty(res)) {
+          message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM_FOR_COUNTRIES', code: res});
+        }
+      })
+      .catch(err => {
+        message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM_FOR_COUNTRIES', code: err.message});
       });
 
     if(!_.isEmpty(message)) {

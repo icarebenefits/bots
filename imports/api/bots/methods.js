@@ -3,9 +3,13 @@ import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import Bots from './functions';
 import {ESFuncs} from '/imports/api/elastic';
+import {ETL} from '/imports/api/olap';
 import {Facebook} from '/imports/api/facebook-graph';
 import {formatMessage} from '/imports/utils/defaults';
 import {deleteExpiredIndices, deleteExpiredLog} from '/imports/api/admin';
+
+/* Collections */
+import {Countries} from '/imports/api/collections/countries';
 
 /**
  * Method called by job server for testing the job check SLA
@@ -87,6 +91,44 @@ const migrateToElastic = new ValidatedMethod({
 });
 
 /**
+ * Method called by job server for executing the job migrate data
+ * @param {String} slaId
+ */
+const indexRFM = new ValidatedMethod({
+  name: 'bots.indexRFM',
+  validate: new SimpleSchema({
+    data: {
+      type: Object,
+    },
+    'data.method': {
+      type: String,
+      allowedValues: ['bots.indexRFM'],
+    }
+  }).validator(),
+  async run({data}) {
+    if (Meteor.isServer) {
+      const {facebook: {adminWorkplace}} = Meteor.settings;
+      let message = '';
+      try {
+        const countries = Countries.find({}, {fields: {code: true}}).fetch().map(c => c.code);
+        for(const country of countries) {
+          console.log('index for', country);
+          const result = await ETL(country).rfm();
+          console.log('result', result);
+          message += result.message;
+        }
+      } catch(err) {
+        message = formatMessage({heading1: 'REINDEX_RFM', code: err.message});
+      }
+
+      await Facebook().postMessage(adminWorkplace, message);
+      console.log('message', message);
+    }
+  }
+});
+
+
+/**
  * Method called by job server for executing the job index suggests
  * @param {String} slaId
  */
@@ -166,6 +208,7 @@ const BotsMethods = {
   elastic,
   migrateToElastic,
   indexSuggests,
+  indexRFM
 };
 
 export default BotsMethods

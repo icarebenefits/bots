@@ -1,10 +1,14 @@
 import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
 import moment from 'moment';
-
+/* RFM */
+import {
+  indexRFMModel, indexAllRFMScores, indexSegmentForAllOfiCM,
+  getRFMScoreBoard, getRFMTopTen
+} from '/imports/api/rfm';
 /* Functions */
 import {Functions} from '../';
-import {formatMessage} from '/imports/utils/defaults';
+import {formatMessage, Parser} from '/imports/utils';
 
 /* Scripts */
 import Scripts from './scripts';
@@ -14,67 +18,62 @@ const ETL = (country) => {
 
   return {
     customer: async() => {
-      const
-        runDate = new Date(), // running time
-        {
-          elastic: {indexPrefix: prefix, reindex: {debug}},
-          public: {env}
-        } = Meteor.settings,
-        suffix = moment(runDate).format('YYYY.MM.DD-HH.mm'), // elastic index suffix
-        alias = `${prefix}_${country}_${env}`,
-        indices = {
-          base: {
-            index: `icare_${env}_${country}`,
-            types: {
-              customer: 'b2b_customer',
-              icare_member: 'customer',
-              loan: 'm_client',
-            }
-          },
-          etl: {
-            index: `etl_${alias}`,
-            types: {
-              icare_member: 'icare_member',
-              sales_order: 'sales_order',
-              ticket_icare_member: 'ticket_icare_member',
-            }
-          },
-          new: {
-            index: `${alias}-${suffix}`,
-            types: {
-              customer: 'customer',
-              icare_member: 'icare_member',
-              sales_order: 'sales_order',
-              loan: 'loan',
-              ticket: 'ticket',
-            }
-          },
-        },
-        {
-          lang, bots: {
-          customer: customersScripts,
-          icareMember: iCMsScripts,
-          salesOrder: SOScripts,
-          loan: loanScripts,
-          ticket: ticketScripts,
-        }
-        } = Scripts();
-      let
-        actions = [],
-        source = {},
-        dest = {},
-        script = {},
-        field = '',
-        options = {refresh: true, waitForCompletion: true, requestTimeout: 120000},
-        message = formatMessage({
-
-          heading1: `ETL - Index: ${alias} - on ${moment(runDate).format('LLL')}`
-        });
-
-
       try {
+        const
+          runDate = new Date(), // running time
+          {
+            elastic: {
+              reindex: {debug},
+              indices: {
+                base: baseIndex,
+                etl: etlIndex,
+                bots: botsIndex,
+                rfm: rfmIndex
+              }
+            },
+            public: {env}
+          } = Meteor.settings,
+          {suffix} = Parser().indexSuffix(runDate, 'minutes'), // elastic index suffix
+          alias = `${botsIndex.prefix}_${country}_${env}`,
+          indices = {
+            base: {
+              index: `${baseIndex.prefix}_${env}_${country}`,
+              types: baseIndex.types
+            },
+            etl: {
+              index: `${etlIndex.prefix}_${alias}`,
+              types: etlIndex.types
+            },
+            new: {
+              index: `${alias}-${suffix}`,
+              types: botsIndex.types
+            },
+            rfm: {
+              index: `${rfmIndex.prefix}_${country}_${env}`,
+              types: rfmIndex.types
+            }
+          },
+          {
+            lang, bots: {
+            customer: customersScripts,
+            icareMember: iCMsScripts,
+            salesOrder: SOScripts,
+            loan: loanScripts,
+            ticket: ticketScripts,
+          }
+          } = Scripts();
+        let
+          source = {},
+          dest = {},
+          script = {},
+          field = '',
+          options = {refresh: true, waitForCompletion: true, requestTimeout: 120000},
+          message = formatMessage({
+
+            heading1: `ETL - Index: ${alias} - on ${moment(runDate).format('LLL')}`
+          });
+        
         /* Reindex Customer */
-        actions = ['customer'];
         source = {
           index: indices.base.index,
           type: indices.base.types.customer
@@ -90,11 +89,10 @@ const ETL = (country) => {
             .join(';')
         };
         debug && console.log('dest', dest);
-        const reindexCustomer = await Functions().asyncReindex({actions, source, dest, script, options});
+        const reindexCustomer = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexCustomer', reindexCustomer);
 
         /* iCare member */
-        actions = ['icare_member'];
         source = {
           index: indices.base.index,
           type: indices.base.types.icare_member,
@@ -121,12 +119,11 @@ const ETL = (country) => {
             .join(';')
         };
         debug && console.log('dest', dest);
-        const reindexICM = await Functions().asyncReindex({actions, source, dest, script, options});
+        const reindexICM = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexICM', reindexICM);
 
         /* Parallel reindex icare_member child and additional fields */
         /* Sales Order */
-        actions = ['icare_member', 'sales_order'];
         source = {
           index: indices.etl.index,
           type: indices.etl.types.sales_order,
@@ -158,11 +155,10 @@ const ETL = (country) => {
             .join(';')
         };
         debug && console.log('dest', dest);
-        const reindexSO = await Functions().asyncReindex({actions, source, dest, script, options});
+        const reindexSO = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexSO', reindexSO);
 
         /* Loan */
-        actions = ['icare_member', 'loan'];
         source = {
           index: indices.base.index,
           type: indices.base.types.loan,
@@ -194,11 +190,10 @@ const ETL = (country) => {
             .join(';')
         };
         debug && console.log('dest', dest);
-        const reindexLoan = await Functions().asyncReindex({actions, source, dest, script, options});
+        const reindexLoan = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexLoan', reindexLoan);
 
         /* Ticket */
-        actions = ['icare_member', 'ticket'];
         source = {
           index: indices.etl.index,
           type: indices.etl.types.ticket_icare_member,
@@ -230,7 +225,7 @@ const ETL = (country) => {
             .join(';')
         };
         debug && console.log('dest', dest);
-        const reindexTicket = await Functions().asyncReindex({actions, source, dest, script, options});
+        const reindexTicket = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexTicket', reindexTicket);
 
         /* Change index for bots alias */
@@ -242,9 +237,9 @@ const ETL = (country) => {
         adds = [indices.new.index];
 
         const updateAliases = await Functions().updateAliases({alias, removes, adds});
+        // const updateAliases = {};
 
         /* Customer - number_iCMs (calculate the number of iCare members) */
-        actions = ['customer', 'number_iCMs'];
         source = {
           // index: 'bots_vn_stage-2017.06.07-10.28',
           index: indices.new.index,
@@ -257,11 +252,10 @@ const ETL = (country) => {
         };
         script = {};
         field = 'number_iCMs';
-        const etlNumberICMs = await Functions().etlField({actions, source, dest, field});
+        const etlNumberICMs = await Functions().etlField({source, dest, field});
         debug && console.log('etlNumberICMs', etlNumberICMs);
 
         /* iCare member - is_activated (icare member had activated the iCM app or not) */
-        actions = ['icare_member', 'is_activated'];
         source = {
           // index: indices.new.index,
           index: indices.etl.index,
@@ -274,8 +268,30 @@ const ETL = (country) => {
         };
         script = {};
         field = 'is_activated';
-        const etlIsActivated = await Functions().etlField({actions, source, dest, field, options: {mode: 1, _source: true}});
+        const etlIsActivated = await Functions().etlField({source, dest, field, options: {mode: 1, _source: true}});
         debug && console.log('etlIsActivated', etlIsActivated);
+
+        /* iCare member - rfm (RFM segmentation of iCM) */
+        source = {
+          // index: indices.new.index,
+          index: indices.rfm.index,
+          type: indices.rfm.types.year
+        };
+        dest = {
+          // index: 'bots_vn_stage-2017.06.07-10.28',
+          index: indices.new.index,
+          type: indices.new.types.icare_member
+        };
+        script = {};
+        field = 'rfm';
+        const etlRFM = await Functions().etlField({
+          source, dest, field,
+          options: {
+            mode: 1,
+            _source: ["segment", "recency", "frequency", "monetary", "recency_score", "frequency_score", "monetary_score"]
+          }
+        });
+        debug && console.log('etlRFM', etlRFM);
 
         /* Consume result into message */
         const totalTime = Functions().getRunTime(runDate);
@@ -289,12 +305,37 @@ const ETL = (country) => {
         message = formatMessage({message, bold: 'iCM Ticket', code: {reindexTicket}});
         message = formatMessage({message, bold: 'Customer - number_iCMs', code: {etlNumberICMs}});
         message = formatMessage({message, bold: 'iCM - is_activated', code: {etlIsActivated}});
+        message = formatMessage({message, bold: 'iCM - rfm', code: {etlRFM}});
         message = formatMessage({message, bold: 'Get Bots Elastic Alias', code: {getAliasIndices}});
         message = formatMessage({message, bold: 'Update Bots Elastic Alias', code: {updateAliases}});
-        
+
         return {message};
-      } catch (e) {
-        throw new Meteor.Error('REINDEX_CUSTOMER_INDEX', {detail: {actions, source, dest, script}, error: e});
+      } catch (err) {
+        throw new Meteor.Error('REINDEX_CUSTOMER_INDEX', err.message);
+      }
+    },
+    rfm: async() => {
+      try {
+        const runDate = new Date();
+        let message = formatMessage({
+          heading1: `ETL - Index: RFM FOR ${country} - on ${moment(runDate).format('LLL')}`
+        });
+        const indexRFMModelResult = await indexRFMModel({runDate, country});
+        const indexAllRFMScoresResult = await indexAllRFMScores({country});
+        const indexSegmentForAllOfiCMResult = await indexSegmentForAllOfiCM({country});
+        const getRFMScoreBoardResult = await getRFMScoreBoard({country});
+        const getRFMTopTenResult = await getRFMTopTen({country});
+
+        message = formatMessage({message, heading1: 'Progress'});
+        message = formatMessage({message, bold: 'RFM Model', code: {indexRFMModelResult}});
+        message = formatMessage({message, bold: 'RFM Scores', code: {indexAllRFMScoresResult}});
+        message = formatMessage({message, bold: 'iCM Segments', code: {indexSegmentForAllOfiCMResult}});
+        message = formatMessage({message, bold: 'RFM Scoreboard', code: {getRFMScoreBoardResult}});
+        message = formatMessage({message, bold: 'RFM TopTen', code: {getRFMTopTenResult}});
+
+        return {message};
+      } catch (err) {
+        throw new Meteor.Error('REINDEX_RFM_INDEX', err.message);
       }
     }
   };
@@ -303,9 +344,12 @@ const ETL = (country) => {
 export default ETL
 
 /* Test */
+// ETL Customer
 // const {Facebook} = require('/imports/api/facebook-graph');
 // const {facebook: {adminWorkplace}} = Meteor.settings;
-// ETL('la').customer()
+// const country = 'la';
+// console.log(`Reindexing bots data for ${country}`);
+// ETL(country).customer()
 //   .then(res => {
 //     // console.log('res', res);
 //     /* Post result to Workplace */
@@ -313,7 +357,25 @@ export default ETL
 //     Facebook().postMessage(adminWorkplace, message);
 //   })
 //   .catch(err => {
-//     // console.log('err', err);
-//     const message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: err}});
+//     console.log('err', err);
+//     const message = formatMessage({heading1: 'REINDEX_CUSTOMER_INDEX', code: {error: err.message}});
+//     Facebook().postMessage(adminWorkplace, message);
+//   });
+
+// ETL RFM
+// const {Facebook} = require('/imports/api/facebook-graph');
+// const {facebook: {adminWorkplace}} = Meteor.settings;
+// const country = 'la';
+// console.log(`Reindexing RFM data for ${country}`);
+// ETL(country).rfm()
+//   .then(res => {
+//     // console.log('res', res);
+//     /* Post result to Workplace */
+//     const {message} = res;
+//     Facebook().postMessage(adminWorkplace, message);
+//   })
+//   .catch(err => {
+//     console.log('err', err);
+//     const message = formatMessage({heading1: 'REINDEX_RFM_INDEX', code: {error: err.message}});
 //     Facebook().postMessage(adminWorkplace, message);
 //   });
