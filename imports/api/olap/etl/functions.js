@@ -634,8 +634,8 @@ const updateAliases = async({alias, removes, adds}) => {
   try {
     const updateAlias = await Elastic.indices.updateAliases({body});
     return updateAlias;
-  } catch (e) {
-    throw new Meteor.Error('UPDATE_ALIASES', {detail: e});
+  } catch (err) {
+    throw new Meteor.Error('UPDATE_ALIASES', err.message);
   }
 };
 
@@ -649,8 +649,8 @@ const deleteIndices = ({indices}) => {
   try {
     const deleteIndices = Elastic.indices.delete({index: indices});
     res.result = {name, deleteIndices};
-  } catch (e) {
-    res.error = {name, message: getMessage(e)};
+  } catch (err) {
+    res.error = {name, message: getMessage(err)};
   }
   const runTime = getRunTime(start);
   return {...res, runTime};

@@ -110,7 +110,7 @@ const calculateQuantiles = (dataset) => {
 
     return quantiles;
   } catch (err) {
-    throw new Meteor.Error('CALCULATE_QUINTILES', err.message);
+    throw new Meteor.Error('CALCULATE_QUANTILES', err.message);
   }
 };
 
@@ -139,7 +139,7 @@ const calculateRFMQuantiles = async({index, type, batches, scroll}) => {
 
     return {recencyQuantiles, frequencyQuantiles, monetaryQuantiles};
   } catch (err) {
-    throw new Meteor.Error('CALCULATE_RFM_SCORE', err.message);
+    throw new Meteor.Error('CALCULATE_RFM_QUANTILES', err.message);
   }
 };
 
@@ -182,7 +182,7 @@ const calculateRFMValue = async({index, type, id, period, runDate}) => {
 
     return {recency, frequency, monetary};
   } catch (err) {
-    throw new Meteor.Error('CALCULATE_RFM_SCORE', err.message);
+    throw new Meteor.Error('CALCULATE_RFM_VALUE', err.message);
   }
 };
 
@@ -252,12 +252,12 @@ const calculateScore = ({quantiles, value}) => {
  */
 export const getRFMSegment = async({recencyScore, frequencyScore, monetaryScore}) => {
   try {
-    const {domain, clientId, clientSecret, tableId} = Meteor.settings.gandalf;
+    const {domain, clientId, clientSecret, tableId, appId} = Meteor.settings.gandalf;
     const request = {
       method: 'POST',
       uri: `http://${clientId}:${clientSecret}@${domain}/api/v1/tables/${tableId}/decisions`,
       headers: {
-        'X-Application': '5941020ae79e855ac4301714'
+        'X-Application': appId
       },
       body: {
         recency_score: null,
@@ -541,7 +541,7 @@ export const indexRFMModel = async({runDate = new Date(), country}) => {
       scrollId = _scroll_id;
     }
 
-    /* Change index for bots alias */
+    /* Change index for rfm alias */
     let
       removes = [],
       adds = [];
@@ -549,10 +549,9 @@ export const indexRFMModel = async({runDate = new Date(), country}) => {
     const getAliasIndices = await Functions().getAliasIndices({alias});
     getAliasIndices && (removes = getAliasIndices.indices);
     adds = [dest.index];
-
     const updateAliases = await Functions().updateAliases({alias, removes, adds});
 
-    return {reindexICM, updateRFMValues: count, updateAliases};
+    return {index: dest.index, type: dest.type, reindexICM, updateRFMValues: count, updateAliases};
   } catch (err) {
     throw new Meteor.Error('INDEX_RFM_MODEL', err.message);
   }

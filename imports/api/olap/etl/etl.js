@@ -318,7 +318,7 @@ const ETL = (country) => {
       try {
         const runDate = new Date();
         let message = formatMessage({
-          heading1: `ETL - Index: RFM - on ${moment(runDate).format('LLL')}`
+          heading1: `ETL - Index: RFM FOR ${country} - on ${moment(runDate).format('LLL')}`
         });
         const indexRFMModelResult = await indexRFMModel({runDate, country});
         const indexAllRFMScoresResult = await indexAllRFMScores({country});
@@ -347,7 +347,7 @@ export default ETL
 // ETL Customer
 // const {Facebook} = require('/imports/api/facebook-graph');
 // const {facebook: {adminWorkplace}} = Meteor.settings;
-// const country = 'kh';
+// const country = 'la';
 // console.log(`Reindexing bots data for ${country}`);
 // ETL(country).customer()
 //   .then(res => {
@@ -363,19 +363,19 @@ export default ETL
 //   });
 
 // ETL RFM
-const {Facebook} = require('/imports/api/facebook-graph');
-const {facebook: {adminWorkplace}} = Meteor.settings;
-const country = 'kh';
-console.log(`Reindexing RFM data for ${country}`);
-ETL(country).rfm()
-  .then(res => {
-    // console.log('res', res);
-    /* Post result to Workplace */
-    const {message} = res;
-    Facebook().postMessage(adminWorkplace, message);
-  })
-  .catch(err => {
-    console.log('err', err);
-    const message = formatMessage({heading1: 'REINDEX_RFM_INDEX', code: {error: err.message}});
-    Facebook().postMessage(adminWorkplace, message);
-  });
+// const {Facebook} = require('/imports/api/facebook-graph');
+// const {facebook: {adminWorkplace}} = Meteor.settings;
+// const country = 'la';
+// console.log(`Reindexing RFM data for ${country}`);
+// ETL(country).rfm()
+//   .then(res => {
+//     // console.log('res', res);
+//     /* Post result to Workplace */
+//     const {message} = res;
+//     Facebook().postMessage(adminWorkplace, message);
+//   })
+//   .catch(err => {
+//     console.log('err', err);
+//     const message = formatMessage({heading1: 'REINDEX_RFM_INDEX', code: {error: err.message}});
+//     Facebook().postMessage(adminWorkplace, message);
+//   });
