@@ -1,16 +1,10 @@
 import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
-import {Promise} from 'meteor/promise';
 import S from 'string';
-import moment from 'moment';
 import {Parser} from '/imports/utils';
 
 import {ETL} from '/imports/api/olap';
 import {Elastic} from '/imports/api/elastic';
-import {Countries} from '/imports/api/collections/countries';
-
-/* Methods */
-import {Methods} from '/imports/api/collections/countries';
 
 /**
  * Function

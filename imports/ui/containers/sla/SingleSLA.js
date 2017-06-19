@@ -23,8 +23,6 @@ import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplac
 /* Notify */
 import * as Notify from '/imports/api/notifications';
 
-import {formatMessage} from '/imports/utils';
-
 class SingleSLA extends Component {
   constructor(props) {
     super(props);
@@ -186,7 +184,7 @@ class SingleSLA extends Component {
   }
 
   _onEditSLA(SLA) {
-    const result = Methods.edit.call(SLA, err => {
+    Methods.edit.call(SLA, err => {
       if (err) {
         Notify.error({
           title: 'EDIT_SLA',
@@ -283,14 +281,12 @@ class SingleSLA extends Component {
             });
             this.setState({executing: false, saving: true});
             try {
-              let result = null;
-
               if (_id) {
                 // edit SLA
-                result = this._onEditSLA({...SLA, _id, status: 'active'});
+                this._onEditSLA({...SLA, _id, status: 'active'});
               } else {
                 // create SLA
-                result = this._onCreateSLA({...SLA, status: 'active'});
+                this._onCreateSLA({...SLA, status: 'active'});
               }
               this.setState({saving: false});
             } catch (err) {

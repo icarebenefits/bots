@@ -28,7 +28,6 @@ import './access-control';
 import _ from 'lodash';
 import {Countries} from '/imports/api/collections/countries';
 import {getJobs, createJob} from '/imports/api/jobs';
-import {Logger} from '/imports/api/logger';
 import {formatMessage} from '/imports/utils/defaults';
 import {Facebook} from '/imports/api/facebook-graph';
 
@@ -59,6 +58,7 @@ Meteor.startup(function () {
           .map(c => c.code),
         {frequency} = Meteor.settings.elastic.migration
         ;
+      let message = '';
 
       countries.map(country => {
         const params = {
@@ -161,7 +161,7 @@ Meteor.startup(function () {
     }
   }
 
-  /* Job cleanup indices */
+  /* Job cleanup logs */
   if (Meteor.settings.admin.cleanup.log.enable) {
     const {frequency: freqText} = Meteor.settings.admin.cleanup.log;
     const params = {
@@ -197,6 +197,42 @@ Meteor.startup(function () {
     }
   }
 
+  /* Job index RFM */
+  if (Meteor.settings.elastic.indexRFM.enable) {
+    const {frequency: freqText} = Meteor.settings.elastic.indexRFM;
+    const params = {
+      name: 'indexRFM',
+      priority: 'normal',
+      freqText,
+      info: {
+        method: 'bots.indexRFM',
+      },
+      country: 'admin'
+    };
+    let message = '';
+
+    getJobs({name: params.name, country: params.country})
+      .then(jobs => {
+        if (_.isEmpty(jobs)) {
+          return createJob(params);
+        }
+        return {};
+      })
+      .then(res => {
+        if(!_.isEmpty(res)) {
+          message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM_FOR_COUNTRIES', code: res});
+        }
+      })
+      .catch(err => {
+        message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM_FOR_COUNTRIES', code: err.message});
+      });
+
+    if(!_.isEmpty(message)) {
+      const {adminWorkplace} = Meteor.settings.facebook;
+      Facebook().postMessage(adminWorkplace, message);
+    }
+  }
+
   /* Initiation data for administrators */
   const {administrators, role} = Meteor.settings.access_control;
   const currentAdmins = Roles
@@ -206,7 +242,7 @@ Meteor.startup(function () {
 
   administrators.map(email => {
     /* add into access list */
-    if (!Boolean(AccessList.find({email}).count())) {
+    if (!AccessList.find({email}).count()) {
       DBLogger.insert({
         name: 'accessList',
         action: 'grant',
@@ -217,7 +253,7 @@ Meteor.startup(function () {
       AccessList.insert({email});
     }
     /* add into super-admin role */
-    if (Boolean(Accounts.users.find({"services.google.email": email}).count())) {
+    if (Accounts.users.find({"services.google.email": email}).count()) {
       const {_id} = Accounts.users.findOne({"services.google.email": email});
       DBLogger.insert({name: 'role', action: 'grant', status: 'success', createdBy: 'system', details: {email, role}});
       Roles.addUsersToRoles(_id, role);

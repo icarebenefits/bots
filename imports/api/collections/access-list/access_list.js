@@ -1,5 +1,4 @@
 import { Mongo } from 'meteor/mongo';
-import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 
 class AccessListCollection extends Mongo.Collection {
   insert(doc, callback) {

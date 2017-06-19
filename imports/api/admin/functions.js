@@ -1,6 +1,5 @@
 import {Meteor} from 'meteor/meteor';
 import moment from 'moment';
-import S from 'string';
 import _ from 'lodash';
 
 import {formatMessage} from '/imports/utils/defaults';
@@ -13,24 +12,21 @@ import {Countries} from '/imports/api/collections/countries';
 import {Logger} from '/imports/api/collections/logger';
 
 export const getExpiredIndices = async() => {
-  const
-    today = new Date(),
-    {duration, unit} = Meteor.settings.admin.cleanup.indices,
-    {public: {env}, elastic: {indexPrefix}} = Meteor.settings,
-    cleanupDate = moment(today)
-      .subtract(duration, unit)
-      .format('YYYY-MM-DD'),
-    expiredIndices = [];
-
   try {
+    const
+      today = new Date(),
+      {duration, unit} = Meteor.settings.admin.cleanup.indices,
+      {public: {env}, elastic: {indices: {bots: botsIndex, rfm: rfmIndex}}} = Meteor.settings,
+      cleanupDate = moment(today)
+        .subtract(duration, unit)
+        .format('YYYY-MM-DD');
     // get all supported country
     const countries = Countries.find({status: 'active'}, {fields: {code: true}}).fetch();
-    // create filter list of bots indices
-    const filters = countries.map(c => `${indexPrefix}_${c.code}_${env}`);
-
     // get all indices from Elastic
     const indices = await Elastic.cat.indices();
 
+    // filter list of bots indices
+    let filters = countries.map(c => `${botsIndex.prefix}_${c.code}_${env}`);
     // get all current bots indices, and filter the expired indices
     const botsIndices = indices
       .split('\n')
@@ -41,7 +37,19 @@ export const getExpiredIndices = async() => {
         ))
       .filter(b => moment(new Date(b.split('-')[1])).isBefore(moment(new Date(cleanupDate))) ? true : false);
 
-    return botsIndices;
+    // filter list of rfm indices
+    filters = countries.map(c => `${rfmIndex.prefix}_${c.code}_${env}`);
+    // get all current bots indices, and filter the expired indices
+    const rfmIndices = indices
+      .split('\n')
+      .map(b => b.split(' ')[2]) // get the name of index
+      .filter(i => _.isEmpty(i) ?
+        false :
+        filters.includes(i.split('-')[0]
+        ))
+      .filter(b => moment(new Date(b.split('-')[1])).isBefore(moment(new Date(cleanupDate))) ? true : false);
+
+    return [...botsIndices, ...rfmIndices];
   } catch (err) {
     throw new Meteor.Error('getExpiredIndices', err.message);
   }
@@ -81,7 +89,7 @@ export const deleteExpiredLog = () => {
     const {adminWorkplace} = Meteor.settings.facebook;
     Facebook().postMessage(adminWorkplace, message);
 
-    return result;
+    return {result: true};
   } catch (err) {
     throw new Meteor.Error('deleteExpiredLog', err.message);
   }

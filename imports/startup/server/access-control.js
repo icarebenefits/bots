@@ -1,5 +1,5 @@
 import {Meteor} from 'meteor/meteor';
-import _ from 'lodash';
+import {Accounts} from 'meteor/accounts-base';
 
 /* Collections */
 import {AccessList} from '/imports/api/collections/access-list';

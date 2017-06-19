@@ -1,6 +1,9 @@
+import {Meteor} from 'meteor/meteor';
 import {check, Match} from 'meteor/check';
 import _ from 'lodash';
 import momentTZ from 'moment-timezone';
+import moment from 'moment';
+import S from 'string';
 /**
  * Parse a schedule object to later.js schedule text
  * @param {Object} schedule
@@ -39,9 +42,89 @@ const parseDateInTimezone = (date, timezone) => {
   return momentTZ(date).tz(timezone);
 };
 
+/**
+ * Parse the runDate to Index suffix base on the unit
+ * @param runDate
+ * @param unit - day/days | hour/hours | minute/minutes
+ * @returns {{suffix: string}}
+ */
+const parseIndexSuffix = (runDate, unit) => {
+  check(runDate, Date);
+  check(unit, String);
+  try {
+    switch (unit) {
+      case 'day':
+      case 'days':
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD')
+        };
+      case 'hour':
+      case 'hours':
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD-HH')
+        };
+      case 'minute':
+      case 'minutes':
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD-HH.mm')
+        };
+      default:
+        throw new Meteor.Error('PARSE_INDEX_SUFFIX', `Unsupported Unit: ${unit}`)
+    }
+  } catch(err) {
+    throw new Meteor.Error('PARSE_INDEX_SUFFIX', err.message);
+  }
+};
+
+/**
+ * Parse date from Index name, the deeper of returned date base on unit
+ * @param indexName
+ * @param unit
+ * @returns {{suffix: string}}
+ */
+const parseDateFromIndexName = (indexName, unit) => {
+  check(indexName, String);
+  check(unit, String);
+  try {
+    const indexSplited = indexName.split('-');
+    let dateString = '';
+    switch (unit) {
+      case 'day':
+      case 'days':
+      {
+        dateString = indexSplited[1];
+        break;
+      }
+      case 'hour':
+      case 'hours':
+      {
+        dateString = indexSplited[1] + 'T' + indexSplited[2].split('.')[0];
+        break;
+      }
+      case 'minute':
+      case 'minutes':
+      {
+        dateString = indexSplited[1] + 'T' + indexSplited[2];
+        break;
+      }
+      default:
+        throw new Meteor.Error('PARSE_DATE_FROM_INDEX_NAME', `Unsupported Unit: ${unit}`)
+    }
+
+    dateString = S(dateString).replaceAll('.', '').s;
+    return {
+      date: new Date(moment(dateString))
+    };
+  } catch(err) {
+    throw new Meteor.Error('PARSE_DATE_FROM_INDEX_NAME', err.message);
+  }
+};
+
 const Parser = () => ({
   scheduleText: parseScheduleText,
-  dateInTimezone: parseDateInTimezone
+  dateInTimezone: parseDateInTimezone,
+  indexSuffix: parseIndexSuffix,
+  dateFromIndexName: parseDateFromIndexName
 });
 
 export default Parser

@@ -1,4 +1,5 @@
 import Standard from './standard';
+import {SUGGESTS} from './constants';
 
 const iCareMember = () => ({
   props: () => ({
@@ -411,6 +412,65 @@ const iCareMember = () => ({
         }),
         elastic: () => ({
           field: 'created_at'
+        }),
+      }
+    ),
+    icmSegment: () => Object.assign(
+      {},
+      Standard().String(),
+      {
+        props: () => ({
+          id: 'icmSegment',
+          name: 'RFM Segment',
+          type: 'suggest',
+          bucket: true,
+          placeHolder: 'Champion',
+          suggests: SUGGESTS.iCareMember.RFMSegment
+        }),
+        elastic: () => ({
+          field: 'rfm.segment'
+        }),
+      }
+    ),
+    icmRecency: () => Object.assign(
+      {},
+      Standard().Number(),
+      {
+        props: () => ({
+          id: 'icmRecency',
+          name: 'RFM Recency',
+          type: 'number'
+        }),
+        elastic: () => ({
+          field: 'rfm.recency'
+        }),
+      }
+    ),
+    icmFrequency: () => Object.assign(
+      {},
+      Standard().Number(),
+      {
+        props: () => ({
+          id: 'icmFrequency',
+          name: 'RFM Frequency',
+          type: 'number'
+        }),
+        elastic: () => ({
+          field: 'rfm.frequency'
+        }),
+      }
+    ),
+    icmMonetary: () => Object.assign(
+      {},
+      Standard().Number(),
+      {
+        props: () => ({
+          id: 'icmMonetary',
+          name: 'RFM Monetary',
+          type: 'number'
+        }),
+        elastic: () => ({
+          field: 'rfm.monetary'
         }),
       }
     ),

@@ -1,5 +1,3 @@
-import {FlowRouter} from 'meteor/kadira:flow-router';
-
 /* CONSTANTS */
 import {
   SET_COUNTRY,
@@ -7,7 +5,6 @@ import {
   SET_TABS,
   SET_ACTIVE_TAB,
   SET_SLA_SIDE_BAR,
-  CLOSE_DIALOG,
   SLA_SET_FILTER,
   SLA_SET_SEARCH,
   ADD_NOTIFICATION,
