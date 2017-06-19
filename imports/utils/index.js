@@ -47,33 +47,6 @@ export const searchSLAList = (SLAs, WPs, search) => {
   });
 };
 
-export const getIndexSuffix = (runDate, unit) => {
-  check(runDate, Date);
-  check(unit, String);
-  try {
-    switch (unit) {
-      case 'day':
-      case 'days': 
-        return {
-          suffix: moment(runDate).format('YYYY.MM.DD')
-        };
-      case 'hour':
-      case 'hours':
-        return {
-          suffix: moment(runDate).format('YYYY.MM.DD-HH')
-        };
-      case 'minute':
-      case 'minutes':
-        return {
-          suffix: moment(runDate).format('YYYY.MM.DD-HH.mm')
-        };
-      default:
-        throw new Meteor.Error('GET_INDEX_SUFFIX', `Unsupported Unit: ${unit}`)
-    }
-  } catch(err) {
-    throw new Meteor.Error('GET_INDEX_SUFFIX', err.message);
-  }
-};
 
 export const conciseNumber = (n,d) => {
   x=(''+n).length,p=Math.pow,d=p(10,d)

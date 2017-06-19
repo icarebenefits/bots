@@ -381,8 +381,8 @@ const RFMContainer = createContainer(() => {
     subSB = Meteor.subscribe('rfm.scoreboard', country),
     subTT = Meteor.subscribe('rfm.topten', country),
     ready = subSB.ready() && subTT.ready(),
-    ScoreBoard = RFMScoreBoard.find().fetch(),
-    TopTen = RFMTopTen.find().fetch();
+    ScoreBoard = RFMScoreBoard.find({}, {sort: {date: -1}, limit: 1}).fetch(),
+    TopTen = RFMTopTen.find({}, {sort: {date: -1}, limit: 1}).fetch();
   let currency = 'VND';
   if(country === 'kh') {
     currency = 'KHR';

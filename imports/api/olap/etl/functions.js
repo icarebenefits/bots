@@ -9,10 +9,12 @@ import _ from 'lodash';
 import {check} from 'meteor/check';
 import {Promise} from 'meteor/promise';
 
+/* Logger */
 import {Logger} from '/imports/api/logger';
-// import {Elastic} from '../../elastic';
+/* Elastic */
 import {ElasticClient as Elastic} from '../../elastic';
-
+/* Utils */
+import {Parser} from '/imports/utils';
 /* CONSTANTS */
 const {debug, CHECK_LIMIT, secondSleep} = Meteor.settings.elastic.reindex;
 
@@ -487,6 +489,7 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
     let updated = [], failed = [],
       index = '', type = '';
 
+    // console.log('etlField', JSON.stringify({source, dest, field}));
     switch (mode) {
       case 0:
       {
@@ -533,6 +536,15 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
             parent = iCMParent;
             break;
           }
+          case 'rfm':
+          {
+            const {parent: iCMParent} = await getICMParent(dest, _id);
+            value = document._source;
+            const {indices: [indexName]} = await getAliasIndices({alias: source.index});
+            value.created_at = Parser().dateFromIndexName(indexName, 'day').date;
+            parent = iCMParent;
+            break;
+          }
         }
 
         const doc = {
@@ -567,7 +579,7 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
 
     return {total, updated: updated.length, failed: failed.length};
   } catch (err) {
-    throw new Meteor.Error('ETL_ADDITIONAL_FIELD', {detail: err.message});
+    throw new Meteor.Error('ETL_ADDITIONAL_FIELD', err.message);
   }
 };
 
