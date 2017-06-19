@@ -102,8 +102,6 @@ userRoutes.route('/:page/:country', {
             return <SetupPage />;
           }
         });
-      case 'segmentation':
-        return mount(RFMPage);
       default:
         mount(MainLayout, {
           content() {
