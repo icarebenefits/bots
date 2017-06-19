@@ -183,7 +183,7 @@ const reindex = ({actions, source, dest, script, options}) => {
   return {...reindex, runTime};
 };
 
-const asyncReindex = async({actions, source, dest, script, options}) => {
+const asyncReindex = async({source, dest, script, options}) => {
   try {
     /* Get total source documents */
     const {index, type} = source;
@@ -200,8 +200,8 @@ const asyncReindex = async({actions, source, dest, script, options}) => {
     const isFinished = await isReindexFinish({index: dest.index, type: dest.type, total, created});
     debug && console.log('isFinished', isFinished);
     return isFinished;
-  } catch (e) {
-    throw new Meteor.Error('REINDEX', {detail: e});
+  } catch (err) {
+    throw new Meteor.Error('REINDEX', err.message);
   }
 };
 
@@ -370,6 +370,7 @@ const etl = ({actions, source, dest, key, field, removedFields, options = {batch
  * @param {Object} options {}
  * @return {Object} error | result
  */
+/*
 const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000}}) => {
   const
     name = getName(actions),
@@ -462,7 +463,7 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
   return {result: {name, message: getMessage(stats)}};
 
 };
-
+*/
 /**
  * Add a field has data calculated by calculator on source index into dest index
  * @param {Array} actions
@@ -483,7 +484,7 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
       body = bodybuilder()
         .query('match_all', {})
         .build();
-    let updated = [], failed = [], count = 0,
+    let updated = [], failed = [],
       index = '', type = '';
 
     switch (mode) {
@@ -532,9 +533,6 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
             parent = iCMParent;
             break;
           }
-          default: {
-            
-          }
         }
 
         const doc = {
@@ -580,9 +578,7 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
  * @return {error, result, runTime}
  */
 const getAliasIndices = async({index, alias}) => {
-  const
-    res = {},
-    params = {
+  const params = {
       ignoreUnavailable: true,
       ignore: [404],
       name: alias
@@ -610,9 +606,7 @@ const getAliasIndices = async({index, alias}) => {
  * @return {error, result, runTime}
  */
 const updateAliases = async({alias, removes, adds}) => {
-  const
-    res = {},
-    body = {
+  const body = {
       actions: []
     };
 

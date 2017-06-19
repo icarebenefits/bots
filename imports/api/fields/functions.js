@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 /* Field */
 import {Field} from '/imports/api/fields';
 

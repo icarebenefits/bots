@@ -9,7 +9,6 @@ operators.push('(');
 operators.push(')');
 
 const getField = (group, filter, field) => {
-  let ESField = '';
   if(field) {
     return Field()[group]().field()[filter]().field()[field]().elastic();
   } else {

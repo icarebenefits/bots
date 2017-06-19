@@ -1,6 +1,5 @@
 import {Meteor} from 'meteor/meteor';
 import moment from 'moment';
-import S from 'string';
 import _ from 'lodash';
 
 import {formatMessage} from '/imports/utils/defaults';
@@ -19,8 +18,7 @@ export const getExpiredIndices = async() => {
     {public: {env}, elastic: {indexPrefix}} = Meteor.settings,
     cleanupDate = moment(today)
       .subtract(duration, unit)
-      .format('YYYY-MM-DD'),
-    expiredIndices = [];
+      .format('YYYY-MM-DD');
 
   try {
     // get all supported country
@@ -81,7 +79,7 @@ export const deleteExpiredLog = () => {
     const {adminWorkplace} = Meteor.settings.facebook;
     Facebook().postMessage(adminWorkplace, message);
 
-    return result;
+    return {result: true};
   } catch (err) {
     throw new Meteor.Error('deleteExpiredLog', err.message);
   }

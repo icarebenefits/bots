@@ -1,5 +1,4 @@
 import React, {Component, PropTypes} from 'react';
-import classnames from 'classnames';
 import _ from 'lodash';
 
 /* Components */

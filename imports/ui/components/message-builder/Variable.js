@@ -1,7 +1,5 @@
-/**
- * Created by vinhcq on 3/17/17.
- */
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
+import _ from 'lodash';
 
 import {
   Checkbox,
@@ -59,7 +57,6 @@ class Variable extends Component {
           handleFieldChange,
           handleRemoveRow,
         },
-        readonly = false,
       } = this.props,
       filters = this._getFilters(bucket, useBucket, bucketGroup);
     return (

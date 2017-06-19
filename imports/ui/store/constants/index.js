@@ -1,4 +1,3 @@
-import {Meteor} from 'meteor/meteor';
 /* SLOGANS */
 export const SLOGANS = {
   vn: 'Vietnam',
@@ -10,6 +9,7 @@ export const TABS = {
   setup: [
     {id: 'workplace', name: 'Workplace'},
     {id: 'sla', name: 'SLA'},
+    {id: 'rfm', name: 'RFM'}
   ]
 };
 /* SIDEBAR */

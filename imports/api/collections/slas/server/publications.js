@@ -1,9 +1,13 @@
-import { Meteor } from 'meteor/meteor';
+import {Meteor} from 'meteor/meteor';
+import {check, Match} from 'meteor/check';
 import _ from 'lodash';
 import SLAs from '../slas';
 import {Counts} from 'meteor/tmeasday:publish-counts';
 
 Meteor.publish('slasList', function(filter, search, options) {
+  check(filter, Match.Any);
+  check(search, Match.Any);
+  check(options, Match.Any);
   if (!this.userId) {
     return this.ready();
   }

@@ -2,7 +2,6 @@ import _ from 'lodash';
 import {Migrations} from 'meteor/percolate:migrations';
 import {SLAs as SLACollection, getSearchText} from '/imports/api/collections/slas';
 import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
-import {getScheduleText} from '/imports/utils';
 
 Migrations.add({
   version: 1,

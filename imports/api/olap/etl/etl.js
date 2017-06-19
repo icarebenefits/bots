@@ -18,8 +18,7 @@ const ETL = (country) => {
         runDate = new Date(), // running time
         {
           elastic: {indexPrefix: prefix, reindex: {debug}},
-          public: {env},
-          facebook: {personalId, adminWorkplace}
+          public: {env}
         } = Meteor.settings,
         suffix = moment(runDate).format('YYYY.MM.DD-HH.mm'), // elastic index suffix
         alias = `${prefix}_${country}_${env}`,

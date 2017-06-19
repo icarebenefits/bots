@@ -1,6 +1,9 @@
+import {Meteor} from 'meteor/meteor';
+import {check} from 'meteor/check';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import S from 'string';
 import moment from 'moment';
+import _ from 'lodash';
 
 export const IDValidator = {
   _id: {
@@ -44,7 +47,41 @@ export const searchSLAList = (SLAs, WPs, search) => {
   });
 };
 
-/* Parser */
+export const getIndexSuffix = (runDate, unit) => {
+  check(runDate, Date);
+  check(unit, String);
+  try {
+    switch (unit) {
+      case 'day':
+      case 'days': 
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD')
+        };
+      case 'hour':
+      case 'hours':
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD-HH')
+        };
+      case 'minute':
+      case 'minutes':
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD-HH.mm')
+        };
+      default:
+        throw new Meteor.Error('GET_INDEX_SUFFIX', `Unsupported Unit: ${unit}`)
+    }
+  } catch(err) {
+    throw new Meteor.Error('GET_INDEX_SUFFIX', err.message);
+  }
+};
+
+export const conciseNumber = (n,d) => {
+  x=(''+n).length,p=Math.pow,d=p(10,d)
+  x-=x%3
+  return Math.round(n*d/p(10,x))/d+" kmbTPE"[x/3]
+};
+
+  /* Parser */
 export {default as Parser} from './parser';
 
 /* Defaults */

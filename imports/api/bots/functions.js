@@ -1,5 +1,4 @@
 import {Meteor} from 'meteor/meteor';
-import bodybuilder from 'bodybuilder';
 import accounting from 'accounting';
 import _ from 'lodash';
 import moment from 'moment';
@@ -13,7 +12,7 @@ import {Facebook} from '../facebook-graph';
 import {QueryBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';
-import {Elastic, ESFuncs} from '../elastic';
+import {ESFuncs} from '../elastic';
 // utils
 import {formatMessage} from '/imports/utils/defaults';
 
@@ -22,44 +21,10 @@ import {formatMessage} from '/imports/utils/defaults';
  * @return {*}
  */
 const fistSLACheck = () => {
-  const personId = '100015398923627', workplace = '257279828017220';
-  const index = 'icare_prod_kh', type = 'b2b_customer';
-  const body = bodybuilder()
-    .filter('range', 'number_employees', {lt: 100})
-    .build();
-  const threshold = 25;
-  let message = '';
-
-  // check result
-  const {hits: {total}} = Elastic.search({
-    index,
-    type,
-    body,
-  });
-
-  // send notify to workplace
-  if (total) {
-    if (total > threshold) {
-      message = `Test bots: There are ${total} customers who has less than 100 iCare Members.`;
-      const wpRequest = new FbRequest();
-      wpRequest.post(personId, workplace, message);
-      return {
-        check: true,
-        notify: true,
-      };
-    } else {
-      return {
-        check: true,
-        notify: false,
-        total,
-      };
-    }
-  } else {
-    return {
-      check: false,
-      notify: false,
-    };
-  }
+  return {
+    check: true,
+    notify: true,
+  };
 };
 
 /**
@@ -72,7 +37,7 @@ export const executeSLA = async ({SLA}) => {
   if (_.isEmpty(SLA)) {
     throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
   }
-  const {name, conditions, workplace, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
+  const {name, conditions, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
   let queries = [];
 
   /* validate conditions and message */
@@ -136,19 +101,14 @@ export const executeSLA = async ({SLA}) => {
           const ESField = getESField(aggType, group, field);
 
           if(useBucket && applyBucket) {
-            const {type, group, field, options} = bucket;
+            const {type, group, field} = bucket;
             let bucketField = getESField('', group, field);
             if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
               throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
             }
-            switch (type) {
-              case 'terms':
-              {
-                bucketField = `${bucketField}.keyword`;
-                break;
-              }
-              default:
-                bucketField = bucketField;
+            
+            if(type === 'terms') {
+              bucketField = `${bucketField}.keyword`;
             }
             const {buckets} = agg[`agg_${type}_${bucketField}`];
             if(!_.isEmpty(buckets)) {

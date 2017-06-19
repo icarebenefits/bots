@@ -3,7 +3,6 @@ import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {Session} from 'meteor/session';
-import {Roles} from 'meteor/alanning:roles';
 // components
 import {
   DashboardStat
@@ -95,7 +94,7 @@ Home.propTypes = {
   )
 };
 
-const HomeContainer = createContainer((props) => {
+const HomeContainer = createContainer(() => {
   const
     sub = Meteor.subscribe('countries'),
     subSLA = Meteor.subscribe('slasList'),

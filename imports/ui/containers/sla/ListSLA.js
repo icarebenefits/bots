@@ -7,24 +7,23 @@ import S from 'string';
 import moment from 'moment';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {Counts} from 'meteor/tmeasday:publish-counts';
+import _ from 'lodash';
 
 /* CONSTANTS */
 import {
-  TOOLBARS, LISTS, MORE_BUTTON,
+  TOOLBARS,
   SLA_SET_FILTER, SLA_SET_SEARCH,
-  SLA_ADD, SLA_EDIT,
-  SLA_REMOVE, SLA_ACTIVATE, SLA_INACTIVATE,
-  SLA_COPY, SLA_PUBLISH
+  SLA_REMOVE, SLA_ACTIVATE, SLA_INACTIVATE
 } from '/imports/ui/store/constants';
 /* Actions */
 import {
-  setFilter, setSearch, closeDialog,
+  setFilter, setSearch,
   actionOnSLA, onChangeModeEdit, onChangePage
 } from '/imports/ui/store/actions';
 
 /* Collections */
 import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
-import {SLAs as SLACollection, Methods} from '/imports/api/collections/slas';
+import {SLAs as SLACollection} from '/imports/api/collections/slas';
 import {Countries as CountriesCollection} from '/imports/api/collections/countries';
 
 /* Components */
@@ -75,7 +74,7 @@ class ListSLA extends Component {
     const pageSkip = Math.ceil(pageSelected * this.props.pageLimit);
 
     this.props.onChangePage({pageSelected, pageSkip});
-  };
+  }
 
   _onChooseCountry(country) {
     this.setState({country});

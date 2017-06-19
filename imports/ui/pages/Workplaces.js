@@ -1,9 +1,10 @@
 import {Meteor} from 'meteor/meteor';
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
 import _ from 'lodash';
 import moment from 'moment';
 import S from 'string';
+import {FlowRouter} from 'meteor/kadira:flow-router';
 
 /* Methods */
 import ESMethods from '/imports/api/elastic/methods';
@@ -19,11 +20,7 @@ import {ListPlace} from '/imports/ui/containers';
 import {PageSideBar} from '/imports/ui/components';
 import {Button, Suggest} from '/imports/ui/components/elements';
 
-import {
-  Label,
-  FormInput,
-  FormActions,
-} from '/imports/ui/components/elements';
+import {Label} from '/imports/ui/components/elements';
 
 
 class Workplaces extends Component {

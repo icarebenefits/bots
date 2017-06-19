@@ -8,8 +8,7 @@ import {
   SLA_PUBLISH,
   SLA_REMOVE,
   SLA_CHANGE_MODE_EDIT,
-  SLA_CHANGE_PAGE,
-  SLA_SEARCH
+  SLA_CHANGE_PAGE
 } from '../constants/index';
 
 import {addNotification} from './';
@@ -17,15 +16,8 @@ import {addNotification} from './';
 /* store */
 import {Store} from '../';
 
-/* Collections */
-import {SLAs} from '/imports/api/collections/slas';
-import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
-
 /* Methods */
 import SLAMethods from '/imports/api/collections/slas/methods';
-
-/* Utils */
-import {getScheduleText} from '/imports/utils';
 
 const actionCreator = type => (payload = '') => ({type, payload});
 

@@ -5,16 +5,13 @@ import {IDValidator} from '/imports/utils';
 import _ from 'lodash';
 
 import SLAs from './slas';
-
-/* Collections */
-import {WorkplaceGroups as WPCollection} from '/imports/api/collections/workplaces';
 // query builder
 import {QueryBuilder} from '/imports/api/query-builder';
 // fields
 import {Field} from '/imports/api/fields';
 
 /* Job server */
-import {startJob, cancelJob, removeJob, createJob, editJob} from '/imports/api/jobs';
+import {startJob, cancelJob, removeJob, createJob} from '/imports/api/jobs';
 
 import {Facebook} from '/imports/api/facebook-graph';
 
@@ -238,13 +235,13 @@ Methods.edit = new ValidatedMethod({
       const {name: currentName} = currentSLA;
       if (currentName.toLowerCase() !== name.toLowerCase()) {
         // job name didn't change
-        const removeResult = await removeJob({name: currentName, country});
+        await removeJob({name: currentName, country});
       } else {
-        const removeResult = await removeJob({name, country});
+        await removeJob({name, country});
       }
       // create new job if job is activated
       if (status === 'active') {
-        const createResult = await createJob(jobParams);
+        await createJob(jobParams);
       }
 
       // edit SLA in Database
@@ -266,12 +263,12 @@ Methods.edit = new ValidatedMethod({
         search.description = currentSLA.description;
       }
       // edit workplace
-      let wp = '';
+      // let wp = '';
       if (!_.isEmpty(workplace)) {
         modifier.workplace = workplace;
-        wp = workplace;
+        // wp = workplace;
       } else {
-        wp = currentSLA.workplace;
+        // wp = currentSLA.workplace;
       }
       // skip searchText for workplace for now
       // if(!this.isSimulation) {
@@ -306,6 +303,7 @@ Methods.edit = new ValidatedMethod({
       }
 
       const searchText = getSearchText(search);
+      modifier.searchText = searchText;
       const result = SLAs.update(selector, {$set: modifier});
       return result;
     } catch (err) {

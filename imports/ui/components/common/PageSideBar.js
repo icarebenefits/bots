@@ -1,5 +1,6 @@
 import React, {PropTypes} from 'react';
 import classNames from 'classnames';
+import _ from 'lodash';
 
 const PageSideBar = (props) => {
   const {options} = props;

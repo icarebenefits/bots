@@ -7,9 +7,7 @@ import S from 'string';
 import {makeExpression, validateConditions} from '/imports/api/query-builder';
 /* Utils */
 import {Parser, getVarsFromString} from '/imports/utils';
-
-// fields
-import {Field, getESField} from '/imports/api/fields';
+/* Query builder */
 import {QueryBuilder} from '/imports/api/query-builder';
 
 const Validators = validate.validators;
@@ -94,7 +92,7 @@ Validators.slaMessage = (message) => {
   } else {
     let mess = '';
     variables.forEach((v, i) => {
-      const {bucket, summaryType, group, field, name} = v;
+      const {summaryType, group, field, name} = v;
       if (_.isEmpty(summaryType)) {
         mess = `type is required in row ${i + 1}.`;
         return;
