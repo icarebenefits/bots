@@ -7,7 +7,20 @@ export const SUGGESTS = {
   iCareMember: {
     paymentMethod: [],
     typeOfContract: [],
-    bankName: []
+    bankName: [],
+    RFMSegment: [
+      {name: 'champion', label: 'Champion'},
+      {name: 'loyal customers', label: 'Loyal Customers'},
+      {name: 'potential loyalist', label: 'Potential Loyalist'},
+      {name: 'new customers', label: 'New Customers'},
+      {name: 'promising', label: 'Promising'},
+      {name: 'customers needing attention', label: 'Customers Needing Attention'},
+      {name: 'about to sleep', label: 'About to Sleep'},
+      {name: 'at risk', label: 'At Risk'},
+      {name: "can't lose them", label: "Can't Lose Them"},
+      {name: 'hibernating', label: 'Hibernating'},
+      {name: 'lost', label: 'Lost'},
+    ]
   },
   salesOrder: {
     status: [
