@@ -16,8 +16,24 @@ const migrateToElastic = async(country = 'kh') => {
       const result = await ETL(country).customer();
       return result;
     }
-    catch (e) {
-      throw new Meteor.Error('migrateToElastic', JSON.stringify(e));
+    catch (err) {
+      throw new Meteor.Error('migrateToElastic', err.message);
+    }
+  }
+};
+
+/**
+ * Function
+ * @param country
+ */
+const indexRFM = async(country = 'kh') => {
+  if (Meteor.isServer) {
+    try {
+      const result = await ETL(country).rfm();
+      return result;
+    }
+    catch (err) {
+      throw new Meteor.Error('indexRFM', err.message);
     }
   }
 };
@@ -91,7 +107,8 @@ const getIndexingDate = async({alias, country}) => {
 const Functions = {
   migrateToElastic,
   indexSuggests,
-  getIndexingDate
+  getIndexingDate,
+  indexRFM
 };
 
 export default Functions
