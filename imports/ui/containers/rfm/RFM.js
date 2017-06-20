@@ -374,7 +374,13 @@ class RFM extends Component {
   }
 }
 
-RFM.propTypes = {};
+RFM.propTypes = {
+  ready: PropTypes.bool,
+  country: PropTypes.string,
+  currency: PropTypes.string,
+  ScoreBoard: PropTypes.array,
+  TopTen: PropTypes.array
+};
 
 const RFMContainer = createContainer(() => {
   const

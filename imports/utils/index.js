@@ -1,4 +1,3 @@
-import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import S from 'string';
@@ -36,7 +35,7 @@ export const searchSLAList = (SLAs, WPs, search) => {
     if (!_.isEmpty(wp)) {
       wpName = wp[0].name
     }
-    
+
     const searchText = name.toLowerCase() + ' ' +
       S(wpName.toLowerCase()) + ' ' +
       S(getScheduleText(frequency).toLowerCase()) + ' ' +
@@ -47,14 +46,23 @@ export const searchSLAList = (SLAs, WPs, search) => {
   });
 };
 
+export const cleanupArray = (arr) => {
+  check(arr, Array);
 
-export const conciseNumber = (n,d) => {
-  x=(''+n).length,p=Math.pow,d=p(10,d)
-  x-=x%3
-  return Math.round(n*d/p(10,x))/d+" kmbTPE"[x/3]
+  // remove ALL empty values ("", null, undefined and 0)
+  // return arr.filter(e =>  e));
+
+  // keep "0" in the array and remove anything else (null, undefined and "")
+  return arr.filter(e => (e === 0 || e));
 };
 
-  /* Parser */
+export const conciseNumber = (n, de) => {
+  let x = ('' + n).length, p = Math.pow, d = p(10, de);
+  x -= x % 3
+  return Math.round(n * d / p(10, x)) / d + " kmbTPE"[x / 3]
+};
+
+/* Parser */
 export {default as Parser} from './parser';
 
 /* Defaults */
