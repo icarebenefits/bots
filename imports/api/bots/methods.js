@@ -103,26 +103,25 @@ const indexRFM = new ValidatedMethod({
     'data.method': {
       type: String,
       allowedValues: ['bots.indexRFM'],
+    },
+    'data.country': {
+      type: String,
+      allowedValues: ['kh', 'vn', 'la'],
     }
   }).validator(),
   async run({data}) {
     if (Meteor.isServer) {
+      const {country} = data;
       const {facebook: {adminWorkplace}} = Meteor.settings;
       let message = '';
       try {
-        const countries = Countries.find({}, {fields: {code: true}}).fetch().map(c => c.code);
-        for(const country of countries) {
-          console.log('index for', country);
-          const result = await ETL(country).rfm();
-          console.log('result', result);
-          message += result.message;
-        }
+        const result = await ESFuncs.indexRFM(country);
+        message = result.message;
       } catch(err) {
         message = formatMessage({heading1: 'REINDEX_RFM', code: err.message});
       }
 
       await Facebook().postMessage(adminWorkplace, message);
-      console.log('message', message);
     }
   }
 });
