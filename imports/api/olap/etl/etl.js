@@ -72,7 +72,7 @@ const ETL = (country) => {
 
             heading1: `ETL - Index: ${alias} - on ${moment(runDate).format('LLL')}`
           });
-        
+
         /* Reindex Customer */
         source = {
           index: indices.base.index,
@@ -316,15 +316,46 @@ const ETL = (country) => {
     },
     rfm: async() => {
       try {
-        const runDate = new Date();
-        let message = formatMessage({
-          heading1: `ETL - Index: RFM FOR ${country} - on ${moment(runDate).format('LLL')}`
-        });
-        const indexRFMModelResult = await indexRFMModel({runDate, country});
-        const indexAllRFMScoresResult = await indexAllRFMScores({country});
-        const indexSegmentForAllOfiCMResult = await indexSegmentForAllOfiCM({country});
-        const getRFMScoreBoardResult = await getRFMScoreBoard({country});
-        const getRFMTopTenResult = await getRFMTopTen({country});
+        const
+          runDate = new Date(),
+          rfmType = 'year',
+          {suffix} = Parser().indexSuffix(runDate, 'minute'),
+          {
+            elastic: {indices: {bots: botsIndex, rfm: rfmIndex}},
+            public: {env}
+          } = Meteor.settings,
+          period = rfmIndex.periods[rfmType],
+          source = {
+            index: `${botsIndex.prefix}_${country}_${env}`,
+            type: botsIndex.types.sales_order
+          },
+          dest = {
+            index: `${rfmIndex.prefix}_${country}_${env}-${suffix}`,
+            type: rfmIndex.types[rfmType]
+          },
+          index = dest.index,
+          type = dest.type,
+          alias = `${rfmIndex.prefix}_${country}_${env}`;
+        let
+          message = formatMessage({
+            heading1: `ETL - Index: RFM FOR ${country} - on ${moment(runDate).format('LLL')}`
+          }),
+          removes = [], // list aliases need to be removed
+          adds = []; // list aliases need to be added
+
+        /* Index RFM Model */
+        const indexRFMModelResult = await indexRFMModel({source, dest, period, country, runDate});
+        /* Index RFM Scores */
+        const indexAllRFMScoresResult = await indexAllRFMScores({index, type, country});
+        const indexSegmentForAllOfiCMResult = await indexSegmentForAllOfiCM({index, type, country});
+        const getRFMScoreBoardResult = await getRFMScoreBoard({index, type, period, country});
+        const getRFMTopTenResult = await getRFMTopTen({index, type, country});
+
+        /* Change index for rfm alias */
+        const getAliasIndices = await Functions().getAliasIndices({alias});
+        getAliasIndices && (removes = getAliasIndices.indices);
+        adds = [index];
+        const updateAliases = await Functions().updateAliases({alias, removes, adds});
 
         message = formatMessage({message, heading1: 'Progress'});
         message = formatMessage({message, bold: 'RFM Model', code: {indexRFMModelResult}});
@@ -332,6 +363,7 @@ const ETL = (country) => {
         message = formatMessage({message, bold: 'iCM Segments', code: {indexSegmentForAllOfiCMResult}});
         message = formatMessage({message, bold: 'RFM Scoreboard', code: {getRFMScoreBoardResult}});
         message = formatMessage({message, bold: 'RFM TopTen', code: {getRFMTopTenResult}});
+        message = formatMessage({message, bold: 'RFM update Alias', code: {updateAliases}});
 
         return {message};
       } catch (err) {

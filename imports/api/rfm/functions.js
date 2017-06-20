@@ -11,7 +11,7 @@ import {RFMScoreBoard, RFMTopTen} from '/imports/api/collections/rfm';
 /* Elastic */
 import {ElasticClient as Elastic} from '/imports/api/elastic';
 /* Utils */
-import {Parser} from '/imports/utils';
+import {cleanupArray} from '/imports/utils';
 /* Functions */
 import {Functions} from '/imports/api/olap';
 /* Scripts */
@@ -61,9 +61,9 @@ const getRFMDataSet = async({index, type, batches, scroll}) => {
     }
 
     return {
-      recencyDataSet: _.uniq(recencyDataSet),
-      frequencyDataSet: _.uniq(frequencyDataSet),
-      monetaryDataSet: _.uniq(monetaryDataSet)
+      recencyDataSet: _.uniq(cleanupArray(recencyDataSet)),
+      frequencyDataSet: _.uniq(cleanupArray(frequencyDataSet)),
+      monetaryDataSet: _.uniq(cleanupArray(monetaryDataSet))
     };
   } catch (err) {
     throw new Meteor.Error('GET_RFM_DATASET', err.message);
@@ -127,7 +127,6 @@ const calculateRFMQuantiles = async({index, type, batches, scroll}) => {
     // get all dataset of RFM
     const {recencyDataSet, frequencyDataSet, monetaryDataSet} = await getRFMDataSet({index, type, batches, scroll});
 
-
     /* Calculate RFM Quantiles */
     const
       recencyQuantiles = calculateQuantiles(recencyDataSet), // Recency
@@ -135,7 +134,6 @@ const calculateRFMQuantiles = async({index, type, batches, scroll}) => {
       monetaryQuantiles = calculateQuantiles(monetaryDataSet); // Monetary
     // The more recent the better recency
     // RQuantiles.reverse();
-
 
     return {recencyQuantiles, frequencyQuantiles, monetaryQuantiles};
   } catch (err) {
@@ -327,15 +325,10 @@ const indexSegmentForChunkOfiCM = async({hits, index, type, count}) => {
  * @param rfmType
  * @returns {{count: number}}
  */
-export const indexSegmentForAllOfiCM = async({country, rfmType = 'year'}) => {
+export const indexSegmentForAllOfiCM = async({index, type}) => {
   try {
     const
-      {
-        elastic: {indices: {rfm: rfmIndex}},
-        public: {env, elastic: {batches, scroll}}
-      } = Meteor.settings,
-      index = `${rfmIndex.prefix}_${country}_${env}`,
-      type = rfmIndex.types[rfmType],
+      {public: {elastic: {scroll}}} = Meteor.settings,
       body = bodybuilder()
         .query('match_all', {})
         .build();
@@ -409,15 +402,10 @@ const indexGroupRFMScores = async({quantiles, hits, index, type, count}) => {
  * @param country
  * @returns {{count: number}}
  */
-export const indexAllRFMScores = async({country, rfmType = 'year'}) => {
+export const indexAllRFMScores = async({index, type}) => {
   try {
     const
-      {
-        elastic: {indices: {rfm: rfmIndex}},
-        public: {env, elastic: {batches, scroll}}
-      } = Meteor.settings,
-      index = `${rfmIndex.prefix}_${country}_${env}`,
-      type = rfmIndex.types[rfmType],
+      {public: {elastic: {batches, scroll}}} = Meteor.settings,
       body = bodybuilder()
         .query('match_all', {})
         .build();
@@ -464,26 +452,15 @@ export const indexAllRFMScores = async({country, rfmType = 'year'}) => {
  * @param country
  * @returns {{count: number}}
  */
-export const indexRFMModel = async({runDate = new Date(), country}) => {
+export const indexRFMModel = async({source, dest, period, country, runDate}) => {
+  check(source, Object);
+  check(dest, Object);
+  check(period, String);
   check(country, String);
+  check(runDate, Date);
 
   try {
-    const
-      rfmType = 'year',
-      {suffix} = Parser().indexSuffix(runDate, 'day'),
-      {
-        elastic: {indices: {base: baseIndex, bots: botsIndex, rfm: rfmIndex}},
-        public: {env, elastic: {batches, scroll}}
-      } = Meteor.settings,
-      period = rfmIndex.periods[rfmType],
-      source = {
-        index: `${botsIndex.prefix}_${country}_${env}`,
-        type: botsIndex.types.sales_order
-      },
-      dest = {
-        index: `${rfmIndex.prefix}_${country}_${env}-${suffix}`,
-        type: rfmIndex.types[rfmType]
-      };
+    const {public: {elastic: {batches, scroll}}} = Meteor.settings;
     let
       index = '', type = '',
       scrollId = '', count = 0,
@@ -493,7 +470,7 @@ export const indexRFMModel = async({runDate = new Date(), country}) => {
     /* iCare member */
     const reindexSource = {
         index: source.index,
-        type: botsIndex.types.icare_member,
+        type: 'icare_member',
         _source: ["magento_customer_id", "netsuite_customer_id", "name", "gender", "company", "business_unit", "email", "phone"],
         query: bodybuilder()
           .query('has_child', {type: "sales_order"}, (q) => {
@@ -541,17 +518,7 @@ export const indexRFMModel = async({runDate = new Date(), country}) => {
       scrollId = _scroll_id;
     }
 
-    /* Change index for rfm alias */
-    let
-      removes = [],
-      adds = [];
-    const alias = `${rfmIndex.prefix}_${country}_${env}`;
-    const getAliasIndices = await Functions().getAliasIndices({alias});
-    getAliasIndices && (removes = getAliasIndices.indices);
-    adds = [dest.index];
-    const updateAliases = await Functions().updateAliases({alias, removes, adds});
-
-    return {index: dest.index, type: dest.type, reindexICM, updateRFMValues: count, updateAliases};
+    return {reindexICM, updateRFMValues: count};
   } catch (err) {
     throw new Meteor.Error('INDEX_RFM_MODEL', err.message);
   }
@@ -564,17 +531,18 @@ export const indexRFMModel = async({runDate = new Date(), country}) => {
  * @param rfmType
  * @returns {*|any|List<T>}
  */
-export const getRFMScoreBoard = async({country, rfmType = 'year'}) => {
+export const getRFMScoreBoard = async({index, type, period, country}) => {
+  check(index, String);
+  check(type, String);
+  check(period, String);
   check(country, String);
 
   try {
     const
       {
-        elastic: {indices: {rfm: rfmIndex, bots: botsIndex}},
-        public: {env, elastic: {batches, scroll}}
+        elastic: {indices: {bots: botsIndex}},
+        public: {env}
       } = Meteor.settings,
-      index = `${rfmIndex.prefix}_${country}_${env}`,
-      type = rfmIndex.types[rfmType],
       scoreboard = {
         total: 0,
         purchased: 0,
@@ -595,7 +563,6 @@ export const getRFMScoreBoard = async({country, rfmType = 'year'}) => {
         country,
         date: new Date()
       },
-      period = rfmIndex.periods[rfmType],
       _source = ["magento_customer_id", "netsuite_customer_id", "name", "company", "recency", "frequency", "monetary"];
     let body = bodybuilder()
         .size(0)
@@ -744,17 +711,13 @@ export const getRFMScoreBoard = async({country, rfmType = 'year'}) => {
  * @param rfmType - year, 3years, 6months (currently support year only)
  * @returns {*|any|List<T>}
  */
-export const getRFMTopTen = async({country, rfmType = 'year'}) => {
+export const getRFMTopTen = async({index, type, country}) => {
+  check(index, String);
+  check(type, String);
   check(country, String);
 
   try {
     const
-      {
-        elastic: {indices: {rfm: rfmIndex}},
-        public: {env, elastic: {batches, scroll}}
-      } = Meteor.settings,
-      index = `${rfmIndex.prefix}_${country}_${env}`,
-      type = rfmIndex.types[rfmType],
       topten = {
         champions: [],
         loyals: [],
