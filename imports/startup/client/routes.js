@@ -13,7 +13,6 @@ import {
   SetupPage,
   AccessListPage,
   ErrorPage,
-  RFMPage,
 } from '/imports/ui/pages';
 
 /* Notify */
