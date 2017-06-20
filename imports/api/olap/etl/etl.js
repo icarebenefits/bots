@@ -321,8 +321,8 @@ const ETL = (country) => {
           rfmType = 'year',
           {suffix} = Parser().indexSuffix(runDate, 'minute'),
           {
-            elastic: {indices: {bots: botsIndex, rfm: rfmIndex}},
-            public: {env}
+            elastic: {indices: {bots: botsIndex, rfm: rfmIndex}, reindex: {secondSleep}},
+            public: {env},
           } = Meteor.settings,
           period = rfmIndex.periods[rfmType],
           source = {
@@ -345,11 +345,16 @@ const ETL = (country) => {
 
         /* Index RFM Model */
         const indexRFMModelResult = await indexRFMModel({source, dest, period, country, runDate});
+        Meteor._sleepForMs(secondSleep * 1000);
         /* Index RFM Scores */
         const indexAllRFMScoresResult = await indexAllRFMScores({index, type, country});
+        Meteor._sleepForMs(secondSleep * 1000);
         const indexSegmentForAllOfiCMResult = await indexSegmentForAllOfiCM({index, type, country});
+        Meteor._sleepForMs(secondSleep * 1000);
         const getRFMScoreBoardResult = await getRFMScoreBoard({index, type, period, country});
+        Meteor._sleepForMs(secondSleep * 1000);
         const getRFMTopTenResult = await getRFMTopTen({index, type, country});
+        Meteor._sleepForMs(secondSleep * 1000);
 
         /* Change index for rfm alias */
         const getAliasIndices = await Functions().getAliasIndices({alias});
