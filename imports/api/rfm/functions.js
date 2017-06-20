@@ -14,7 +14,6 @@ import {ElasticClient as Elastic} from '/imports/api/elastic';
 import {cleanupArray} from '/imports/utils';
 /* Functions */
 import {Functions} from '/imports/api/olap';
-import {formatMessage, Parser} from '/imports/utils';
 /* Scripts */
 import Scripts from './scripts';
 
@@ -309,9 +308,7 @@ const indexSegmentForChunkOfiCM = async({hits, index, type, count}) => {
           _id: id,
           _source: {recency_score: recencyScore, frequency_score: frequencyScore, monetary_score: monetaryScore}
         } = hit;
-        console.log('hit', hit);
         const {segment} = await getRFMSegment({recencyScore, frequencyScore, monetaryScore});
-        console.log('segment', segment);
         const body = {doc: {segment}};
         await Elastic.update({index, type, id, body});
         count++;
@@ -784,62 +781,5 @@ export const getRFMTopTen = async({index, type, country}) => {
 
   } catch (err) {
     throw new Meteor.Error('GET_RFM_TOPTEN', err.message);
-  }
-};
-
-export const indexRFM = async (country) => {
-  try {
-    const
-      runDate = new Date(),
-      rfmType = 'year',
-      {suffix} = Parser().indexSuffix(runDate, 'minute'),
-      {
-        elastic: {indices: {bots: botsIndex, rfm: rfmIndex}},
-        public: {env}
-      } = Meteor.settings,
-      period = rfmIndex.periods[rfmType],
-      source = {
-        index: `${botsIndex.prefix}_${country}_${env}`,
-        type: botsIndex.types.sales_order
-      },
-      dest = {
-        index: `${rfmIndex.prefix}_${country}_${env}-${suffix}`,
-        type: rfmIndex.types[rfmType]
-      },
-      index = dest.index,
-      type = dest.type,
-      alias = `${rfmIndex.prefix}_${country}_${env}`;
-    let
-      message = formatMessage({
-        heading1: `ETL - Index: RFM FOR ${country} - on ${moment(runDate).format('LLL')}`
-      }),
-      removes = [], // list aliases need to be removed
-      adds = []; // list aliases need to be added
-
-    /* Index RFM Model */
-    const indexRFMModelResult = await indexRFMModel({source, dest, period, country, runDate});
-    /* Index RFM Scores */
-    const indexAllRFMScoresResult = await indexAllRFMScores({index, type, country});
-    const indexSegmentForAllOfiCMResult = await indexSegmentForAllOfiCM({index, type, country});
-    const getRFMScoreBoardResult = await getRFMScoreBoard({index, type, period, country});
-    const getRFMTopTenResult = await getRFMTopTen({index, type, country});
-
-    /* Change index for rfm alias */
-    const getAliasIndices = await Functions().getAliasIndices({alias});
-    getAliasIndices && (removes = getAliasIndices.indices);
-    adds = [index];
-    const updateAliases = await Functions().updateAliases({alias, removes, adds});
-
-    message = formatMessage({message, heading1: 'Progress'});
-    message = formatMessage({message, bold: 'RFM Model', code: {indexRFMModelResult}});
-    message = formatMessage({message, bold: 'RFM Scores', code: {indexAllRFMScoresResult}});
-    message = formatMessage({message, bold: 'iCM Segments', code: {indexSegmentForAllOfiCMResult}});
-    message = formatMessage({message, bold: 'RFM Scoreboard', code: {getRFMScoreBoardResult}});
-    message = formatMessage({message, bold: 'RFM TopTen', code: {getRFMTopTenResult}});
-    message = formatMessage({message, bold: 'RFM update Alias', code: {updateAliases}});
-
-    return {message};
-  } catch (err) {
-    throw new Meteor.Error('REINDEX_RFM_INDEX', err.message);
   }
 };
