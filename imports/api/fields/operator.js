@@ -169,7 +169,7 @@ const Operator = () => ({
     }),
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return {type: 'range', field, value: {gt: date}};
+      return {type: 'range', field, value: {lt: date}};
     },
   }),
   after: () => ({
@@ -181,7 +181,7 @@ const Operator = () => ({
     }),
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return {type: 'range', field, value: {lt: date}};
+      return {type: 'range', field, value: {gt: date}};
     },
   }),
   onOrBefore: () => ({
@@ -193,7 +193,7 @@ const Operator = () => ({
     }),
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return {type: 'range', field, value: {gte: date}};
+      return {type: 'range', field, value: {lte: date}};
     },
   }),
   onOrAfter: () => ({
@@ -205,7 +205,7 @@ const Operator = () => ({
     }),
     getParams: (field, values) => {
       const date = moment(new Date(values[0].value)).format('YYYY-MM-DD');
-      return {type: 'range', field, value: {lte: date}};
+      return {type: 'range', field, value: {gte: date}};
     },
   }),
   within: () => ({
