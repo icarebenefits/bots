@@ -2,9 +2,10 @@ import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
 import S from 'string';
 import {Parser} from '/imports/utils';
+import {Promise} from 'meteor/promise';
 
 import {ETL} from '/imports/api/olap';
-import {Elastic} from '/imports/api/elastic';
+import {ElasticClient as Elastic} from '/imports/api/elastic';
 
 /**
  * Function
@@ -38,39 +39,39 @@ const indexRFM = async(country = 'kh') => {
   }
 };
 
-const indexSuggests = ({index, type, data}) => {
+const indexSuggests = async({index, type, data}) => {
   check(index, String);
   check(type, String);
   check(data, [Object]);
 
-  /* index suggests*/
-  let count = 0;
-  data.map(group => {
-    const {name = '', id} = group;
-    const input = [];
-    const names = name.split(' ');
-    const max = names.length;
-    for (let i = 0; i < max; i++) {
-      input.push(names.join(' '));
-      names.shift();
-    }
-
-    const result = Elastic.index({
-      index, type, id, body: {
-        suggest: {
-          input
-        },
-        ...group
+  try {
+    /* index suggests*/
+    let count = 0;
+    await Promise.all(data.map(async(group) => {
+      const {name = '', id} = group;
+      const input = [];
+      const names = name.split(' ');
+      const max = names.length;
+      for (let i = 0; i < max; i++) {
+        input.push(names.join(' '));
+        names.shift();
       }
-    });
-    if (result.error) {
-      throw new Meteor.Error('indexSuggests.Failed', {id});
-    } else {
-      count++;
-    }
-  });
 
-  return count;
+      const result = await Elastic.index({
+        index, type, id, body: {
+          suggest: {
+            input
+          },
+          ...group
+        }
+      });
+      count++;
+
+      return count;
+    }));
+  } catch(err) {
+    throw new Meteor.Error('indexSuggests', err.message);
+  }
 };
 
 /**
@@ -85,7 +86,6 @@ const getIndexingDate = async({alias, country}) => {
 
   try {
     const
-      {ElasticClient: Elastic} = require('/imports/api/elastic'),
       {timezone} = Meteor.settings.public.countries[`${country}`],
       result = await Elastic.indices.getAlias({name: alias}),
       index = Object.keys(result)[0],

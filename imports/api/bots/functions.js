@@ -187,9 +187,41 @@ const checkSLA = (slaId) => {
   }
 };
 
-const addWorkplaceSuggester = (next, total = 0) => {
+const addWorkplaceSuggester = async (next, total = 0) => {
   /* Fetch groups from fb@work */
   const {adminWorkplace} = Meteor.settings.facebook;
+  try {
+    const {data, paging: {next}} = JSON.parse(res);
+    if (_.isEmpty(data)) {
+      const message = formatMessage({
+        message: '',
+        heading1: 'addWorkplaceSuggester.NoGroupFound',
+        code: res
+      });
+      Facebook().postMessage(adminWorkplace, message);
+    } else {
+      /* index suggester */
+      const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
+      total += await ESFuncs.indexSuggests({index, type, data});
+      if (next) {
+        addWorkplaceSuggester(next, total);
+      } else {
+        const message = formatMessage({
+          message: '',
+          heading1: 'addWorkplaceSuggester.IndexedSuggests',
+          code: {total}
+        });
+        Facebook().postMessage(adminWorkplace, message);
+      }
+    }
+  } catch(err) {
+    const message = formatMessage({
+      message: '',
+      heading1: 'addWorkplaceSuggester.Error',
+      code: err.message
+    });
+    Facebook().postMessage(adminWorkplace, message);
+  }
   Facebook().fetchGroups(next)
     .then(
       res => {
