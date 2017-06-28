@@ -1,5 +1,5 @@
 import {Meteor} from 'meteor/meteor';
-import {check} from 'meteor/check';
+import {check, Match} from 'meteor/check';
 import RequestPromise from 'request-promise';
 
 const Facebook = () => {
@@ -19,8 +19,8 @@ const Facebook = () => {
       try {
         const result = await RequestPromise(request);
         return JSON.parse(result).impersonate_token;
-      } catch (e) {
-        throw new Meteor.Error('getAccessToken', JSON.stringify(e));
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.getAccessToken', err.message);
       }
     },
     addMember: async(groupId) => {
@@ -40,8 +40,33 @@ const Facebook = () => {
         };
         const result = await RequestPromise(request);
         return result;
-      } catch (e) {
-        throw new Meteor.Error('addMember', JSON.stringify(e));
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.addMember', err.message);
+      }
+    },
+    getMember: async(memberId) => {
+      /* check arguments */
+      check(memberId, Match.OneOf(String, Number));
+
+      try {
+        const accessToken = await Facebook().getAccessToken();
+        const request = {
+          method: 'GET',
+          url: 'https://www.facebook.com/company/1701882480101071/scim/Users?filter='
+          + encodeURIComponent('userName eq "tan.ktm@icarebenefits.com"'),
+          // url: prefixUrl + memberId + '?fields=userName,department',
+          headers: {
+            'User-Agent': 'GKFileAnIssue',
+            Accept: 'application/scim+json',
+            authorization: 'Bearer '
+            + 'DQVJ1a1ljbEJjS3hvNHMybG94MjFHUVp1ZADBUcGx2ZAlFpOTNGRU5NdHM1UE1qTl85RDJPZAXpKbFAtQUNKTGt2cDRjazc2TFZATOVEzNlltRTVlQUtwaHIyZA3Q2eFVtaGpZAZAnVlN0I4VmJubUNabU1WTUdrbVctM2R4cC1jdGluOS1aY1BxSWhyLVFNYi1mc1FfR1o3RV9UNEpacXVYbXZA2Sjdwa0lVRTRkLVNKSGloYzJCSFFuQ0g2Vk8wZAzZAxVkE1R3l4NkNsNHVScW4xXzR0NgZDZD'
+          }
+        };
+        console.log('url', request.url);
+        const result = await RequestPromise(request);
+        return result;
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.getMember', err.message);
       }
     },
     getGroup: async(groupId) => {
@@ -59,34 +84,8 @@ const Facebook = () => {
         };
         const result = await RequestPromise(request);
         return result;
-      } catch (e) {
-        throw new Meteor.Error('getGroup', JSON.stringify(e));
-      }
-    },
-    postMessage: async(groupId, message) => {
-      /* check arguments */
-      // check(groupId, Number);
-      // check(message, String);
-
-      try {
-        const accessToken = await Facebook().getAccessToken();
-        const request = {
-          method: 'POST',
-          url: prefixUrl + groupId + "/feed",
-          headers: {
-            authorization: 'Bearer ' + accessToken
-          },
-          body: {
-            message,
-            "type": "status",
-            formatting: "MARKDOWN"
-          },
-          json: true
-        };
-        const result = await RequestPromise(request);
-        return result;
-      } catch (e) {
-        throw new Meteor.Error('postMessage', JSON.stringify(e));
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.getGroup', err.message);
       }
     },
     fetchGroups: async(next) => {
@@ -107,8 +106,34 @@ const Facebook = () => {
         };
         const result = await RequestPromise(request);
         return result;
-      } catch (e) {
-        throw new Meteor.Error('postMessage', JSON.stringify(e));
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.fetchGroups', err.message);
+      }
+    },
+    postMessage: async(groupId, message) => {
+      /* check arguments */
+      check(groupId, Match.OneOf(Number, String));
+      check(message, String);
+
+      try {
+        const accessToken = await Facebook().getAccessToken();
+        const request = {
+          method: 'POST',
+          url: prefixUrl + groupId + "/feed",
+          headers: {
+            authorization: 'Bearer ' + accessToken
+          },
+          body: {
+            message,
+            "type": "status",
+            formatting: "MARKDOWN"
+          },
+          json: true
+        };
+        const result = await RequestPromise(request);
+        return result;
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.postMessage', err.message);
       }
     }
   };
@@ -122,3 +147,8 @@ export default Facebook
 // const {formatMessage} = require('/imports/utils/defaults');
 // const message = formatMessage({quote: `@Updated on: ${moment().format('LLL')}`});
 // Facebook().postMessage(adminWorkplace, message);
+
+
+// Facebook().getMember(100015320356409)
+//   .then(res => console.log('res', res))
+//   .catch(err => console.log('err', err));
