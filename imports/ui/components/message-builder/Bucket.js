@@ -14,13 +14,30 @@ const Bucket = (props) => {
         const
           Fields = Field()[g]().field,
           {id: name, name: label} = Field()[g]().props();
+
         const options = Object
           .keys(Fields())
           .filter(f => Fields()[f]().props().bucket)
-          .map(f => {
-            const {id: name, name: label} = Fields()[f]().props();
-            return {name, label};
-          });
+          .reduce((arr, f) => {
+            const
+              {id: fname, name: flabel} = Fields()[f]().props(),
+              fields = Fields()[f]().field;
+            if (fields) {
+              const subFields = Object
+                .keys(fields())
+                .filter(f => fields()[f]().props().bucket)
+                .map(f => {
+                  const {id: sname, name: slabel} = fields()[f]().props();
+                  return {name: `${fname}.${sname}`, label: `${flabel} ${slabel}`};
+                });
+              return arr.concat(subFields);
+            }
+
+            return arr.concat({
+              name: fname,
+              label: flabel
+            });
+          }, []);
 
         return {name, label, options};
       });

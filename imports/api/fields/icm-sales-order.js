@@ -238,7 +238,12 @@ const iCMSalesOrder = () => ({
     soItems: () => ({
       props: () => ({
         id: 'soItems',
-        name: 'Items'
+        name: 'Items',
+        bucket: 'true', 
+        type: 'nested'
+      }),
+      elastic: () => ({
+        id: 'items.sku'
       }),
       field: () => ({
         soItemSKU: () => Object.assign(
@@ -249,6 +254,7 @@ const iCMSalesOrder = () => ({
               id: 'soItemSKU',
               name: 'SKU',
               type: 'string',
+              bucket: true,
               placeHolder: '...ICARE-SHOES001'
             }),
             elastic: () => ({
@@ -266,6 +272,7 @@ const iCMSalesOrder = () => ({
               id: 'soItemName',
               name: 'Name',
               type: 'string',
+              bucket: true,
               placeHolder: '...Cooker'
             }),
             elastic: () => ({
