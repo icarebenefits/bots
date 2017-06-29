@@ -2,7 +2,7 @@ import {Meteor} from 'meteor/meteor';
 /* Field */
 import {Field} from '/imports/api/fields';
 
-export const getESField = (type, group, field, isNestedField, bucketField) => {
+export const getESField = (type, group, field, isNestedField = false, bucketField) => {
   let
     ESField = '',
     nfields = field.split('.');
