@@ -24,6 +24,7 @@ class MessageBuilder extends Component {
       bucketType = '',
       bucketGroup = '',
       bucketField = '',
+      bucketIsNestedField = false,
       bucketHasOption = false,
       bucketOptions = {};
 
@@ -31,8 +32,9 @@ class MessageBuilder extends Component {
       bucketType = bucket.type || '';
       bucketGroup = bucket.group || '';
       bucketField = bucket.field || '';
+      bucketIsNestedField = bucket.isNestedField || false;
       bucketHasOption = bucket.hasOption || false;
-      bucketOptions = bucket.options || {};
+      bucketOptions = {...bucket.options} || {};
     }
 
     this.state = {
@@ -40,6 +42,7 @@ class MessageBuilder extends Component {
       bucketType,
       bucketGroup,
       bucketField,
+      bucketIsNestedField,
       bucketHasOption,
       bucketOptions,
       variables,
@@ -57,13 +60,14 @@ class MessageBuilder extends Component {
   }
 
   getData() {
-    const {variables, messageTemplate, useBucket, bucketType, bucketGroup, bucketField, bucketHasOption, bucketOptions} = this.state;
+    const {variables, messageTemplate, useBucket, bucketType, bucketGroup, bucketField, bucketIsNestedField, bucketHasOption, bucketOptions} = this.state;
     return {
       useBucket,
       bucket: {
         type: bucketType,
         group: bucketGroup,
         field: bucketField,
+        isNestedField: bucketIsNestedField,
         hasOption: bucketHasOption,
         options: bucketOptions
       },
@@ -99,8 +103,6 @@ class MessageBuilder extends Component {
       newVar = {...variable, [`${key}`]: value};
     }
 
-    // console.log('row, key, value, newVar', row, key, value, newVar);
-
     const newVariables = variables.map((c, i) => {
       if (i === row) {
         return newVar;
@@ -122,8 +124,17 @@ class MessageBuilder extends Component {
     switch (key) {
       case 'field':
       {
-        const {groupId: group, value: field} = value,
+        const
+          {groupId: group, value: field} = value,
+        fields = field.split('.');
+        let isDateField = false, bucketIsNestedField = false;
+        if(fields.length > 1) {
+          const [sgroup, sfield] = fields;
+          isDateField = Field()[group]().field()[sgroup]().field()[sfield]().props().type === 'date';
+          bucketIsNestedField = true;
+        } else {
           isDateField = Field()[group]().field()[field]().props().type === 'date';
+        }
 
         let hasOption = false;
         // hasOption
@@ -131,17 +142,18 @@ class MessageBuilder extends Component {
         // type (currently, only support 2 type of bucket: date_histogram and terms)
         const type = isDateField ? 'date_histogram' : 'terms';
 
-        console.log('group', group);
         return this.setState({
+          bucketIsNestedField,
           bucketType: type,
           bucketGroup: group,
           bucketField: field,
-          bucketHasOption: hasOption
+          bucketHasOption: hasOption,
+          bucketOptions: {}
         });
       }
       case 'interval':
         return this.setState({
-          bucketOptions: {interval: value}
+          bucketOptions: {interval: value, size: this.state.bucketOptions.size}
         });
       case 'orderBy':
         return this.setState({
@@ -151,8 +163,16 @@ class MessageBuilder extends Component {
         return this.setState({
           bucketOptions: {...this.state.bucketOptions, orderIn: value}
         });
+      case 'tagBy':
+        return this.setState({
+          bucketOptions: {...this.state.bucketOptions, tagBy: value}
+        });
+      case 'size':
+        return this.setState({
+          bucketOptions: {...this.state.bucketOptions, size: value}
+        });
       default:
-        return Notify.error({title:'Bucket', message: `Unknown bucket option: ${key}`});
+        return Notify.error({title: 'Bucket', message: `Unknown bucket option: ${key}`});
     }
   }
 
@@ -195,7 +215,7 @@ class MessageBuilder extends Component {
 
   render() {
     const {
-      variables, messageTemplate,
+      variables, messageTemplate, bucketIsNestedField,
       useBucket, bucketGroup, bucketField, bucketHasOption, bucketOptions
     } = this.state;
     let {handlers} = this.props;
@@ -251,6 +271,8 @@ class MessageBuilder extends Component {
                 options={bucketOptions}
                 orderBy={bucketOptions.orderBy}
                 orderIn={bucketOptions.orderIn}
+                tagBy={bucketOptions.tagBy}
+                size={bucketOptions.size}
                 onChange={this.handleBucketChange}
               />
             </div>
@@ -275,6 +297,7 @@ class MessageBuilder extends Component {
               ref="summary"
               useBucket={useBucket}
               bucketGroup={bucketGroup}
+              isNestedField={bucketIsNestedField}
               variables={variables}
               handlers={handlers}
             />

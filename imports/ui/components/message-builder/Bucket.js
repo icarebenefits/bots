@@ -1,12 +1,12 @@
+import {Meteor} from 'meteor/meteor';
 import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
 /* Components */
-import {Selectbox, SelectboxGrouped} from '../elements';
+import {Selectbox, SelectboxGrouped, FormInput} from '../elements';
 import {Field} from '/imports/api/fields';
 
 const Bucket = (props) => {
-  console.log('props', props);
   const _getFilters = () => {
     const filters = Object
       .keys(Field())
@@ -14,13 +14,30 @@ const Bucket = (props) => {
         const
           Fields = Field()[g]().field,
           {id: name, name: label} = Field()[g]().props();
+
         const options = Object
           .keys(Fields())
           .filter(f => Fields()[f]().props().bucket)
-          .map(f => {
-            const {id: name, name: label} = Fields()[f]().props();
-            return {name, label};
-          });
+          .reduce((arr, f) => {
+            const
+              {id: fname, name: flabel} = Fields()[f]().props(),
+              fields = Fields()[f]().field;
+            if (fields) {
+              const subFields = Object
+                .keys(fields())
+                .filter(f => fields()[f]().props().bucket)
+                .map(f => {
+                  const {id: sname, name: slabel} = fields()[f]().props();
+                  return {name: `${fname}.${sname}`, label: `${flabel} ${slabel}`};
+                });
+              return arr.concat(subFields);
+            }
+
+            return arr.concat({
+              name: fname,
+              label: flabel
+            });
+          }, []);
 
         return {name, label, options};
       });
@@ -38,6 +55,7 @@ const Bucket = (props) => {
     group = '', field = '',
     options = {}, hasOption,
     orderBy = '', orderIn = '',
+    tagBy = '', size = Meteor.settings.public.elastic.aggregation.bucket.terms.size,
     onChange
   } = props;
   const
@@ -65,6 +83,8 @@ const Bucket = (props) => {
         {hasOrder && (
           <th>Order in</th>
         )}
+        <th>Tag by</th>
+        <th>Size</th>
       </tr>
       </thead>
       <tbody>
@@ -122,6 +142,25 @@ const Bucket = (props) => {
             />
           </td>
         )}
+        <td>
+          <Selectbox
+            className="form-control"
+            value={tagBy}
+            options={[
+                  {name: '', label: ''},
+                  {name: `${field}`, label: `${fieldLabel}`},
+                  {name: `value_${field}`, label: `Value of ${fieldLabel}`}
+                ]}
+            handleOnChange={value => onChange('tagBy', value)}
+          />
+        </td>
+        <td>
+          <FormInput
+            className="form-control"
+            value={size}
+            handleOnChange={value => onChange('size', value)}
+          />
+        </td>
       </tr>
       </tbody>
     </table>

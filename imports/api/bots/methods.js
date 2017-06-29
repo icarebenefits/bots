@@ -142,15 +142,14 @@ const indexSuggests = new ValidatedMethod({
       allowedValues: ['bots.indexSuggests'],
     }
   }).validator(),
-  run({data}) {
+  async run({data}) {
     if (Meteor.isServer) {
-      let result = {};
       try {
-        result = Bots.addWorkplaceSuggester();
-      } catch (e) {
-        throw  new Meteor.Error('bots.indexSuggests', JSON.stringify(e));
+        const result = await Bots.addWorkplaceSuggester();
+        return result;
+      } catch (err) {
+        throw  new Meteor.Error('bots.indexSuggests', err.message);
       }
-      return result;
     }
   }
 });

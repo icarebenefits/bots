@@ -5,7 +5,7 @@ import Variable from './Variable';
 
 class Summary extends Component {
   render() {
-    const {useBucket = false, bucketGroup, variables = [], handlers} = this.props;
+    const {useBucket = false, bucketGroup, isNestedField = false, variables = [], handlers} = this.props;
 
     return (
       <table className="table table-striped">
@@ -24,6 +24,7 @@ class Summary extends Component {
             key={idx}
             id={idx}
             bucketGroup={bucketGroup}
+            isNestedField={isNestedField}
             useBucket={useBucket}
             variable={variable}
             handlers={handlers}
