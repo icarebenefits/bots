@@ -1,12 +1,12 @@
+import {Meteor} from 'meteor/meteor';
 import React, {PropTypes} from 'react';
 import _ from 'lodash';
 
 /* Components */
-import {Selectbox, SelectboxGrouped} from '../elements';
+import {Selectbox, SelectboxGrouped, FormInput} from '../elements';
 import {Field} from '/imports/api/fields';
 
 const Bucket = (props) => {
-  console.log('props', props);
   const _getFilters = () => {
     const filters = Object
       .keys(Field())
@@ -38,6 +38,7 @@ const Bucket = (props) => {
     group = '', field = '',
     options = {}, hasOption,
     orderBy = '', orderIn = '',
+    tagBy = '', size = Meteor.settings.public.elastic.aggregation.bucket.terms.size,
     onChange
   } = props;
   const
@@ -65,6 +66,8 @@ const Bucket = (props) => {
         {hasOrder && (
           <th>Order in</th>
         )}
+        <th>Tag by</th>
+        <th>Size</th>
       </tr>
       </thead>
       <tbody>
@@ -122,6 +125,25 @@ const Bucket = (props) => {
             />
           </td>
         )}
+        <td>
+          <Selectbox
+            className="form-control"
+            value={tagBy}
+            options={[
+                  {name: '', label: ''},
+                  {name: `${field}`, label: `${fieldLabel}`},
+                  {name: `value_${field}`, label: `Value of ${fieldLabel}`}
+                ]}
+            handleOnChange={value => onChange('tagBy', value)}
+          />
+        </td>
+        <td>
+          <FormInput
+            className="form-control"
+            value={size}
+            handleOnChange={value => onChange('size', value)}
+          />
+        </td>
       </tr>
       </tbody>
     </table>

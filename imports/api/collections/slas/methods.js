@@ -365,7 +365,6 @@ Methods.preview = new ValidatedMethod({
         const result = await executeSLA({SLA});
         return result;
       } catch (err) {
-        console.log('err', err);
         throw new Meteor.Error('PREVIEW_SLA', err.message);
       }
     }
