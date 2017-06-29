@@ -25,7 +25,7 @@ class Variable extends Component {
         Fields = Field()[group]().field,
         {id: name, name: label} = Field()[group]().props(),
         listFields = Object.keys(Fields());
-      if(isNestedField) {
+      if(isNestedField && bucket) {
         Fields = Fields()[ngroup]().field;
         listFields = Object.keys(Fields());
       }
@@ -35,7 +35,7 @@ class Variable extends Component {
         .filter(f => Fields()[f]().props().type === 'number')
         .map(f => {
           const {id: name, name: label} = Fields()[f]().props();
-          if(isNestedField) {
+          if(isNestedField && bucket) {
             return {
               name: `${ngroup}.${name}`,
               label: `${ngroup} ${label}`

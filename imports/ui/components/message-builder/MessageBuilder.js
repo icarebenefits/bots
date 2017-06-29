@@ -263,7 +263,7 @@ class MessageBuilder extends Component {
         )}
         {useBucket && (
           <div className="row">
-            <div className={bucketHasOption ? "col-md-12" : "col-md-8" }>
+            <div className={bucketHasOption ? "col-md-12" : "col-md-12" }>
               <Bucket
                 group={bucketGroup}
                 field={bucketField}

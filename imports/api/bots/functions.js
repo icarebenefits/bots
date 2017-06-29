@@ -98,11 +98,11 @@ export const executeSLA = async({SLA}) => {
         }
 
         if (!_.isEmpty(agg)) {
-          const ESField = getESField(aggType, group, field, bucket.isNestedField, bucket.field);
+          const ESField = getESField(aggType, group, field, bucket.isNestedField && applyBucket, bucket.field);
 
           if (useBucket && applyBucket) {
             const {type, group, field, options, isNestedField} = bucket;
-            let bucketField = getESField('', group, field, bucket.isNestedField, bucket.field);
+            let bucketField = getESField('', group, field, bucket.isNestedField && applyBucket, bucket.field);
             if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
               throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
             }
