@@ -151,34 +151,34 @@ const createInput = ({field, parent, operator, value}, output) => {
  * @return {*}
  */
 /*
-const formatNestedInput = ({operator, fieldGroup, value}) => {
-  /*
-   Input
-   operator: greaterThan
-   field: {group: 'Loans', name: 'totalPrincipalAmount'}
-   value: [{type: 'string', value: 430}]
-   Output
-   [
-   {field: 'customers', parent: null},
-   {field: 'business_units', parent: 'customers',},
-   {field: 'business_units.icare_members', parent: 'business_units'},
-   {field: 'business_units.icare_members.loans', parent: 'business_units.icare_members'},
-   {field: 'business_units.icare_members.loans.totalPrincipalAmount', parent: 'business_units.icare_members.loans', type: 'range', value: {gte: 430}},
-   ];
-   /
+ const formatNestedInput = ({operator, fieldGroup, value}) => {
+ /*
+ Input
+ operator: greaterThan
+ field: {group: 'Loans', name: 'totalPrincipalAmount'}
+ value: [{type: 'string', value: 430}]
+ Output
+ [
+ {field: 'customers', parent: null},
+ {field: 'business_units', parent: 'customers',},
+ {field: 'business_units.icare_members', parent: 'business_units'},
+ {field: 'business_units.icare_members.loans', parent: 'business_units.icare_members'},
+ {field: 'business_units.icare_members.loans.totalPrincipalAmount', parent: 'business_units.icare_members.loans', type: 'range', value: {gte: 430}},
+ ];
+ /
 
-  const {group, name} = fieldGroup;
-  const {parent,} = Field()[group]().elastic();
+ const {group, name} = fieldGroup;
+ const {parent,} = Field()[group]().elastic();
 
-  const input = createInput({
-    field: parent ? `${group}.${name}` : name,
-    parent: `${group}`,
-    operator, value
-  }, []);
+ const input = createInput({
+ field: parent ? `${group}.${name}` : name,
+ parent: `${group}`,
+ operator, value
+ }, []);
 
-  return input;
-};
-*/
+ return input;
+ };
+ */
 
 /**
  * Build the nested query - support both query and aggregation query
@@ -357,28 +357,103 @@ const buildQuery = (type, {aggGroup, operator, fieldGroup, value}) => {
   }
 };
 
-const buildAggregation = (useBucket, bucket, agg) => {
-  check(agg, Object);
-
-  const {summaryType, group, field, bucket: applyBucket = false} = agg;
-
-  /* validate aggs params */
-  // summaryType
-  const allowedAggs = AGGS_OPTIONS.map(o => o.name);
-  if (allowedAggs.indexOf(summaryType) === -1) {
-    throw new Meteor.Error('BUILD_AGGREGATION', `${summaryType} unsupported.`);
-  }
-
-  let body = bodybuilder();
+const buildNestedAggregation = (useBucket, bucket, agg) => {
   try {
-    const ESField = getESField(summaryType, group, field);
+    const {summaryType, group, field, bucket: applyBucket = false} = agg;
+
+    /* validate aggs params */
+    // summaryType
+    const allowedAggs = AGGS_OPTIONS.map(o => o.name);
+    if (allowedAggs.indexOf(summaryType) === -1) {
+      throw new Meteor.Error('VALIDATE_SUMMARY_TYPE', `${summaryType} unsupported.`);
+    }
+
+    let body = bodybuilder();
+    const ESField = getESField(summaryType, group, field, bucket.isNestedField, bucket.field);
+    const ngroup = ESField.split('.')[0];
 
     if (useBucket && applyBucket) { // bucket is applied to SLA with this aggregation
       const {type, group, field, options} = bucket;
       if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
-        throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
+        throw new Meteor.Error('VALIDATE_BUCKET_DATA', `Bucket is missing data.`);
       }
-      let bucketField = getESField('', group, field);
+      let bucketField = getESField('', group, field, bucket.isNestedField, bucket.field);
+      switch (type) {
+        case 'terms':
+        {
+          const {terms: aggOptions} = Meteor.settings.public.elastic.aggregation.bucket;
+          const {orderBy, orderIn = 'desc'} = options;
+          if (!_.isEmpty(orderBy)) {
+            if (orderBy === field) {
+              aggOptions.order = {"_term": orderIn};
+            } else {
+              aggOptions.order = {[`agg_${summaryType}_${ESField.replace('.', '_')}`]: orderIn};
+            }
+          }
+          body = body
+            .aggregation('nested', {'path': ngroup}, ngroup, (a) => {
+              return a.aggregation(type, `${bucketField}.keyword`, {...aggOptions}, a => {
+                return a.aggregation(summaryType, ESField, `agg_${summaryType}_${ESField.replace('.', '_')}`)
+              })
+            });
+          break;
+        }
+        case 'date_histogram':
+        {
+          const {orderBy, orderIn = 'desc', interval} = options;
+          const aggOptions = {interval};
+          if (!_.isEmpty(orderBy)) {
+            if (orderBy === field) {
+              aggOptions.order = {"_key": orderIn};
+            } else {
+              aggOptions.order = {[`agg_${summaryType}_${ESField.replace('.', '_')}`]: orderIn};
+            }
+          }
+          body = body
+            .aggregation('nested', {'path': ngroup}, ngroup, (a) => {
+              return a.aggregation(type, bucketField, {...aggOptions}, a => {
+                return a.aggregation(summaryType, ESField, `agg_${summaryType}_${ESField.replace('.', '_')}`)
+              })
+            });
+          break;
+        }
+        default:
+          body = body
+            .aggregation('nested', {'path': ngroup}, ngroup, (a) => {
+              return a.aggregation(type, bucketField, a => {
+                return a.aggregation(summaryType, ESField, `agg_${summaryType}_${ESField.replace('.', '_')}`)
+              })
+            });
+      }
+    } else {
+      body = body.aggregation(summaryType, ESField);
+    }
+    return body.build();
+  } catch (err) {
+    throw new Meteor.Error('BUILD_NESTED_AGGREGATION', err.message);
+  }
+};
+
+const buildNormalAggregation = (useBucket, bucket, agg) => {
+  try {
+    const {summaryType, group, field, bucket: applyBucket = false} = agg;
+
+    /* validate aggs params */
+    // summaryType
+    const allowedAggs = AGGS_OPTIONS.map(o => o.name);
+    if (allowedAggs.indexOf(summaryType) === -1) {
+      throw new Meteor.Error('VALIDATE_SUMMARY_TYPE', `${summaryType} unsupported.`);
+    }
+
+    let body = bodybuilder();
+    const ESField = getESField(summaryType, group, field, bucket.isNestedField, bucket.field);
+
+    if (useBucket && applyBucket) { // bucket is applied to SLA with this aggregation
+      const {type, group, field, options} = bucket;
+      if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
+        throw new Meteor.Error('VALIDATE_BUCKET_DATA', `Bucket is missing data.`);
+      }
+      let bucketField = getESField('', group, field, bucket.isNestedField, bucket.field);
       switch (type) {
         case 'terms':
         {
@@ -423,11 +498,32 @@ const buildAggregation = (useBucket, bucket, agg) => {
     } else {
       body = body.aggregation(summaryType, ESField);
     }
+    return body.build();
   } catch (err) {
-    throw new Meteor.Error('buildAggregation', err.message);
+    throw new Meteor.Error('BUILD_NORMAL_AGGREGATION', err.message);
+  }
+};
+
+const buildAggregation = (useBucket, bucket, agg) => {
+  check(useBucket, Boolean);
+  check(agg, Object);
+  check(agg, Object);
+
+  let body = {};
+  if (bucket) {
+    // build nested aggregation
+    if (bucket.isNestedField) {
+      body = buildNestedAggregation(useBucket, bucket, agg);
+    } else {
+      // build normal parent child aggregation
+      body = buildNormalAggregation(useBucket, bucket, agg);
+    }
+  } else {
+    // build normal parent child aggregation
+    body = buildNormalAggregation(useBucket, bucket, agg);
   }
 
-  return body.build();
+  return body;
 };
 
 const SingleQuery = () => ({

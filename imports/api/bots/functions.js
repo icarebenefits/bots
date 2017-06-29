@@ -98,11 +98,11 @@ export const executeSLA = async({SLA}) => {
         }
 
         if (!_.isEmpty(agg)) {
-          const ESField = getESField(aggType, group, field);
+          const ESField = getESField(aggType, group, field, bucket.isNestedField, bucket.field);
 
           if (useBucket && applyBucket) {
-            const {type, group, field, options} = bucket;
-            let bucketField = getESField('', group, field);
+            const {type, group, field, options, isNestedField} = bucket;
+            let bucketField = getESField('', group, field, bucket.isNestedField, bucket.field);
             if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
               throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
             }
@@ -110,7 +110,11 @@ export const executeSLA = async({SLA}) => {
             if (type === 'terms') {
               bucketField = `${bucketField}.keyword`;
             }
-            const {buckets} = agg[`agg_${type}_${bucketField}`];
+            let bucketsAgg = agg[`agg_${type}_${bucketField}`];
+            if(isNestedField) {
+              bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
+            }
+            const {buckets} = bucketsAgg;
             if (!_.isEmpty(buckets)) {
               let mess = '';
               // limit the number of buckets return
@@ -124,7 +128,7 @@ export const executeSLA = async({SLA}) => {
                 let
                   tag = '',
                   key = b.key;
-                const value = accounting.formatNumber(b[`agg_${aggType}_${ESField}`].value, 0);
+                const value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0);
                 if (type === 'date_histogram') {
                   key = moment(key).format('LL');
                 }
@@ -153,7 +157,7 @@ export const executeSLA = async({SLA}) => {
               vars[name] = 'No result.';
             }
           } else {
-            const {value} = agg[`agg_${aggType}_${ESField}`];
+            const {value} = agg[`agg_${aggType}_${ESField.replace('.', '_')}`];
             vars[name] = accounting.formatNumber(value, 0);
           }
         }

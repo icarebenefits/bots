@@ -143,6 +143,10 @@ SLAs.schema = new SimpleSchema({
     type: String,
     optional: true
   },
+  "message.bucket.isNestedField": {
+    type: Boolean,
+    optional: true
+  },
   "message.bucket.hasOption": {
     type: Boolean,
     optional: true
