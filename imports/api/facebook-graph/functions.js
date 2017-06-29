@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import {check, Match} from 'meteor/check';
 import RequestPromise from 'request-promise';
+import validate from 'validate.js';
 
 const Facebook = () => {
   const {personalId, appToken, prefixUrl} = Meteor.settings.facebook;
@@ -44,29 +45,75 @@ const Facebook = () => {
         throw new Meteor.Error('FB_GRAPH.addMember', err.message);
       }
     },
-    getMember: async(memberId) => {
+    getMember: async(email) => {
       /* check arguments */
-      check(memberId, Match.OneOf(String, Number));
+      check(email, Match.OneOf(String, Number));
 
       try {
-        const accessToken = await Facebook().getAccessToken();
+        /* Validate Email */
+        const constraints = {
+          email: {
+            email: true
+          }
+        };
+        const validation = validate({email}, constraints);
+        if(validation) {
+          throw new Meteor.Error('VALIDATE_EMAIL', validation.email[0]);
+        }
+        
         const request = {
           method: 'GET',
           url: 'https://www.facebook.com/company/1701882480101071/scim/Users?filter='
-          + encodeURIComponent('userName eq "tan.ktm@icarebenefits.com"'),
-          // url: prefixUrl + memberId + '?fields=userName,department',
+          + encodeURIComponent(`userName eq "${email.toLowerCase()}"`),
           headers: {
-            'User-Agent': 'GKFileAnIssue',
+            'User-Agent': 'iCare Bots',
             Accept: 'application/scim+json',
-            authorization: 'Bearer '
-            + 'DQVJ1a1ljbEJjS3hvNHMybG94MjFHUVp1ZADBUcGx2ZAlFpOTNGRU5NdHM1UE1qTl85RDJPZAXpKbFAtQUNKTGt2cDRjazc2TFZATOVEzNlltRTVlQUtwaHIyZA3Q2eFVtaGpZAZAnVlN0I4VmJubUNabU1WTUdrbVctM2R4cC1jdGluOS1aY1BxSWhyLVFNYi1mc1FfR1o3RV9UNEpacXVYbXZA2Sjdwa0lVRTRkLVNKSGloYzJCSFFuQ0g2Vk8wZAzZAxVkE1R3l4NkNsNHVScW4xXzR0NgZDZD'
+            authorization: 'Bearer ' + appToken
           }
         };
-        console.log('url', request.url);
         const result = await RequestPromise(request);
-        return result;
+        if(!_.isEmpty(result)) {
+          const {totalResults} = JSON.parse(result);
+          if(totalResults > 0) {
+            // only return first member received
+            const {Resources: [member]} = JSON.parse(result);
+            const {id, userName} = member;
+            return {id, userName};
+          }
+        }
+        return {};
       } catch (err) {
         throw new Meteor.Error('FB_GRAPH.getMember', err.message);
+      }
+    },
+    tagMember: async(message, email) => {
+      check(message, String);
+      check(email, String);
+      
+      try {
+        /* Validate Email */
+        const constraints = {
+          email: {
+            email: true
+          }
+        };
+        const validation = validate({email}, constraints);
+        if(validation) {
+          // validation err will return the current message
+          return message;
+        }
+
+        let resMessage = message;
+        const member = await Facebook().getMember(email);
+        if(!_.isEmpty(member)) {
+          const {id} = member;
+          if(id) {
+            resMessage += ` @[${id}]`;
+          }
+        }
+        return resMessage;
+      } catch(err) {
+        throw new Meteor.Error('FB_GRAPH.tagMember', err.message);
       }
     },
     getGroup: async(groupId) => {
@@ -148,7 +195,7 @@ export default Facebook
 // const message = formatMessage({quote: `@Updated on: ${moment().format('LLL')}`});
 // Facebook().postMessage(adminWorkplace, message);
 
-
-// Facebook().getMember(100015320356409)
+// const email = 'chris@icarebenefits.com';
+// Facebook().getMember(email)
 //   .then(res => console.log('res', res))
 //   .catch(err => console.log('err', err));

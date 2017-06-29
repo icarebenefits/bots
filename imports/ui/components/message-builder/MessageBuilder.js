@@ -32,7 +32,7 @@ class MessageBuilder extends Component {
       bucketGroup = bucket.group || '';
       bucketField = bucket.field || '';
       bucketHasOption = bucket.hasOption || false;
-      bucketOptions = bucket.options || {};
+      bucketOptions = {...bucket.options} || {};
     }
 
     this.state = {
@@ -99,8 +99,6 @@ class MessageBuilder extends Component {
       newVar = {...variable, [`${key}`]: value};
     }
 
-    // console.log('row, key, value, newVar', row, key, value, newVar);
-
     const newVariables = variables.map((c, i) => {
       if (i === row) {
         return newVar;
@@ -131,7 +129,6 @@ class MessageBuilder extends Component {
         // type (currently, only support 2 type of bucket: date_histogram and terms)
         const type = isDateField ? 'date_histogram' : 'terms';
 
-        console.log('group', group);
         return this.setState({
           bucketType: type,
           bucketGroup: group,
@@ -141,7 +138,7 @@ class MessageBuilder extends Component {
       }
       case 'interval':
         return this.setState({
-          bucketOptions: {interval: value}
+          bucketOptions: {interval: value, size: this.state.bucketOptions.size}
         });
       case 'orderBy':
         return this.setState({
@@ -150,6 +147,14 @@ class MessageBuilder extends Component {
       case 'orderIn':
         return this.setState({
           bucketOptions: {...this.state.bucketOptions, orderIn: value}
+        });
+      case 'tagBy':
+        return this.setState({
+          bucketOptions: {...this.state.bucketOptions, tagBy: value}
+        });
+      case 'size':
+        return this.setState({
+          bucketOptions: {...this.state.bucketOptions, size: value}
         });
       default:
         return Notify.error({title:'Bucket', message: `Unknown bucket option: ${key}`});
@@ -251,6 +256,8 @@ class MessageBuilder extends Component {
                 options={bucketOptions}
                 orderBy={bucketOptions.orderBy}
                 orderIn={bucketOptions.orderIn}
+                tagBy={bucketOptions.tagBy}
+                size={bucketOptions.size}
                 onChange={this.handleBucketChange}
               />
             </div>

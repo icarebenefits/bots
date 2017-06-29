@@ -33,12 +33,14 @@ const fistSLACheck = () => {
  * @param preview
  * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
-export const executeSLA = async ({SLA}) => {
+export const executeSLA = async({SLA}) => {
+  const {Elastic} = require('../elastic');
+  const {Facebook} = require('/imports/api/facebook-graph');
   if (_.isEmpty(SLA)) {
     throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
   }
   const {name, conditions, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
-  let queries = [];
+  let queries = [], tags = [];
 
   /* validate conditions and message */
   // if (_.isEmpty(conditions)) {
@@ -55,7 +57,7 @@ export const executeSLA = async ({SLA}) => {
     {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
     index = `${indexPrefix}_${country}_${env}`;
 
-  const promiseArray = variables.map(async (aggregation) => {
+  const promiseArray = variables.map(async(aggregation) => {
     const
       {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
       {type} = Field()[group]().elastic();
@@ -74,8 +76,6 @@ export const executeSLA = async ({SLA}) => {
       };
 
       queries.push({index, type, ESQuery});
-
-      const {Elastic} = require('../elastic');
       // validate query before run
       const {valid} = await Elastic.indices.validateQuery({
         index,
@@ -100,27 +100,54 @@ export const executeSLA = async ({SLA}) => {
         if (!_.isEmpty(agg)) {
           const ESField = getESField(aggType, group, field);
 
-          if(useBucket && applyBucket) {
-            const {type, group, field} = bucket;
+          if (useBucket && applyBucket) {
+            const {type, group, field, options} = bucket;
             let bucketField = getESField('', group, field);
             if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
               throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
             }
-            
-            if(type === 'terms') {
+
+            if (type === 'terms') {
               bucketField = `${bucketField}.keyword`;
             }
             const {buckets} = agg[`agg_${type}_${bucketField}`];
-            if(!_.isEmpty(buckets)) {
+            if (!_.isEmpty(buckets)) {
               let mess = '';
-              buckets.map(b => {
-                let key = b.key;
+              // limit the number of buckets return
+              const
+                from = 0,
+                {tagBy} = options,
+                size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
+              const result = buckets.slice(from, size);
+              // console.log('result', result);
+              const promiseArr = result.map(async(b) => {
+                let
+                  tag = '',
+                  key = b.key;
                 const value = accounting.formatNumber(b[`agg_${aggType}_${ESField}`].value, 0);
-                if(type === 'date_histogram') {
+                if (type === 'date_histogram') {
                   key = moment(key).format('LL');
                 }
                 mess = `${mess} \n - ${key}: ${value} \n`;
+                // tag member if tagBy is setup
+                if (!_.isEmpty(tagBy)) {
+                  if (tagBy === field) {
+                    tag = await Facebook().tagMember('', key);
+                    // for testing
+                    // tag = await Facebook().tagMember('', 'tan.ktm@icarebenefits.com');
+
+                  } else {
+                    tag = await Facebook().tagMember('', value);
+                    // for testing
+                    // tag = await Facebook().tagMember('', 'chris@icarebenefits.com');
+                    // if (!_.isEmpty(tag))
+                    //   tags.push(tag);
+                  }
+                  if (!_.isEmpty(tag))
+                    tags.push(tag);
+                }
               });
+              await Promise.all(promiseArr);
               vars[name] = mess;
             } else {
               vars[name] = 'No result.';
@@ -141,6 +168,11 @@ export const executeSLA = async ({SLA}) => {
   let message = `## ${name} \n`;
   message = message + format(messageTemplate, vars);
   message = formatMessage({message, quote: `Data was last updated on: ${lastUpdatedOn} (${timezone})`});
+
+  // tag members
+  if (!_.isEmpty(tags)) {
+    message += `\n ${tags.join()}`;
+  }
 
   return {
     executed: true,
@@ -187,7 +219,7 @@ const checkSLA = (slaId) => {
   }
 };
 
-const addWorkplaceSuggester = async (next, total = 0) => {
+const addWorkplaceSuggester = async(next, total = 0) => {
   /* Fetch groups from fb@work */
   const {adminWorkplace} = Meteor.settings.facebook;
   try {
@@ -214,7 +246,7 @@ const addWorkplaceSuggester = async (next, total = 0) => {
         Facebook().postMessage(adminWorkplace, message);
       }
     }
-  } catch(err) {
+  } catch (err) {
     const message = formatMessage({
       message: '',
       heading1: 'addWorkplaceSuggester.Error',

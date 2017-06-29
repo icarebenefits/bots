@@ -163,6 +163,14 @@ SLAs.schema = new SimpleSchema({
     type: String,
     optional: true,
   },
+  "message.bucket.options.size": {
+    type: Number,
+    optional: true,
+  },
+  "message.bucket.options.tagBy": {
+    type: String,
+    optional: true,
+  },
   "message.variables": {
     type: [Object],
     optional: true
