@@ -134,6 +134,7 @@ export const SET_COUNTRY = 'PAGE::SET_COUNTRY';
 export const SET_SLOGAN = 'PAGE::SET_SLOGAN';
 export const SET_TABS = 'PAGE::SET_TABS';
 export const SET_ACTIVE_TAB = 'PAGE::SET_ACTIVE_TAB';
+export const PAGE_SHOW_TABS = 'PAGE::SHOW_TABS';
 
 /* Notification */
 export const ADD_NOTIFICATION = 'PAGE::ADD_NOTIFICATION';
