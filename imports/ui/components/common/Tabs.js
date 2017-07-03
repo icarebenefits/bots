@@ -5,14 +5,17 @@ import {connect} from 'react-redux';
 import _ from 'lodash';
 
 const Tabs = (props) => {
-  const {tabs} = props;
+  const {tabs, showTabs} = props;
   if(_.isEmpty(tabs)) {
     return null;
   } else {
     const {country} = props;
     const activeTab = _.isEmpty(props.activeTab) ? tabs[0].id : props.activeTab;
     return (
-      <div className="nav-collapse collapse navbar-collapse navbar-responsive-collapse">
+      <div className={classNames({
+      "nav-collapse collapse navbar-collapse navbar-responsive-collapse": true,
+      "in": showTabs
+      })}>
         <ul className="nav navbar-nav">
           {tabs.map(tab => {
             const {id, name} = tab;
@@ -52,10 +55,11 @@ Tabs.propTypes = {
 };
 
 const mapStateToProps = state => {
-  const {pageControl: {tabs, activeTab, country}} = state;
+  const {pageControl: {tabs, showTabs, activeTab, country}} = state;
   return {
     country,
     tabs,
+    showTabs,
     activeTab
   };
 };

@@ -91,23 +91,14 @@ const userRoutes = FlowRouter.group({
   triggersEnter: [ensureSignedIn]
 });
 
-userRoutes.route('/:page/:country', {
+userRoutes.route('/setup/:country', {
   name: 'setup',
   action(params) {
-    switch (params.page) {
-      case 'setup':
-        return mount(MainLayout, {
-          content() {
-            return <SetupPage />;
-          }
-        });
-      default:
-        mount(MainLayout, {
-          content() {
-            return <SetupPage />;
-          }
-        });
-    }
+    return mount(MainLayout, {
+      content() {
+        return <SetupPage />;
+      }
+    });
   }
 });
 
