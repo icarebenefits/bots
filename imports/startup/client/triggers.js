@@ -31,10 +31,10 @@ export const ensureIsAdmin = () => {
 };
 
 export const initiatePage = (context) => {
-  const {params: {page, country}, queryParams: {tab: activeTab}} = context;
+  const {params: {country}, queryParams: {tab: activeTab}} = context;
   Store.dispatch(Actions.setCountry(country));
   Store.dispatch(Actions.setSlogan(country));
-  Store.dispatch(Actions.setTabs(page));
+  Store.dispatch(Actions.setTabs('setup'));
   Store.dispatch(Actions.setActiveTab(activeTab));
 };
 
