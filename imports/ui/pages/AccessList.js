@@ -15,6 +15,7 @@ import {AccessList, Methods} from '/imports/api/collections/access-list';
 import {ListAccess} from '/imports/ui/containers';
 import {PageSideBar} from '/imports/ui/components';
 import {Dialog, FormDialog} from '/imports/ui/components/elements';
+import {Spinner} from '/imports/ui/components/common';
 
 class AccessListComponent extends Component {
 
@@ -249,7 +250,7 @@ class AccessListComponent extends Component {
     } else {
       return (
         <div>
-          Loading...
+          <Spinner/>
         </div>
       );
     }
