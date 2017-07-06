@@ -58,6 +58,19 @@ class Home extends Component {
             })}
           </div>
           <div className="row">
+            <div key='location' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
+                 onClick={() => {FlowRouter.go('maps')}}
+            >
+              <DashboardStat
+                title={"Field Sales Location"}
+                color="green-meadow"
+                icon="fa-map-marker"
+                stat={200}
+                description="field Sales"
+                label="Maps"
+                moreHref={FlowRouter.path('maps')}
+              />
+            </div>
             {(showAdminBox) && (
               <div key='admin' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
                    onClick={() => {FlowRouter.go('access-list')}}
@@ -73,19 +86,6 @@ class Home extends Component {
                 />
               </div>
             )}
-            <div key='location' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
-                 onClick={() => {FlowRouter.go('maps')}}
-            >
-              <DashboardStat
-                title={"Field Sales Location"}
-                color="yellow"
-                icon="fa-globe"
-                stat={200}
-                description="active Users"
-                label="Setup"
-                moreHref={FlowRouter.path('maps')}
-              />
-            </div>
           </div>
         </div>
       );

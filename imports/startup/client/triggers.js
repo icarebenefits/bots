@@ -31,7 +31,6 @@ export const ensureIsAdmin = () => {
 };
 
 export const initiatePage = (context) => {
-  console.log('context', context);
   const {
     params: {country},
     queryParams: {tab: activeTab},

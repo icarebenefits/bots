@@ -11,7 +11,7 @@ Methods.suggest = new ValidatedMethod({
       const {Elastic} = require('/imports/api/elastic');
       try {
         const result = Elastic.search({index, type, size, sort, body});
-        if(result.suggest) {
+        if (result.suggest) {
           const {suggest: {wp_group}} = result;
           const {options} = wp_group[0];
 
@@ -24,9 +24,30 @@ Methods.suggest = new ValidatedMethod({
         } else {
           return [];
         }
-      } catch (e) {
-        throw new Meteor.Error('SEARCH_ERROR', JSON.stringify(e));
+      } catch (err) {
+        throw new Meteor.Error('ELASTIC_SUGGEST', err.message);
       }
+    }
+  }
+});
+
+Methods.search = new ValidatedMethod({
+  name: 'elastic.search',
+  validate: null,
+  async run({index, type, body}) {
+    try {
+      if (!this.isSimulation) {
+        const {ElasticClient: Elastic} = require('/imports/api/elastic');
+
+        const searchResult = await Elastic.search({index, type, body});
+        const {total, hits} = searchResult;
+        return {
+          ready: true,
+          ...searchResult
+        };
+      }
+    } catch (err) {
+      throw new Meteor.Error('ELASTIC_SEARCH', err.message);
     }
   }
 });
