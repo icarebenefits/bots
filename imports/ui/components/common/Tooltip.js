@@ -7,7 +7,7 @@ const Tooltip = (props) => {
     <div className="note note-success">
       <h4 className="block">{title}</h4>
       {!_.isEmpty(messages) &&
-        messages.map(mess => <p>{mess}</p>)}
+        messages.map((mess, idx) => <p key={idx}>{mess}</p>)}
     </div>
   );
 };

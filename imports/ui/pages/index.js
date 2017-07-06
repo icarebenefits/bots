@@ -9,6 +9,7 @@ export {default as SLAsPage} from '../containers/sla/SLA';
 export {default as AccessListPage} from './AccessList';
 export {default as RFMPage} from '../containers/rfm/RFM';
 export {default as LocationPage} from './Maps';
+// export {default as LocationPage} from './Maps';
 
 // Error Pages
 export {default as ErrorPage} from './Error';

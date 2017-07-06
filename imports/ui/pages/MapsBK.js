@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
+import {GoogleMaps} from '/imports/ui/google';
 import bodybuilder from 'bodybuilder';
 import moment from 'moment';
 import S from 'string';
@@ -8,12 +9,6 @@ import S from 'string';
 // Components
 import {Spinner} from '/imports/ui/components/common';
 import {MapFilters, MapSearch} from '/imports/ui/containers/location';
-import {
-  Map,
-  InfoWindow,
-  MarkerCluster,
-  Marker,
-} from 'google-react-maps';
 
 // Elastic Methods
 import ESMethods from '/imports/api/elastic/methods';
@@ -34,8 +29,7 @@ class Maps extends Component {
         elastic: {indices: {geo: {prefix, types: {fieldSales}}}}
       } = Meteor.settings.public,
       {suffix} = Parser().indexSuffix(currentDate, 'day'),
-      // index = `${prefix}_${env}-${suffix}`,
-      index = `${prefix}_${env}-2017.07.06`,
+      index = `${prefix}_${env}-${suffix}`,
       type = fieldSales;
 
     this.state = {
@@ -95,15 +89,14 @@ class Maps extends Component {
     });
   }
 
-  onMarkerClick({coords, a, b}) {
-    const {mapsData: {total, hits}} = this.state;
-    const {lng, lat} = coords;
-    const info = hits.filter(({_source}) => {
-      console.log('lng lat', lng, lat);
-      console.log('lnga lata', _source.location[0], _source.location[1]);
-      return (lng === _source.location[0] && lat === _source.location[1])
+  onMarkerClick(props, marker, e) {
+    console.log('markerClick', props, marker);
+    this.setState({
+      mapCenter: props.mapCenter,
+      selectedPlace: props,
+      activeMarker: marker,
+      showingInfoWindow: true
     });
-    console.log('info', info, a, b);
   }
 
   _getMapsProps() {
@@ -137,7 +130,7 @@ class Maps extends Component {
         email,
         store: store_id,
         name: `${S(first_name).capitalize().s} ${S(last_name).capitalize().s}`,
-        coords: {
+        position: {
           lng: location[0],
           lat: location[1]
         }
@@ -160,7 +153,7 @@ class Maps extends Component {
         mapsActions = {
           onMarkerClick: this.onMarkerClick
         },
-        {mapCenter, markers, infoWindow} = this._getMapsProps();
+        mapsProps = this._getMapsProps();
 
       return (
         <div className="page-content-col">
@@ -180,27 +173,10 @@ class Maps extends Component {
               <div className="row">
                 <div className="col-md-12">
                   <div className="search-container bordered">
-                    <Map
-                      onClick={e => console.log(e)}
-                      api-key="AIzaSyCWuH5SGDikY4OPSrbJxqTi4Y2uTgQUggw"
-                      zoom={5}
-                      center={mapCenter}
-                      style={{height: 500, width: '100%'}}
-                    >
-                      {!_.isEmpty(markers) && (
-                        <MarkerCluster options={{gridSize: 50, maxZoom: 15}}>
-                          {markers.map((marker, idx) => {
-                            return (<Marker
-                              key={idx}
-                              icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-                              {...marker}
-                              onClick={this.onMarkerClick}
-                            >
-                            </Marker>);
-                          })}
-                        </MarkerCluster>
-                      )}
-                    </Map>
+                    <GoogleMaps
+                      {...mapsProps}
+                      {...mapsActions}
+                    />
                   </div>
                 </div>
               </div>

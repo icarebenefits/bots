@@ -52,6 +52,7 @@
     "ddp": "^0.12.1",
     "ddp-login": "^1.0.10",
     "elasticsearch": "^12.1.3",
+    "google-react-maps": "^1.1.32",
     "http-aws-es": "^1.1.3",
     "immutable": "^3.8.1",
     "jquery": "^2.1.4",
