@@ -1,11 +1,8 @@
 import React, {Component, PropTypes} from 'react';
 
-import {wrappedPromise} from '/imports/ui/components/google/maps/google-maps-react';
-
 class Polygon extends Component {
 
   componentDidMount() {
-    this.polygonPromise = wrappedPromise();
     this._renderPolygon();
   }
 
@@ -16,6 +13,10 @@ class Polygon extends Component {
         this._renderPolygon();
       }
     }
+
+    if (this.props.visible !== prevProps.visible ) {
+      this._renderPolygon();
+    }
   }
 
   componentWillUnmount() {
@@ -25,8 +26,7 @@ class Polygon extends Component {
   }
 
   _renderPolygon() {
-    console.log('_polygon', this.props);
-    const {map, google, data} = this.props;
+    const {map, google, data, markers} = this.props;
 
     if(!google || !google.maps) {
       return null;
@@ -34,31 +34,23 @@ class Polygon extends Component {
 
     console.log('polygon props', this.props);
 
-    // examples of coords for polygon
-    const coords = [
-      {lat: 20.9593499, lng: 107.0156406},
-      {lat: 20.9593966, lng: 107.015727},
-      {lat: 20.9593855, lng: 107.015732},
-      {lat: 20.9593855, lng: 107.0157329},
-      {lat: 20.9593499, lng: 107.0156406}
-    ];
+    // examples of coords for polyline
+    if(!_.isEmpty(markers)) {
+      const coords = this.props.markers.map(marker => marker.position);
+      // coords.push(this.props.markers[0].position);
 
-    const polygon = this.polygon = new google.maps.Polygon({
-      paths: coords,
-      strokeColor: '#32C5D2',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: '#32C5D2',
-      fillOpacity: 0.35
-    });
-
-    console.log('polygon', polygon);
-
-    this.polygonPromise.resolve(this.polygon);
+      var flightPath = new google.maps.Polyline({
+        path: coords,
+        geodesic: true,
+        strokeColor: '#26C281',
+        strokeOpacity: 0.8,
+        strokeWeight: 2
+      });
+      flightPath.setMap(map);
+    }
   }
 
   render() {
-    console.log('render polygon', this.props);
     return null;
   }
 }

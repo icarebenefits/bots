@@ -1,6 +1,6 @@
 import React, {PropTypes} from 'react';
 import ReactDOM from 'react-dom';
-import { camelize } from './lib/String';
+import S from 'string';
 import {makeCancelable} from './lib/cancelablePromise';
 import invariant from 'invariant';
 
@@ -169,7 +169,7 @@ class Map extends React.Component {
 
   handleEvent(evtName) {
     let timeout;
-    const handlerName = `on${camelize(evtName)}`
+    const handlerName = `on${S(evtName).capitalize().s}`
 
     return (e) => {
       if (timeout) {
@@ -274,7 +274,7 @@ Map.propTypes = {
   gestureHandling: PropTypes.string
 }
 
-evtNames.forEach(e => Map.propTypes[camelize(e)] = PropTypes.func)
+evtNames.forEach(e => Map.propTypes[S(e).capitalize().s] = PropTypes.func)
 
 Map.defaultProps = {
   zoom: 14,

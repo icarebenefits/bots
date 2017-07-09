@@ -12,13 +12,9 @@ import Map, {
 import {Tooltip} from '/imports/ui/components/common';
 
 class GoogleMaps extends Component {
-  onClickMap(mapProps, map, clickEvent) {
-    console.log('mapProps, map, clickEvent', mapProps, map, clickEvent);
-  }
-
   render() {
-    const {markers, infoWindow, onMarkerClick} = this.props;
-    console.log('map props', this.props);
+    const {markers, infoWindow, handlers} = this.props;
+
     return (
       <Map
         google={window.google}
@@ -30,15 +26,13 @@ class GoogleMaps extends Component {
           width: '100%'
         }}
         zoom={11}
-        onClick={this.onClickMap}
       >
-        {/*
         {!_.isEmpty(markers) && (
           markers.map((marker, idx) => {
             return (<Marker
               key={idx}
               {...marker}
-              onClick={onMarkerClick}
+              {...handlers.marker}
             >
             </Marker>);
           })
@@ -58,8 +52,10 @@ class GoogleMaps extends Component {
             />
           </div>
         </InfoWindow>
-        */}
-        <Polygon />
+        <Polygon
+          visible={infoWindow.showingInfoWindow}
+          markers={markers}
+        />
       </Map>
     );
 

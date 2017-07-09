@@ -13,6 +13,7 @@ import {
   SetupPage,
   AccessListPage,
   LocationPage,
+  LocationSamplePage,
   ErrorPage,
 } from '/imports/ui/pages';
 

@@ -1,8 +1,8 @@
 import React, {PropTypes} from 'react';
+import S from 'string';
 
 import {wrappedPromise} from '/imports/ui/components/google/maps/google-maps-react';
-import { camelize } from '../lib/String';
-const evtNames = ['click', 'mouseover', 'recenter', 'dragend'];
+const evtNames = ['click', 'mouseover', 'mouseout', 'recenter', 'dragend'];
 
 class Marker extends React.Component {
 
@@ -63,7 +63,7 @@ class Marker extends React.Component {
 
   handleEvent(evt) {
     return (e) => {
-      const evtName = `on${camelize(evt)}`
+      const evtName = `on${S(evt).capitalize().s}`;
       if (this.props[evtName]) {
         this.props[evtName](this.props, this.marker, e);
       }

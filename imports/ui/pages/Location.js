@@ -54,7 +54,7 @@ class Location extends Component {
     this._getMapsProps = this._getMapsProps.bind(this);
 
     // maps handlers
-    this.onMarkerClick = this.onMarkerClick.bind(this);
+    this.onClickMarker = this.onClickMarker.bind(this);
   }
 
   componentDidMount() {
@@ -66,6 +66,7 @@ class Location extends Component {
       body: {
         ...bodybuilder()
           .query('term', 'user_id', 527)
+          .sort('created_at', 'asc')
           .build(),
         size: 100
       }
@@ -77,7 +78,6 @@ class Location extends Component {
         })
       }
 
-      console.log('mapsData', res.hits);
       const {ready, hits: mapsData} = res;
       return this.setState({
         ready,
@@ -86,11 +86,10 @@ class Location extends Component {
     });
   }
 
-  onMarkerClick(props, marker, e) {
-    console.log('markerClick', props);
+  onClickMarker(selectedPlace, activeMarker, event) {
     this.setState({
-      selectedPlace: props,
-      activeMarker: marker,
+      selectedPlace,
+      activeMarker,
       showingInfoWindow: true
     });
   }
@@ -127,7 +126,8 @@ class Location extends Component {
         position: {
           lng: location[0],
           lat: location[1]
-        }
+        },
+        icon: '/img/google/gmap-location.png'
       });
     });
 
@@ -143,8 +143,10 @@ class Location extends Component {
     if (ready) {
       const
         {filters, search} = this.state,
-        mapsActions = {
-          onMarkerClick: this.onMarkerClick
+        handlers = {
+          marker: {
+            onClick: this.onClickMarker
+          }
         },
         mapsProps = this._getMapsProps();
 
@@ -168,7 +170,7 @@ class Location extends Component {
                   <div className="search-container bordered">
                     <GoogleMaps
                       {...mapsProps}
-                      {...mapsActions}
+                      handlers={handlers}
                     />
                   </div>
                 </div>

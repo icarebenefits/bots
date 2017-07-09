@@ -1,7 +1,7 @@
 import React, {PropTypes} from 'react';
+import S from 'string';
 
 import {wrappedPromise} from '/imports/ui/components/google/maps/google-maps-react';
-import { camelize } from '../lib/String'
 const evtNames = ['click', 'mouseover', 'recenter'];
 
 class HeatMap extends React.Component {
@@ -66,7 +66,7 @@ class HeatMap extends React.Component {
 
   handleEvent(evt) {
     return (e) => {
-      const evtName = `on${camelize(evt)}`
+      const evtName = `on${S(evt).capitalize().s}`
       if (this.props[evtName]) {
         this.props[evtName](this.props, this.heatMap, e);
       }
