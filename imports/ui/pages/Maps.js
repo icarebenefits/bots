@@ -1,19 +1,13 @@
 import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
-import {createContainer} from 'meteor/react-meteor-data';
 import bodybuilder from 'bodybuilder';
 import moment from 'moment';
 import S from 'string';
 
 // Components
+import {Map} from '/imports/ui/components/google/maps/my-maps';
 import {Spinner} from '/imports/ui/components/common';
 import {MapFilters, MapSearch} from '/imports/ui/containers/location';
-import {
-  Map,
-  InfoWindow,
-  MarkerCluster,
-  Marker,
-} from 'google-react-maps';
 
 // Elastic Methods
 import ESMethods from '/imports/api/elastic/methods';
@@ -34,8 +28,8 @@ class Maps extends Component {
         elastic: {indices: {geo: {prefix, types: {fieldSales}}}}
       } = Meteor.settings.public,
       {suffix} = Parser().indexSuffix(currentDate, 'day'),
+      index = `${prefix}_${env}-2017.07.07`,
       // index = `${prefix}_${env}-${suffix}`,
-      index = `${prefix}_${env}-2017.07.06`,
       type = fieldSales;
 
     this.state = {
@@ -51,10 +45,6 @@ class Maps extends Component {
       search: null,
       index, type,
       mapsData: {},
-      mapCenter: {
-        lat: 17.981548399599,
-        lng: 106.649311603734
-      },
       showingInfoWindow: false,
       activeMarker: {},
       selectedPlace: {},
@@ -75,7 +65,7 @@ class Maps extends Component {
       type,
       body: {
         ...bodybuilder()
-          .query('match_all', {})
+          .query('term', 'user_id', 527)
           .build(),
         size: 100
       }
@@ -87,6 +77,7 @@ class Maps extends Component {
         })
       }
 
+      console.log('mapsData', res.hits);
       const {ready, hits: mapsData} = res;
       return this.setState({
         ready,
@@ -95,22 +86,13 @@ class Maps extends Component {
     });
   }
 
-  onMarkerClick({coords, a, b}) {
-    const {mapsData: {total, hits}} = this.state;
-    const {lng, lat} = coords;
-    const info = hits.filter(({_source}) => {
-      console.log('lng lat', lng, lat);
-      console.log('lnga lata', _source.location[0], _source.location[1]);
-      return (lng === _source.location[0] && lat === _source.location[1])
-    });
-    console.log('info', info, a, b);
+  onMarkerClick(props, marker, e) {
   }
 
   _getMapsProps() {
     const
       {
         mapsData: {total, hits},
-        mapCenter,
         selectedPlace,
         activeMarker,
         showingInfoWindow
@@ -131,13 +113,12 @@ class Maps extends Component {
       // marker
       markers.push({
         key: gps_id,
-        label: store_id.toString(),
         time: moment(created_at).format('LLL'),
         userId: user_id,
         email,
         store: store_id,
         name: `${S(first_name).capitalize().s} ${S(last_name).capitalize().s}`,
-        coords: {
+        position: {
           lng: location[0],
           lat: location[1]
         }
@@ -145,7 +126,6 @@ class Maps extends Component {
     });
 
     return {
-      mapCenter,
       markers,
       infoWindow
     };
@@ -160,7 +140,7 @@ class Maps extends Component {
         mapsActions = {
           onMarkerClick: this.onMarkerClick
         },
-        {mapCenter, markers, infoWindow} = this._getMapsProps();
+        mapsProps = this._getMapsProps();
 
       return (
         <div className="page-content-col">
@@ -181,26 +161,12 @@ class Maps extends Component {
                 <div className="col-md-12">
                   <div className="search-container bordered">
                     <Map
-                      onClick={e => console.log(e)}
-                      api-key="AIzaSyCWuH5SGDikY4OPSrbJxqTi4Y2uTgQUggw"
-                      zoom={5}
-                      center={mapCenter}
-                      style={{height: 500, width: '100%'}}
-                    >
-                      {!_.isEmpty(markers) && (
-                        <MarkerCluster options={{gridSize: 50, maxZoom: 15}}>
-                          {markers.map((marker, idx) => {
-                            return (<Marker
-                              key={idx}
-                              icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-                              {...marker}
-                              onClick={this.onMarkerClick}
-                            >
-                            </Marker>);
-                          })}
-                        </MarkerCluster>
-                      )}
-                    </Map>
+                      containerStyle={{
+                        position: 'relative',
+                        height: 500,
+                        width: '100%'
+                      }}
+                    />
                   </div>
                 </div>
               </div>

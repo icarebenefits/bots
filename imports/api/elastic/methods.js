@@ -47,6 +47,7 @@ Methods.search = new ValidatedMethod({
         };
       }
     } catch (err) {
+      console.log('err', err);
       throw new Meteor.Error('ELASTIC_SEARCH', err.message);
     }
   }
