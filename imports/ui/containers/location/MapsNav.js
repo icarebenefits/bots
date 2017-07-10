@@ -34,11 +34,11 @@ class MapsNav extends Component {
       {activeTab} = this.state,
       {title} = this.props,
       tabs = [
-        {name: 'save', label: 'Save'},
-        {name: 'open', label: 'Open'},
-        {name: 'refresh', label: 'Refresh'},
-        {name: 'country', label: 'Vietnam'},
-        {name: 'timeRange', label: 'July 9th 2017'}
+        {name: 'save', label: 'Save', icon: 'fa-save'},
+        {name: 'open', label: 'Open', icon: 'fa-folder-open'},
+        {name: 'refresh', label: 'Refresh', icon: 'fa-refresh'},
+        {name: 'country', label: 'Vietnam', icon: 'fa-globe'},
+        {name: 'timeRange', label: 'July 9th 2017', icon: 'fa-clock-o'}
       ];
     return (
       <div>
@@ -50,7 +50,7 @@ class MapsNav extends Component {
                 <a className={classNames({'active': activeTab === tab.name})} onClick={e => {
                   e.preventDefault();
                   this._onClickTab(tab.name)
-                }}>{tab.label}</a>
+                }}><i className={`fa ${tab.icon}`} />{' '}{tab.label}</a>
               </li>
             ))}
           </ol>
