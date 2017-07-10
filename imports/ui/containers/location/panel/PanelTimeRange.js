@@ -2,14 +2,14 @@ import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
 
 // components
-import {Selectbox, DatePicker} from '/imports/ui/components/elements';
+import {FormInput} from '/imports/ui/components/elements';
 
 class PanelTimeRange extends Component {
   constructor() {
     super();
 
     this.state = {
-      activeMode: 'quick'
+      active: 'quick'
     };
   }
 
@@ -17,7 +17,7 @@ class PanelTimeRange extends Component {
     switch (type) {
       case 'mode': {
         this.setState({
-          activeMode: value
+          active: value
         });
         break;
       }
@@ -26,7 +26,7 @@ class PanelTimeRange extends Component {
 
   render() {
     const
-      {activeMode} = this.state,
+      {active} = this.state,
       {visible} = this.props,
       typeButtons = [
         {name: 'quick', label: 'Quick'},
@@ -74,13 +74,13 @@ class PanelTimeRange extends Component {
     return (
       <div className={classNames({"tab-pane ": true, "active": visible})}>
         <div className="row">
-          <div className="col-md-2 col-xs-12">
+          <div className="col-md-2 col-xs-12 margin-bottom-40">
             {typeButtons.map(b => (
               <button
                 key={b.name}
                 className={classNames({
                   "btn green-sharp btn-outline  btn-block sbold": true,
-                  "active": activeMode === b.name
+                  "active": active === b.name
                 })}
                 onClick={e => {
                   e.preventDefault();
@@ -89,8 +89,8 @@ class PanelTimeRange extends Component {
               >{b.label}</button>
             ))}
           </div>
-          {activeMode === 'quick' && (
-            <div className="col-md-10 bg-grey-steel">
+          {active === 'quick' && (
+            <div className="col-md-10 col-xs-12">
               <div className="row about-links-cont" data-auto-height="true">
                 <div className="about-links">
                   <div className="row">
@@ -110,16 +110,18 @@ class PanelTimeRange extends Component {
               </div>
             </div>
           )}
-          {activeMode === 'relative' && (
-            <div className="col-md-10 bg-grey-steel">
+          {active === 'relative' && (
+            <div className="col-md-10 col-xs-12">
               <form className="form-inline margin-bottom-40" role="form">
-                <DatePicker
-                  className="form-group form-md-line-input has-success"
+                <FormInput
+                  type="date"
+                  className="form-group form-md-line-input has-success margin-top-30"
                   label="From: "
                   labelClass=""
                 />
-                <div className="form-group form-md-line-input has-success">
-                  <Selectbox
+                <div className="form-group form-md-line-input has-success margin-top-30">
+                  <FormInput
+                    type="select"
                     className="form-control"
                     options={[
                       {name: 'second', label: 'Seconds ago'},
@@ -132,37 +134,32 @@ class PanelTimeRange extends Component {
                     ]}
                   />
                 </div>
-                <div className="md-checkbox md-checkbox-inline has-success">
-                  <input type="checkbox" className="md-check"/>
-                  <label for="checkbox113">
-                    <span></span>
-                    <span className="check"></span>
-                    <span className="box"></span>round to the day</label>
-                </div>
-                <div className="form-group form-md-line-input has-success">
+                <div className="form-group form-md-line-input has-success margin-top-30">
                   <div className="input-group">
                     <input type="text" className="form-control" value="Now" disabled={true}/>
-                      <label for="form_control_1">To: Now</label>
+                      <label>To: Now</label>
                   </div>
                 </div>
-                <button type="button" className="btn green">Go!</button>
+                <button type="button" className="btn green margin-top-30">Go!</button>
               </form>
             </div>
           )}
-          {activeMode === 'absolute' && (
-            <div className="col-md-10 bg-grey-steel">
+          {active === 'absolute' && (
+            <div className="col-md-10 col-xs-12">
               <form className="form-inline margin-bottom-40" role="form">
-                <DatePicker
-                  className="form-group form-md-line-input has-success"
+                <FormInput
+                  type="date"
+                  className="form-group form-md-line-input has-success margin-top-30"
                   label="From: "
                   labelClass=""
                 />
-                <DatePicker
-                  className="form-group form-md-line-input has-success"
+                <FormInput
+                  type="date"
+                  className="form-group form-md-line-input has-success margin-top-30"
                   label="To: "
                   labelClass=""
                 />
-                <button type="button" className="btn green">Go!</button>
+                <button type="button" className="btn green margin-top-30">Go!</button>
               </form>
             </div>
           )}
