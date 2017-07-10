@@ -98,7 +98,7 @@ class PanelTimeRange extends Component {
                       <div key={idx} className="col-md-3 col-xs-12 about-links-item">
                         <ul>
                           {quicks.map(q => (
-                            <li key={q.name}>
+                            <li key={q.name} className="list-unstyled">
                               <a>{q.label}</a>
                             </li>
                           ))}

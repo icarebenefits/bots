@@ -47,37 +47,40 @@ class MapsNav extends Component {
           <ol className="breadcrumb">
             {tabs.map(tab => (
               <li key={tab.name}>
-                <a className={classNames({'active': activeTab === tab.name})} onClick={e => {e.preventDefault();this._onClickTab(tab.name)}}>{tab.label}</a>
+                <a className={classNames({'active': activeTab === tab.name})} onClick={e => {
+                  e.preventDefault();
+                  this._onClickTab(tab.name)
+                }}>{tab.label}</a>
               </li>
             ))}
           </ol>
         </div>
-        <div className="portlet light bordered">
-          {(!_.isEmpty(activeTab) && activeTab !== 'refresh') && (
+        {(!_.isEmpty(activeTab) && activeTab !== 'refresh') && (
+          <div className="portlet light bordered">
             <div className="portlet-title">
               <div className="caption font-green-sharp">
                 <i className="fa fa-clock font-green-sharp"></i>
                 <span className="caption-subject bold uppercase">{activeTab}</span>
               </div>
             </div>
-          )}
-          <div className="portlet-body">
-            <div className="tab-content">
-              <PanelSave
-                visible={activeTab === 'save'}
-              />
-              <PanelOpen
-                visible={activeTab === 'open'}
-              />
-              <PanelCountry
-                visible={activeTab === 'country'}
-              />
-              <PanelTimeRange
-                visible={activeTab === 'timeRange'}
-              />
+            <div className="portlet-body">
+              <div className="tab-content">
+                <PanelSave
+                  visible={activeTab === 'save'}
+                />
+                <PanelOpen
+                  visible={activeTab === 'open'}
+                />
+                <PanelCountry
+                  visible={activeTab === 'country'}
+                />
+                <PanelTimeRange
+                  visible={activeTab === 'timeRange'}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
