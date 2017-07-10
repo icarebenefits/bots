@@ -1,7 +1,7 @@
 import React, {PropTypes} from 'react';
 import S from 'string';
 
-import {wrappedPromise} from '/imports/ui/components/google/maps/google-maps-react';
+import {wrappedPromise} from '/imports/ui/components/google/maps';
 const evtNames = ['click', 'mouseover', 'mouseout', 'recenter', 'dragend'];
 
 class Marker extends React.Component {

@@ -1,45 +1,51 @@
 import React, {Component, PropTypes} from 'react';
 
-class Polygon extends Component {
+class Polyline extends Component {
 
   componentDidMount() {
-    this._renderPolygon();
+    this._renderPolyline();
   }
 
   componentDidUpdate(prevProps) {
     if ((this.props.map !== prevProps.map)) {
-      if (this.polygon) {
-        this.polygon.setMap(null);
-        this._renderPolygon();
+      if (this.polyline) {
+        this.polyline.setMap(null);
+        this._renderPolyline();
       }
     }
 
-    if (this.props.visible !== prevProps.visible ) {
-      this._renderPolygon();
+    if (this.props.visible !== prevProps.visible ||
+    this.props.marker !== prevProps.marker) {
+      this._renderPolyline();
     }
   }
 
   componentWillUnmount() {
-    if (this.polygon) {
-      this.polygon.setMap(null);
+    if (this.polyline) {
+      this.polyline.setMap(null);
     }
   }
 
-  _renderPolygon() {
-    const {map, google, data, markers} = this.props;
+  _renderPolyline() {
+    const {map, google, markers, marker, markerInfo} = this.props;
 
     if(!google || !google.maps) {
       return null;
     }
 
-    console.log('polygon props', this.props);
-
     // examples of coords for polyline
     if(!_.isEmpty(markers)) {
-      const coords = this.props.markers.map(marker => marker.position);
+      // clear previous polyline and redraw
+      if(this.polyline) {
+        this.polyline.setMap(null);
+      }
+
+      const coords = this.props.markers
+        .filter(m => m.userId === markerInfo.userId)
+        .map(m => m.position);
       // coords.push(this.props.markers[0].position);
 
-      var flightPath = new google.maps.Polyline({
+      const flightPath = this.polyline = new google.maps.Polyline({
         path: coords,
         geodesic: true,
         strokeColor: '#26C281',
@@ -55,7 +61,7 @@ class Polygon extends Component {
   }
 }
 
-Polygon.propTypes = {
+Polyline.propTypes = {
   coords: PropTypes.arrayOf(PropTypes.shape({
     lat: PropTypes.number,
     lng: PropTypes.number
@@ -69,4 +75,4 @@ Polygon.propTypes = {
   })
 };
 
-export default Polygon
+export default Polyline

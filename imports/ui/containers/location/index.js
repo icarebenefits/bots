@@ -1,2 +1,2 @@
-export {default as MapFilters} from './Filters';
-export {default as MapSearch} from './SearchBox';
+export {default as MapsNav} from './MapsNav';
+export {default as MapsSearch} from './SearchBox';

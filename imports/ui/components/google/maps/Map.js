@@ -5,7 +5,7 @@ import {makeCancelable} from './lib/cancelablePromise';
 import invariant from 'invariant';
 
 /* Components */
-import {Spinner} from '/imports/ui/components/common';
+import {Spinner} from '/imports/ui/components/common/index';
 
 const mapStyles = {
   container: {

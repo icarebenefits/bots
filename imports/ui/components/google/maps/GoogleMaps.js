@@ -3,58 +3,61 @@ import React, {Component, PropTypes} from 'react';
 import _ from 'lodash';
 
 // Components
-import Map, {
+import {
   GoogleApiWrapper,
+  Map,
   Marker,
   InfoWindow,
-  Polygon
-} from '/imports/ui/components/google/maps/google-maps-react';
+  Polyline
+} from '/imports/ui/components/google/maps/index';
 import {Tooltip} from '/imports/ui/components/common';
 
 class GoogleMaps extends Component {
   render() {
-    const {markers, infoWindow, handlers} = this.props;
+    const {markers, activeMarker, showInfoWindow, showPolyline, handlers} = this.props;
 
     return (
       <Map
         google={window.google}
         className={'gmaps'}
-        center={{lat: 20.9593855, lng: 107.0157329}}
+        center={{lat: 16.002808, lng: 105.488322}}
         containerStyle={{
           position: 'relative',
           height: 500,
           width: '100%'
         }}
-        zoom={11}
+        zoom={5}
       >
         {!_.isEmpty(markers) && (
           markers.map((marker, idx) => {
             return (<Marker
               key={idx}
               {...marker}
-              {...handlers.marker}
+              {...handlers}
             >
             </Marker>);
           })
         )}
         <InfoWindow
-          marker={infoWindow.activeMarker}
-          visible={infoWindow.showingInfoWindow}>
+          marker={activeMarker.marker}
+          visible={showInfoWindow}>
           <div>
             <Tooltip
-              title={infoWindow.selectedPlace.name}
+              title={activeMarker.info.name}
               messages={[
-                `Time: ${infoWindow.selectedPlace.time}`,
-                `Store: ${infoWindow.selectedPlace.store}`,
-                `Email: ${infoWindow.selectedPlace.email}`,
-                `User Id: ${infoWindow.selectedPlace.userId}`
+                `Time: ${activeMarker.info.time}`,
+                `Store: ${activeMarker.info.store}`,
+                `Email: ${activeMarker.info.email}`,
+                `User Id: ${activeMarker.info.userId}`
               ]}
             />
           </div>
         </InfoWindow>
-        <Polygon
-          visible={infoWindow.showingInfoWindow}
+        <Polyline
+          visible={showPolyline}
           markers={markers}
+          marker={activeMarker.marker}
+          markerInfo={activeMarker.info}
         />
       </Map>
     );

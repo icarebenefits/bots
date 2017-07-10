@@ -6,8 +6,8 @@ import moment from 'moment';
 import S from 'string';
 
 // Components
-import {Spinner} from '/imports/ui/components/common';
-import {MapFilters, MapSearch} from '/imports/ui/containers/location';
+import {Spinner, PortletTabs} from '/imports/ui/components/common';
+import {MapsSearch, MapsNav} from '/imports/ui/containers/location';
 
 // Elastic Methods
 import ESMethods from '/imports/api/elastic/methods';
@@ -27,9 +27,9 @@ class Location extends Component {
         env,
         elastic: {indices: {geo: {prefix, types: {fieldSales}}}}
       } = Meteor.settings.public,
-      {suffix} = Parser().indexSuffix(currentDate, 'day'),
-      index = `${prefix}_${env}-2017.07.07`,
-      // index = `${prefix}_${env}-${suffix}`,
+      {suffix} = Parser().indexSuffix(new Date(moment(currentDate).subtract(1, 'day')), 'day'),
+      // index = `${prefix}_${env}-2017.07.07`,
+      index = `${prefix}_${env}-${suffix}`,
       type = fieldSales;
 
     this.state = {
@@ -45,9 +45,10 @@ class Location extends Component {
       search: null,
       index, type,
       mapsData: {},
-      showingInfoWindow: false,
+      showInfoWindow: false,
+      showPolyline: false,
       activeMarker: {},
-      selectedPlace: {},
+      activeMarkerInfo: {},
       error: null
     };
 
@@ -65,7 +66,7 @@ class Location extends Component {
       type,
       body: {
         ...bodybuilder()
-          .query('term', 'user_id', 527)
+          .query('match_all', {})
           .sort('created_at', 'asc')
           .build(),
         size: 100
@@ -86,27 +87,28 @@ class Location extends Component {
     });
   }
 
-  onClickMarker(selectedPlace, activeMarker, event) {
+  onClickMarker(activeMarkerInfo, activeMarker, event) {
     this.setState({
-      selectedPlace,
+      activeMarkerInfo,
       activeMarker,
-      showingInfoWindow: true
+      showInfoWindow: true,
+      showPolyline: true,
     });
+  }
+
+  onApplyTab(action, data) {
+
   }
 
   _getMapsProps() {
     const
       {
         mapsData: {total, hits},
-        selectedPlace,
+        activeMarkerInfo,
         activeMarker,
-        showingInfoWindow
-      } = this.state,
-      infoWindow = {
-        selectedPlace,
-        activeMarker,
-        showingInfoWindow
-      };
+        showInfoWindow,
+        showPolyline
+      } = this.state;
     let markers = [];
     hits.forEach(({_source}) => {
       const {
@@ -133,7 +135,12 @@ class Location extends Component {
 
     return {
       markers,
-      infoWindow
+      activeMarker: {
+        info: activeMarkerInfo,
+        marker: activeMarker
+      },
+      showPolyline,
+      showInfoWindow
     };
   }
 
@@ -146,22 +153,24 @@ class Location extends Component {
         handlers = {
           marker: {
             onClick: this.onClickMarker
+          },
+          tabs: {
+            onApply: this.onApplyTab
           }
         },
         mapsProps = this._getMapsProps();
 
       return (
         <div className="page-content-col">
-          <div className="breadcrumbs">
-            <h1>Field Sales Locations</h1>
-            <MapFilters {...filters}/>
-          </div>
+          <MapsNav
+            title="Field Sales Location"
+          />
           <div className="search-page search-content-2">
             <div className="search-page search-content-2">
               <div className="search-bar bordered">
                 <div className="row">
                   <div className="col-md-12">
-                    <MapSearch {...search} />
+                    <MapsSearch {...search} />
                   </div>
                 </div>
               </div>
@@ -170,7 +179,7 @@ class Location extends Component {
                   <div className="search-container bordered">
                     <GoogleMaps
                       {...mapsProps}
-                      handlers={handlers}
+                      handlers={handlers.marker}
                     />
                   </div>
                 </div>

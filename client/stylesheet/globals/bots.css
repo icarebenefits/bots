@@ -53,3 +53,7 @@
   height: 400px;
   color: #FFF;
 }
+
+.breadcrumbs .breadcrumb > li > a.active {
+  color: #009dc7;
+}

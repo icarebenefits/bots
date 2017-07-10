@@ -1,10 +1,9 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
+import React from 'react';
 
-import {ScriptCache} from './lib/ScriptCache'
-import GoogleApi from './lib/GoogleApi'
+import {ScriptCache} from './lib/ScriptCache';
+import GoogleApi from './lib/GoogleApi';
 
-const defaultMapConfig = {}
+const defaultMapConfig = {};
 const defaultCreateCache = (options) => {
     options = options || {};
     const apiKey = options.apiKey;
@@ -27,7 +26,7 @@ export const wrapper = (options) => (WrappedComponent) => {
             super(props, context);
 
             this.scriptCache = createCache(options);
-            this.scriptCache.google.onLoad(this.onLoad.bind(this))
+            this.scriptCache.google.onLoad(this.onLoad.bind(this));
 
             this.state = {
                 loaded: false,
@@ -58,6 +57,6 @@ export const wrapper = (options) => (WrappedComponent) => {
     }
 
     return Wrapper;
-}
+};
 
-export default wrapper;
+export default wrapper
