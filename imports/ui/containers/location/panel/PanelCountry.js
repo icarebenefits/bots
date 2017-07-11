@@ -1,50 +1,44 @@
 import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
 
+// constants
+import {COUNTRY_CONST} from '../CONSTANTS';
+
 class PanelCountry extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
-      active: 'vn'
+      country: props.country || 'vn'
     };
   }
 
-  _onClick(type, value) {
-    switch (type) {
-      case 'country': {
-        this.setState({
-          active: value
-        });
-        break;
-      }
-    }
+  _onClick(name, label) {
+    this.setState({
+      country: name
+    }, this.props.onApply('country', {country: name, countryLabel: label}));
   }
 
   render() {
     const
-      {active} = this.state,
+      {country} = this.state,
       {visible} = this.props,
-      typeButtons = [
-        {name: 'vn', label: 'Vietnam'},
-        {name: 'kh', label: 'Cambodia'},
-        {name: 'la', label: 'Laos'}
-      ];
-    console.log('active', active);
+      countryButtons = COUNTRY_CONST.buttons;
+
     return (
       <div className={classNames({"tab-pane": true, "active": visible})}>
         <div className="row">
           <div className="col-md-2 col-xs-12">
-            {typeButtons.map(b => (
+            {countryButtons.map(b => (
               <button
                 key={b.name}
                 className={classNames({
                   "btn green-sharp btn-outline  btn-block sbold": true,
-                  "active": active === b.name
+                  "active": country === b.name
                 })}
                 onClick={e => {
                   e.preventDefault();
-                  this._onClick('country', b.name)
+                  this._onClick(b.name, b.label)
                 }}
               >{b.label}</button>
             ))}
@@ -56,7 +50,8 @@ class PanelCountry extends Component {
 };
 
 PanelCountry.propTypes = {
-  visible: PropTypes.bool
+  visible: PropTypes.bool,
+  onApply: PropTypes.func
 };
 
 export default PanelCountry

@@ -14,6 +14,7 @@ import '/imports/api/collections/access-list/register.server';
 import '/imports/api/collections/users/register.server';
 import '/imports/api/collections/rfm/register.server';
 import '/imports/api/collections/workplaces';
+import '/imports/api/collections/geo/register.server';
 
 /**
  * Fields

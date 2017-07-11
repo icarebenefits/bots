@@ -26,6 +26,8 @@ export class DatePicker extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log('oldProps', this.props);
+    console.log('newProps', nextProps);
     if (this.props.disabled != nextProps.disabled) {
       if (nextProps.disabled) {
         $(this.refs.component).find(".input-group-addon").off();
@@ -49,6 +51,7 @@ export class DatePicker extends Component {
     this.el = $(this.refs.component);
     const option = this.props.option || {};
     this.el.datepicker(option).on('input change', _.debounce(e => {
+      console.log('datepicker', e.target.value);
       if (this.isForce) {
         this.isForce = false;
       } else {

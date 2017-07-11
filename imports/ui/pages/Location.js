@@ -4,16 +4,20 @@ import {GoogleMaps} from '/imports/ui/components/google/maps';
 import bodybuilder from 'bodybuilder';
 import moment from 'moment';
 import S from 'string';
+import _ from 'lodash';
+import validate from 'validate.js';
 
 // Components
-import {Spinner, PortletTabs} from '/imports/ui/components/common';
+import {Spinner} from '/imports/ui/components/common';
 import {MapsSearch, MapsNav} from '/imports/ui/containers/location';
 
-// Elastic Methods
+// Methods
 import ESMethods from '/imports/api/elastic/methods';
+import {Methods as GEOMethods} from '/imports/api/collections/geo';
 
 // Functions
 import {Parser} from '/imports/utils'
+import * as Notify from '/imports/api/notifications';
 
 class Location extends Component {
 
@@ -22,55 +26,53 @@ class Location extends Component {
 
     // initiate Elastic index parameters
     const
-      currentDate = new Date(),
       {
         env,
         elastic: {indices: {geo: {prefix, types: {fieldSales}}}}
       } = Meteor.settings.public,
-      {suffix} = Parser().indexSuffix(new Date(moment(currentDate).subtract(1, 'day')), 'day'),
-      // index = `${prefix}_${env}-2017.07.07`,
-      index = `${prefix}_${env}-${suffix}`,
+      index = `${prefix}_${env}`,
       type = fieldSales;
 
     this.state = {
       ready: false,
-      filters: {
-        country: 'vn',
-        timeRange: {
-          quick: moment(currentDate).format('LLL'),
-          relative: null,
-          absolute: null
-        }
-      },
-      search: null,
       index, type,
+      name: '',
+      search: null,
+      country: 'vn',
+      timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
       mapsData: {},
       showInfoWindow: false,
       showPolyline: false,
       activeMarker: {},
       activeMarkerInfo: {},
-      error: null
     };
 
+    /* Handlers */
+    // private
+    this._getMapsData = this._getMapsData.bind(this);
     this._getMapsProps = this._getMapsProps.bind(this);
 
-    // maps handlers
+    // public
     this.onClickMarker = this.onClickMarker.bind(this);
+    this.onApply = this.onApply.bind(this);
   }
 
   componentDidMount() {
     /* Load initial data from Elastic */
-    const {index, type} = this.state;
+    this._getMapsData();
+  }
+
+  _getMapsData() {
+    const {search, country, timeRange, index, type} = this.state;
+    // console.log('searchCondition', {search, country, timeRange, index, type});
+    const body = this._buildESBody({search, country, timeRange});
+    console.log('body', JSON.stringify(body));
+
+    this.setState({ready: false});
     ESMethods.search.call({
       index,
       type,
-      body: {
-        ...bodybuilder()
-          .query('match_all', {})
-          .sort('created_at', 'asc')
-          .build(),
-        size: 100
-      }
+      body
     }, (err, res) => {
       if (err) {
         return this.setState({
@@ -87,6 +89,60 @@ class Location extends Component {
     });
   }
 
+  _buildESBody(searchCondition) {
+    const {search, country, timeRange} = searchCondition;
+    let body = bodybuilder();
+
+    body.sort('created_at', 'asc');
+    body.size(10000);
+
+    if (!_.isEmpty(search)) {
+      if (isNaN(search)) {
+        // search value is not a number --> suppose to search by name or email
+        const constraint = {
+          search: {
+            email: true
+          }
+        };
+        const validation = validate.validate({search}, constraint);
+        if (!_.isEmpty(validation)) {
+          // warning user if they want to search by email but enter wrong email format
+          if (S(search).contains('@')) {
+            Notify.warning({
+              title: 'Validate search text',
+              message: `Email is not a valid email. Trying to search by name of field sales.`
+            });
+          }
+          // search value is not an email --> suppose to search by name
+          body.query('multi_match', 'query', search,
+            {"fields": ["first_name", "last_name"], "type": "cross_fields"}
+          );
+        } else {
+          // search value is an email --> search by email
+          body.query('term', 'email.keyword', search);
+        }
+      } else {
+        // search value is number --> suppose to search by userId
+        const userId = Number(search);
+        body.filter('term', 'user_id', userId);
+      }
+    } else {
+      body.query('match_all', {});
+    }
+
+
+    (!_.isEmpty((country)) && country !== 'all') &&
+    body.filter('term', 'country', country);
+
+    !_.isEmpty(timeRange) &&
+    body.filter('range', 'created_at', {
+      gte: timeRange.from,
+      lte: timeRange.to
+    });
+
+    return body.build();
+  }
+
   onClickMarker(activeMarkerInfo, activeMarker, event) {
     this.setState({
       activeMarkerInfo,
@@ -96,8 +152,70 @@ class Location extends Component {
     });
   }
 
-  onApplyTab(action, data) {
+  onApply(action, data) {
+    console.log('action data', action, data);
+    switch (action) {
+      case 'search': {
+        const {search} = data;
+        this.setState({search}, this._getMapsData);
+        break;
+      }
+      case 'timeRange': {
+        const {timeRange} = data;
+        this.setState({timeRange}, this._getMapsData);
+        break;
+      }
+      case 'country': {
+        const {country} = data;
+        this.setState({country}, this._getMapsData);
+        break;
+      }
+      case 'refresh': {
+        this._getMapsData();
+        break;
+      }
+      case 'open': {
+        const {name} = data;
 
+        Notify.info({title: 'OPEN GEO SLA', message: `OPENING.`});
+        GEOMethods.getByName.call({name}, (err, geoSLA) => {
+          if(err)
+            return Notify.error({title: 'OPEN GEO SLA', message: `FAILED: ${err.reason}!`});
+
+          const {name, condition: {search, timeRange, country}} = geoSLA;
+          console.log('gonna set state', {name, search, timeRange, country});
+          this.setState({name, search, timeRange, country}, this._getMapsData);
+          return Notify.info({title: 'OPEN GEO SLA', message: `DONE.`});
+        });
+        break;
+      }
+      case 'save': {
+        const {name} = data;
+        const {search, timeRange, country} = this.state;
+
+        this.setState({name});
+        Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
+        // console.log('save GEO SLA', {name, condition: {search, timeRange, country}});
+        GEOMethods.create.call({name, condition: {search, timeRange, country}},
+          (err, res) => {
+            if (err)
+              return Notify.error({
+                title: 'SAVE GEO SLA',
+                message: `FAILED: ${err.reason}!`
+              });
+
+            const {_id} = res;
+            return Notify.info({title: 'SAVE GEO SLA', message: `DONE.`});
+          });
+
+        break;
+      }
+      default:
+        Notify.warning({
+          title: 'Apply condition',
+          message: `Action: ${action} is unsupported!`
+        });
+    }
   }
 
   _getMapsProps() {
@@ -147,54 +265,67 @@ class Location extends Component {
   render() {
     const {ready} = this.state;
 
-    if (ready) {
-      const
-        {filters, search} = this.state,
-        handlers = {
-          marker: {
-            onClick: this.onClickMarker
-          },
-          tabs: {
-            onApply: this.onApplyTab
-          }
+    const
+      {mapsData, name, search, country, timeRange} = this.state,
+      handlers = {
+        marker: {
+          onClick: this.onClickMarker
         },
-        mapsProps = this._getMapsProps();
+        tabs: {
+          onApply: this.onApply
+        },
+        searchBox: {
+          onApply: this.onApply
+        }
+      };
 
-      return (
-        <div className="page-content-col">
-          <MapsNav
-            title="Field Sales Location"
-          />
+    console.log('location state', this.state);
+
+    return (
+      <div className="page-content-col">
+        <MapsNav
+          title="Field Sales Location"
+          name={name}
+          country={country}
+          timeRange={timeRange}
+          {...handlers.tabs}
+        />
+        <div className="search-page search-content-2">
           <div className="search-page search-content-2">
-            <div className="search-page search-content-2">
-              <div className="search-bar bordered">
-                <div className="row">
-                  <div className="col-md-12">
-                    <MapsSearch {...search} />
-                  </div>
-                </div>
-              </div>
+            <div className="search-bar bordered">
               <div className="row">
                 <div className="col-md-12">
-                  <div className="search-container bordered">
-                    <GoogleMaps
-                      {...mapsProps}
-                      handlers={handlers.marker}
-                    />
-                  </div>
+                  <MapsSearch
+                    {...search}
+                    {...handlers.searchBox}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-md-12">
+                <div className="search-container bordered">
+                  {ready ? (
+                    (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
+                      <GoogleMaps
+                        {...this._getMapsProps()}
+                        handlers={handlers.marker}
+                      />
+                    ) : (
+                      <div>No data found</div>
+                    )
+                  ) : (
+                    <div>
+                      <Spinner/>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      );
-    } else {
-      return (
-        <div>
-          <Spinner/>
-        </div>
-      );
-    }
+      </div>
+    );
   }
 }
 

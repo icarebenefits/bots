@@ -1,24 +1,46 @@
 import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
+import dateMath from '@elastic/datemath';
+import moment from 'moment';
 
 // components
 import {FormInput} from '/imports/ui/components/elements';
+// constants
+import {TIME_RANGE_CONST} from '../CONSTANTS';
 
 class PanelTimeRange extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
-      active: 'quick'
+      mode: props.timeRange.mode || 'quick',
+      timeRange: props.timeRange || {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'}
     };
+
+    /* Handlers */
+    // private
+    this._onClick = this._onClick.bind(this);
   }
 
   _onClick(type, value) {
     switch (type) {
       case 'mode': {
         this.setState({
-          active: value
+          mode: value
         });
+        break;
+      }
+      case 'timeRange': {
+        this.setState({
+          timeRange: value
+        }, this.props.onApply('timeRange', {
+          timeRange: {
+            from: value.from,
+            to: value.to,
+            mode: value.mode
+          },
+          timeRangeLabel: value.label
+        }));
         break;
       }
     }
@@ -26,61 +48,22 @@ class PanelTimeRange extends Component {
 
   render() {
     const
-      {active} = this.state,
+      {mode} = this.state,
       {visible} = this.props,
-      typeButtons = [
-        {name: 'quick', label: 'Quick'},
-        {name: 'relative', label: 'Relative'},
-        {name: 'absolute', label: 'Absolute'}
-      ],
-      quickMode = [
-        [
-          {name: 'today', label: 'Today'},
-          {name: 'thisWeek', label: 'This week'},
-          {name: 'thisMonth', label: 'This month'},
-          {name: 'thisYear', label: 'This year'},
-          {name: 'weekToDate', label: 'Week to date'},
-          {name: 'monthToDate', label: 'Month to date'},
-          {name: 'yearToDate', label: 'Year to date'},
-        ],
-        [
-          {name: 'yesterday', label: 'Yesterday'},
-          {name: 'dayBeforeYesterday', label: 'Day before yesterday'},
-          {name: 'thisDayLastWeek', label: 'This day last week'},
-          {name: 'previousWeek', label: 'Previous week'},
-          {name: 'previousMonth', label: 'Previous month'},
-          {name: 'previousYear', label: 'Previous year'}
-        ],
-        [
-          {name: 'last15Minutes', label: 'Last 15 minutes'},
-          {name: 'last30Minutes', label: 'Last 30 minutes'},
-          {name: 'last1Hour', label: 'Last 1 hour'},
-          {name: 'last4Hours', label: 'Last 4 hours'},
-          {name: 'last12Hours', label: 'Last 12 hours'},
-          {name: 'last24Hours', label: 'Last 24 hours'},
-          {name: 'last7Days', label: 'Last 7 days'},
-        ],
-        [
-          {name: 'last30Days', label: 'Last 30 days'},
-          {name: 'last60Days', label: 'Last 60 days'},
-          {name: 'last90Days', label: 'Last 90 days'},
-          {name: 'last6Months', label: 'Last 6 months'},
-          {name: 'last1Year', label: 'Last 1 year'},
-          {name: 'last2Years', label: 'Last 2 years'},
-          {name: 'last5Years', label: 'Last 5 years'},
-        ]
-      ];
+      quickButtons = TIME_RANGE_CONST.quick.buttons,
+      quickRanges = TIME_RANGE_CONST.quick.ranges,
+      relativeOptions = TIME_RANGE_CONST.relative.options;
 
     return (
-      <div className={classNames({"tab-pane ": true, "active": visible})}>
+      <div className={classNames({"tab-pane ": true, "active": visible && mode !== ''})}>
         <div className="row">
           <div className="col-md-2 col-xs-12 margin-bottom-40">
-            {typeButtons.map(b => (
+            {quickButtons.map(b => (
               <button
                 key={b.name}
                 className={classNames({
                   "btn green-sharp btn-outline  btn-block sbold": true,
-                  "active": active === b.name
+                  "active": mode === b.name
                 })}
                 onClick={e => {
                   e.preventDefault();
@@ -89,17 +72,22 @@ class PanelTimeRange extends Component {
               >{b.label}</button>
             ))}
           </div>
-          {active === 'quick' && (
+          {mode === 'quick' && (
             <div className="col-md-10 col-xs-12">
               <div className="row about-links-cont" data-auto-height="true">
                 <div className="about-links">
                   <div className="row">
-                    {quickMode.map((quicks, idx) => (
+                    {quickRanges.map((quicks, idx) => (
                       <div key={idx} className="col-md-3 col-xs-12 about-links-item">
                         <ul>
-                          {quicks.map(q => (
-                            <li key={q.name} className="list-unstyled">
-                              <a>{q.label}</a>
+                          {quicks.map((q, idx) => (
+                            <li key={idx} className="list-unstyled">
+                              <a
+                                onClick={e => {
+                                  e.preventDefault();
+                                  this._onClick('timeRange', {from: q.from, to: q.to, label: q.label, mode})
+                                }}
+                              >{q.label}</a>
                             </li>
                           ))}
                         </ul>
@@ -110,56 +98,95 @@ class PanelTimeRange extends Component {
               </div>
             </div>
           )}
-          {active === 'relative' && (
+          {mode === 'relative' && (
             <div className="col-md-10 col-xs-12">
               <form className="form-inline margin-bottom-40" role="form">
-                <FormInput
-                  type="date"
-                  className="form-group form-md-line-input has-success margin-top-30"
-                  label="From: "
-                  labelClass=""
-                />
+                <div className="form-group form-md-line-input has-success margin-top-30">
+                  <div className="input-group">
+                    <input
+                      type="number"
+                      ref="relativeDuration"
+                      className="form-control"
+                      defaultValue="1"
+                    />
+                    <label>From: </label>
+                  </div>
+                </div>
                 <div className="form-group form-md-line-input has-success margin-top-30">
                   <FormInput
                     type="select"
+                    ref="relativeUnit"
                     className="form-control"
-                    options={[
-                      {name: 'second', label: 'Seconds ago'},
-                      {name: 'minute', label: 'Minutes ago'},
-                      {name: 'hour', label: 'Hours ago'},
-                      {name: 'day', label: 'Days ago'},
-                      {name: 'week', label: 'Weeks ago'},
-                      {name: 'month', label: 'Months ago'},
-                      {name: 'year', label: 'Years ago'},
-                    ]}
+                    options={relativeOptions}
+                    defaultValue="d"
                   />
                 </div>
                 <div className="form-group form-md-line-input has-success margin-top-30">
                   <div className="input-group">
                     <input type="text" className="form-control" value="Now" disabled={true}/>
-                      <label>To: Now</label>
+                    <label>To: Now</label>
                   </div>
                 </div>
-                <button type="button" className="btn green margin-top-30">Go!</button>
+                <button
+                  type="button"
+                  className="btn green margin-top-30"
+                  onClick={e => {
+                    e.preventDefault();
+                    const duration = this.refs.relativeDuration.value;
+                    const unit = this.refs.relativeUnit.getValue();
+                    this._onClick('timeRange', {
+                      from: `now-${duration}${unit}`,
+                      to: 'now',
+                      label: `${duration} ${relativeOptions.filter(r => r.name === unit)[0].label}`,
+                      mode
+                    });
+                  }}
+                >Go!
+                </button>
               </form>
             </div>
           )}
-          {active === 'absolute' && (
+          {mode === 'absolute' && (
             <div className="col-md-10 col-xs-12">
               <form className="form-inline margin-bottom-40" role="form">
                 <FormInput
                   type="date"
+                  ref="absoluteFrom"
                   className="form-group form-md-line-input has-success margin-top-30"
                   label="From: "
                   labelClass=""
+                  value={new Date(moment().subtract(1, 'day'))}
                 />
                 <FormInput
                   type="date"
+                  ref="absoluteTo"
                   className="form-group form-md-line-input has-success margin-top-30"
                   label="To: "
                   labelClass=""
+                  value={new Date()}
                 />
-                <button type="button" className="btn green margin-top-30">Go!</button>
+                <button
+                  type="button"
+                  className="btn green margin-top-30"
+                  onClick={e => {
+                    e.preventDefault();
+                    let
+                      from = moment(this.refs.absoluteFrom.getValue()).format('YYYY-MM-DD HH:mm:ss'),
+                      to = moment(this.refs.absoluteTo.getValue()).format('YYYY-MM-DD HH:mm:ss');
+
+                    if (from === 'Invalid date')
+                      from = moment(new Date(moment().subtract(1, 'day'))).format('YYYY-MM-DD HH:mm:ss');
+                    if (to === 'Invalid date')
+                      to = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+
+                    this._onClick('timeRange', {
+                      from, to,
+                      label: `From: ${from}, To: ${to}`,
+                      mode
+                    });
+                  }}
+                >Go!
+                </button>
               </form>
             </div>
           )}
@@ -171,7 +198,14 @@ class PanelTimeRange extends Component {
 ;
 
 PanelTimeRange.propTypes = {
-  visible: PropTypes.bool
+  visible: PropTypes.bool,
+  onApply: PropTypes.func
+};
+
+PanelTimeRange.defaultProps = {
+  visible: false,
+  onApply: () => {
+  }
 };
 
 export default PanelTimeRange
