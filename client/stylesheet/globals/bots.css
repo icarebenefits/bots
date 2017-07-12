@@ -47,3 +47,13 @@
 .img-widget {
   width: 120px !important;
 }
+
+.error-bg {
+  background-image: url("/img/earth.jpg");
+  height: 400px;
+  color: #FFF;
+}
+
+.breadcrumbs .breadcrumb > li > a.active {
+  color: #009dc7;
+}
