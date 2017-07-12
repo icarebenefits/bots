@@ -12,6 +12,8 @@ import {
   HomePage,
   SetupPage,
   AccessListPage,
+  LocationPage,
+  LocationSamplePage,
   ErrorPage,
 } from '/imports/ui/pages';
 
@@ -91,25 +93,27 @@ const userRoutes = FlowRouter.group({
   triggersEnter: [ensureSignedIn]
 });
 
-userRoutes.route('/:page/:country', {
+userRoutes.route('/setup/:country', {
   name: 'setup',
   action(params) {
-    switch (params.page) {
-      case 'setup':
-        return mount(MainLayout, {
-          content() {
-            return <SetupPage />;
-          }
-        });
-      default:
-        mount(MainLayout, {
-          content() {
-            return <SetupPage />;
-          }
-        });
-    }
+    return mount(MainLayout, {
+      content() {
+        return <SetupPage />;
+      }
+    });
   }
 });
+
+// userRoutes.route('/maps', {
+//   name: 'maps',
+//   action(params) {
+//     return mount(MainLayout, {
+//       content() {
+//         return <LocationPage />;
+//       }
+//     });
+//   }
+// });
 
 const adminRoutes = FlowRouter.group({
   prefix: '/admin',
@@ -129,3 +133,15 @@ adminRoutes.route('/access-list', {
     });
   }
 });
+
+adminRoutes.route('/maps', {
+  name: 'maps',
+  action(params) {
+    return mount(MainLayout, {
+      content() {
+        return <LocationPage />;
+      }
+    });
+  }
+});
+

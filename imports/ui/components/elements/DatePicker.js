@@ -26,6 +26,8 @@ export class DatePicker extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log('oldProps', this.props);
+    console.log('newProps', nextProps);
     if (this.props.disabled != nextProps.disabled) {
       if (nextProps.disabled) {
         $(this.refs.component).find(".input-group-addon").off();
@@ -49,6 +51,7 @@ export class DatePicker extends Component {
     this.el = $(this.refs.component);
     const option = this.props.option || {};
     this.el.datepicker(option).on('input change', _.debounce(e => {
+      console.log('datepicker', e.target.value);
       if (this.isForce) {
         this.isForce = false;
       } else {
@@ -74,25 +77,23 @@ export class DatePicker extends Component {
   }
 
   render() {
-    const {label = '', value = '', isDateObject = false, disabled} = this.props;
+    const {label = '', labelClass = "font-normal", value = '', isDateObject = false, disabled, className = 'form-group'} = this.props;
     const dateObj = moment(value);
     return (
-      <div className={'form-group'}>
-        {label && (
-          <label className="font-normal">
-            { label }
-          </label>
-        )}
+      <div className={className}>
         <div className="input-group date" ref={'component'}>
-					<span className="input-group-addon">
-						<i className="glyphicon glyphicon-calendar"/>
-					</span>
           <input
             type="text"
             className="form-control"
             disabled={disabled}
             defaultValue={isDateObject ? dateObj.format('MM/DD/YYYY') : value}
           />
+          {label && (
+            <label className={labelClass}>{label}</label>
+          )}
+          <span className="input-group-addon">
+						<i className="glyphicon glyphicon-calendar"/>
+					</span>
         </div>
       </div>
     );

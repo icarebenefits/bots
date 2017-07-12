@@ -21,6 +21,7 @@ import {PageSideBar} from '/imports/ui/components';
 import {Button, Suggest} from '/imports/ui/components/elements';
 
 import {Label} from '/imports/ui/components/elements';
+import {Spinner} from '/imports/ui/components/common';
 
 
 class Workplaces extends Component {
@@ -334,7 +335,7 @@ class Workplaces extends Component {
     } else {
       return (
         <div>
-          Loading...
+          <Spinner/>
         </div>
       );
     }
