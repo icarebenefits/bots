@@ -5,14 +5,14 @@ import _ from 'lodash';
 // components
 import {PanelSave, PanelOpen, PanelCountry, PanelTimeRange} from './panel';
 // constants
-import {NAV_CONST, COUNTRY_CONST} from './CONSTANTS';
+import {NAV_CONST, COUNTRY_CONST, TIME_RANGE_CONST} from './CONSTANTS';
 
 class MapsNav extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      activeTab: '',
+      activeTab: props.activeTab || '',
       name: props.name || '',
       timeRange: props.timeRange || {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
       timeRangeLabel: this._getTimeRangeLabel(props.timeRange),
@@ -30,7 +30,10 @@ class MapsNav extends Component {
 
   componentWillReceiveProps(nextProps) {
     console.log('nextProps', nextProps);
-    const {name, timeRange, country} = this.props;
+    const {activeTab, name, timeRange, country} = this.props;
+    if(activeTab !== nextProps.activeTab) {
+      this.setState({activeTab: nextProps.activeTab});
+    }
     if(name !== nextProps.name) {
       this.setState({name: nextProps.name});
     }
@@ -38,6 +41,7 @@ class MapsNav extends Component {
       timeRange.to !== nextProps.timeRange.to ||
       timeRange.label !== nextProps.timeRange.label ||
       timeRange.mode !== nextProps.timeRange.mode) {
+      console.log('nextTimeRange', nextProps.timeRange, this._getTimeRangeLabel(nextProps.timeRange));
       this.setState({
         timeRange: nextProps.timeRange,
         timeRangeLabel: this._getTimeRangeLabel(nextProps.timeRange)
@@ -56,7 +60,20 @@ class MapsNav extends Component {
       return 'Today';
     }
 
-    return timeRange.label;
+    if(timeRange.label) {
+      return timeRange.label;
+    }
+
+    let label = 'Today';
+    TIME_RANGE_CONST[timeRange.mode].ranges
+      .forEach(r => {
+        const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
+        if(!_.isEmpty(range)) {
+          label = range[0].label;
+        }
+      });
+
+    return label;
   }
 
   _getCountryLabel(country) {
@@ -155,6 +172,7 @@ class MapsNav extends Component {
 }
 
 MapsNav.propTypes = {
+  activeTab: PropTypes.string,
   title: PropTypes.string,
   onApply: PropTypes.func
 };

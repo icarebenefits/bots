@@ -9,6 +9,7 @@ import validate from 'validate.js';
 
 // Components
 import {Spinner} from '/imports/ui/components/common';
+import {Dialog} from '/imports/ui/components/elements';
 import {MapsSearch, MapsNav} from '/imports/ui/containers/location';
 
 // Methods
@@ -16,7 +17,6 @@ import ESMethods from '/imports/api/elastic/methods';
 import {Methods as GEOMethods} from '/imports/api/collections/geo';
 
 // Functions
-import {Parser} from '/imports/utils'
 import * as Notify from '/imports/api/notifications';
 
 class Location extends Component {
@@ -41,16 +41,19 @@ class Location extends Component {
       country: 'vn',
       timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
       mapsData: {},
+      activeTab: '',
       showInfoWindow: false,
       showPolyline: false,
       activeMarker: {},
       activeMarkerInfo: {},
+      dialog: {}
     };
 
     /* Handlers */
     // private
     this._getMapsData = this._getMapsData.bind(this);
     this._getMapsProps = this._getMapsProps.bind(this);
+    this._closeDialog = this._closeDialog.bind(this);
 
     // public
     this.onClickMarker = this.onClickMarker.bind(this);
@@ -143,6 +146,23 @@ class Location extends Component {
     return body.build();
   }
 
+  _saveGeo(action, _id) {
+    const {name, search, timeRange, country} = this.state;
+    Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
+    // console.log('save GEO SLA', {name, condition: {search, timeRange, country}});
+    GEOMethods[action].call({_id, name, condition: {search, timeRange, country}},
+      (err, res) => {
+        if (err)
+          return Notify.error({
+            title: 'SAVE GEO SLA',
+            message: `FAILED: ${err.reason}!`
+          });
+
+        this.setState({dialog: {}});
+        return Notify.info({title: 'SAVE GEO SLA', message: `DONE.`});
+      });
+  }
+
   onClickMarker(activeMarkerInfo, activeMarker, event) {
     this.setState({
       activeMarkerInfo,
@@ -191,22 +211,25 @@ class Location extends Component {
       }
       case 'save': {
         const {name} = data;
-        const {search, timeRange, country} = this.state;
 
         this.setState({name});
-        Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
-        // console.log('save GEO SLA', {name, condition: {search, timeRange, country}});
-        GEOMethods.create.call({name, condition: {search, timeRange, country}},
-          (err, res) => {
-            if (err)
-              return Notify.error({
-                title: 'SAVE GEO SLA',
-                message: `FAILED: ${err.reason}!`
-              });
-
-            const {_id} = res;
-            return Notify.info({title: 'SAVE GEO SLA', message: `DONE.`});
-          });
+        // validate geo Name before save
+        GEOMethods.validateGeoName.call({name, type: 'field_sales'}, (err, res) => {
+          if(err) {
+            return Notify.error({
+              title: 'VALIDATE GEO SLA NAME',
+              message: `FAILED: ${err.reason}!`
+            });
+          }
+          const {isExists, _id} = res;
+          if(isExists) {
+            this.setState({
+              dialog: {_id}
+            });
+          } else {
+            this._saveGeo('create');
+          }
+        });
 
         break;
       }
@@ -262,11 +285,41 @@ class Location extends Component {
     };
   }
 
+  _renderDialog() {
+    const {dialog} = this.state;
+
+    if (_.isEmpty(dialog)) {
+      return null;
+    }
+
+    return (
+      <Dialog
+        modal={true}
+        className="DialogMedium"
+        bodyClass="text-left"
+        header="Save GEO SLA"
+        confirmLabel="Ok"
+        hasCancel={true}
+        onAction={this._closeDialog}
+      >
+        <div>{`Are you sure want to overwrite "${this.state.name}?"`}</div>
+      </Dialog>
+    );
+  }
+
+  _closeDialog(action) {
+    if(action === 'dismiss') {
+      this.setState({dialog: {}});
+    } else {
+      this._saveGeo('update', this.state.dialog._id);
+    }
+  }
+
   render() {
     const {ready} = this.state;
 
     const
-      {mapsData, name, search, country, timeRange} = this.state,
+      {mapsData, activeTab, name, search, country, timeRange} = this.state,
       handlers = {
         marker: {
           onClick: this.onClickMarker
@@ -284,7 +337,8 @@ class Location extends Component {
     return (
       <div className="page-content-col">
         <MapsNav
-          title="Field Sales Location"
+          title={`Field Sales Location ${name ? `- ${name}` : ''}`}
+          activeTab={activeTab}
           name={name}
           country={country}
           timeRange={timeRange}
@@ -324,6 +378,7 @@ class Location extends Component {
             </div>
           </div>
         </div>
+        {this._renderDialog()}
       </div>
     );
   }

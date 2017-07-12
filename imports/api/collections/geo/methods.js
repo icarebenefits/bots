@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
+import _ from 'lodash';
 
 /* Collections */
 import GEO_SLA from './geo';
@@ -47,6 +48,42 @@ Methods.create = new ValidatedMethod({
   }
 });
 
+/**
+ * Method update a GEO condition
+ * @param {String} name - geo sla name
+ * @return {String} - Mongo document _id
+ */
+Methods.update = new ValidatedMethod({
+  name: 'geo.update',
+  validate: null,
+  run({_id, name, description, workplace, frequency, condition, type = 'field_sales'}) {
+    try {
+      const result = GEO_SLA.update({_id}, {$set: {
+        name,
+        description,
+        workplace,
+        frequency,
+        condition,
+        status: 'draft'
+      }});
+      // if (status === 'active') {
+      //   const freqText = getScheduleText(frequency);
+      //   const jobParams = {
+      //     name,
+      //     freqText,
+      //     info: {method: 'bots.elastic', slaId: _id},
+      //     country
+      //   };
+      //   const createResult = await createJob(jobParams);
+      //   return {_id, createResult};
+      // }
+      return {_id};
+    } catch (err) {
+      throw new Meteor.Error('GEO_SLA_UPDATE', err.message);
+    }
+  }
+});
+
 
 /**
  * Method get a GEO SLA by name
@@ -66,6 +103,29 @@ Methods.getByName = new ValidatedMethod({
       return {...geoSLA};
     } catch (err) {
       throw new Meteor.Error('GEO_SLA_CREATE', err.message);
+    }
+  }
+});
+
+Methods.validateGeoName = new ValidatedMethod({
+  name: 'geo.validateGeoName',
+  validate: new SimpleSchema({
+    name: {
+      type: String
+    },
+    type: {
+      type: String
+    }
+  }).validator(),
+  run({name, type}) {
+    try {
+      const
+        {_id} = GEO_SLA.findOne({name, type}, {fields: {_id: true}}),
+        isExists = !!_id;
+
+      return {isExists, _id};
+    } catch (err) {
+      throw new Meteor.Error('validateGeoName', err.reason);
     }
   }
 });
