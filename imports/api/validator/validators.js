@@ -9,6 +9,8 @@ import {makeExpression, validateConditions} from '/imports/api/query-builder';
 import {Parser, getVarsFromString} from '/imports/utils';
 /* Query builder */
 import {QueryBuilder} from '/imports/api/query-builder';
+/* Methods */
+import {Methods as GEOMethods} from '/imports/api/collections/geo';
 
 const Validators = validate.validators;
 
@@ -225,4 +227,25 @@ Validators.copiedSLA = (copiedSLA) => {
 
   if(isSame)
     return 'can not be saved with same conditions and message with original SLA.';
+};
+
+/**
+ * Validate GEO SLA name - async
+ * @param name
+ */
+Validators.fsGeoName = (name) => {
+  return new validate.Promise(function(resolve, reject) {
+    const type = 'field_sales';
+    GEOMethods.validateGeoName.call({name, type}, (err, res) => {
+      if(err) {
+        console.log('fsGeoName.error', err);
+        reject(err.reason);
+      }
+      if(res.valid) {
+        resolve();
+      } else {
+        resolve('is exists.');
+      }
+    })
+  });
 };

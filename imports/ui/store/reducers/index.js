@@ -8,6 +8,7 @@ import {
   SET_COUNTRY,
   SET_SLOGAN,
   SET_TABS,
+  PAGE_SHOW_TABS,
   SET_ACTIVE_TAB,
   SET_SLA_SIDE_BAR,
   SLA_SET_FILTER,
@@ -41,6 +42,7 @@ const initialState = {
   pageControl: {
     country: '',
     slogan: '',
+    showTabs: false,
     tabs: [],
     activeTab: ''
   },
@@ -87,6 +89,11 @@ const pageControl = (state = initialState.pageControl, action) => {
       return {
         ...state,
         activeTab: payload
+      };
+    case PAGE_SHOW_TABS:
+      return {
+        ...state,
+        showTabs: payload
       };
     default:
       return state;

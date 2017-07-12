@@ -4,9 +4,8 @@ import {createContainer} from 'meteor/react-meteor-data';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {Session} from 'meteor/session';
 // components
-import {
-  DashboardStat
-} from '../components';
+import {DashboardStat} from '../components';
+import {Spinner} from '/imports/ui/components/common';
 // collections
 import {Countries} from '/imports/api/collections/countries';
 import SLAsCollection from '/imports/api/collections/slas/slas';
@@ -58,8 +57,21 @@ class Home extends Component {
               );
             })}
           </div>
-          {(showAdminBox) && (
-            <div className="row">
+          <div className="row">
+            <div key='location' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
+                 onClick={() => {FlowRouter.go('maps')}}
+            >
+              <DashboardStat
+                title={"Field Sales Location"}
+                color="green-meadow"
+                icon="fa-map-marker"
+                stat={200}
+                description="field Sales"
+                label="Maps"
+                moreHref={FlowRouter.path('maps')}
+              />
+            </div>
+            {(showAdminBox) && (
               <div key='admin' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
                    onClick={() => {FlowRouter.go('access-list')}}
               >
@@ -73,13 +85,15 @@ class Home extends Component {
                   moreHref={FlowRouter.path('access-list')}
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       );
     }
     return (
-      <div>Loading...</div>
+      <div>
+        <Spinner/>
+      </div>
     );
   }
 }
@@ -107,7 +121,7 @@ const HomeContainer = createContainer(() => {
     showAdminBox = loggedIn && isSuperAdmin;
   let activeUsers = 0;
 
-  if(showAdminBox) {
+  if (showAdminBox) {
     activeUsers = Meteor.users.find().count();
   }
 

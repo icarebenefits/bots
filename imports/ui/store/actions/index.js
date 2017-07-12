@@ -4,6 +4,7 @@ import {
   SET_SLOGAN,
   SET_TABS,
   SET_ACTIVE_TAB,
+  PAGE_SHOW_TABS,
   SET_SLA_SIDE_BAR,
   SLA_SET_FILTER,
   SLA_SET_SEARCH,
@@ -16,6 +17,8 @@ export const actionCreator = type => (payload = '') => ({type, payload});
 export const setCountry = actionCreator(SET_COUNTRY);
 
 export const setSlogan = actionCreator(SET_SLOGAN);
+
+export const toggleNav = actionCreator(PAGE_SHOW_TABS);
 
 export const setTabs = actionCreator(SET_TABS);
 
