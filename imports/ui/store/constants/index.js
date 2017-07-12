@@ -10,7 +10,8 @@ export const TABS = {
     {id: 'workplace', name: 'Workplace'},
     {id: 'sla', name: 'SLA'},
     {id: 'rfm', name: 'RFM'}
-  ]
+  ],
+  default: []
 };
 /* SIDEBAR */
 export const SIDEBAR = {

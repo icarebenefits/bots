@@ -12,6 +12,8 @@ import {
   HomePage,
   SetupPage,
   AccessListPage,
+  LocationPage,
+  LocationSamplePage,
   ErrorPage,
 } from '/imports/ui/pages';
 
@@ -97,6 +99,17 @@ userRoutes.route('/setup/:country', {
     return mount(MainLayout, {
       content() {
         return <SetupPage />;
+      }
+    });
+  }
+});
+
+userRoutes.route('/maps', {
+  name: 'maps',
+  action(params) {
+    return mount(MainLayout, {
+      content() {
+        return <LocationPage />;
       }
     });
   }

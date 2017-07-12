@@ -16,7 +16,7 @@ export class FormInput extends Component {
   render() {
     const
       {
-        id, type, defaultValue, value, className, placeholder = '', suggests = [],
+        id, type, defaultValue, label, value, className, placeholder = '', suggests = [],
         multiline, options, handleOnChange, hidden, index
       } = this.props,
       common = {
@@ -48,7 +48,7 @@ export class FormInput extends Component {
         return (
           <DatePicker
             {...common}
-            label=""
+            label={label}
             option={{ startView: 2, todayBtn: "linked", keyboardNavigation: false, forceParse: false, autoclose: true }}
             isDateObject={true}
             value={new Date(value)}

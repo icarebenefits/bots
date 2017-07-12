@@ -3,6 +3,7 @@ import React, {Component, PropTypes} from 'react';
 
 class Suggest extends Component {
   getValue() {
+    console.log('suggest', this.refs.lowLevelInput.value);
     return this.refs.lowLevelInput.value;
   }
   
@@ -20,7 +21,7 @@ class Suggest extends Component {
           placeholder={placeHolder}
           ref="lowLevelInput"
           className={className}
-          onChange={e => handleOnChange(e.target.value)}
+          onChange={e => {if(handleOnChange) handleOnChange(e.target.value);}}
         />
         <datalist
           id={randomId}
