@@ -3,9 +3,7 @@ import ReactDOM from 'react-dom';
 import S from 'string';
 import {makeCancelable} from './lib/cancelablePromise';
 import invariant from 'invariant';
-
-/* Components */
-import {Spinner} from '/imports/ui/components/common/index';
+import _ from 'lodash';
 
 const mapStyles = {
   container: {
@@ -55,8 +53,8 @@ class Map extends React.Component {
     this.listeners = {}
     this.state = {
       currentLocation: {
-        lat: this.props.initialCenter.lat,
-        lng: this.props.initialCenter.lng
+        lat: !_.isEmpty(this.props.center) ? this.props.center.lat : this.props.initialCenter.lat,
+        lng: !_.isEmpty(this.props.center) ? this.props.center.lng : this.props.initialCenter.lng
       }
     }
   }
@@ -112,6 +110,40 @@ class Map extends React.Component {
     Object.keys(this.listeners).forEach(e => {
       google.maps.event.removeListener(this.listeners[e]);
     });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!_.isEmpty(nextProps.center) &&
+      (nextProps.center.lat !== this.props.center.lat ||
+      nextProps.center.lng !== this.props.center.lng)
+    ) {
+      this.setState({
+        currentLocation: {
+          lat: nextProps.lat,
+          lng: nextProps.lng
+        }
+      })
+    }
+  }
+
+  getCenter() {
+    if(this.map) {
+      const center = this.map.getCenter();
+      return {
+        lat: center.lat(),
+        lng: center.lng()
+      };
+    } else {
+      return this.state.currentLocation;
+    }
+  }
+
+  getZoom() {
+    if(this.map) {
+      return this.map.getZoom();
+    } else {
+      return 5;
+    }
   }
 
   loadMap() {
@@ -236,13 +268,13 @@ class Map extends React.Component {
     return (
       <div style={containerStyles} className={this.props.className}>
         <div style={style} ref='map' id="map">
-          <Spinner/>
         </div>
         {this.renderChildren()}
       </div>
     )
   }
-};
+}
+;
 
 Map.propTypes = {
   google: PropTypes.object,

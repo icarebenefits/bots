@@ -9,7 +9,7 @@ class SearchBox extends Component {
           type="text"
           ref="searchText"
           className="form-control"
-          placeholder="Search for... name, email, or userId"
+          placeholder="Search by email or userId..."
           defaultValue={value}/>
         <span className="input-group-btn">
         <button

@@ -8,14 +8,14 @@ class Polyline extends Component {
 
   componentDidUpdate(prevProps) {
     if ((this.props.map !== prevProps.map)) {
-      if (this.polyline) {
+      if (this.polyline && this.props.map) {
         this.polyline.setMap(null);
         this._renderPolyline();
       }
     }
 
     if (this.props.visible !== prevProps.visible ||
-    this.props.marker !== prevProps.marker) {
+    this.props.markerId !== prevProps.markerId) {
       this._renderPolyline();
     }
   }
@@ -27,7 +27,7 @@ class Polyline extends Component {
   }
 
   _renderPolyline() {
-    const {map, google, markers, marker, markerInfo} = this.props;
+    const {map, google, markers, markerId} = this.props;
 
     if(!google || !google.maps) {
       return null;
@@ -41,9 +41,8 @@ class Polyline extends Component {
       }
 
       const coords = this.props.markers
-        .filter(m => m.userId === markerInfo.userId)
+        .filter(m => m.userId === Number(markerId))
         .map(m => m.position);
-      // coords.push(this.props.markers[0].position);
 
       const flightPath = this.polyline = new google.maps.Polyline({
         path: coords,
@@ -72,7 +71,8 @@ Polyline.propTypes = {
     strokeWeight: PropTypes.number,
     fillColor: PropTypes.string,
     fillOpacity: PropTypes.number
-  })
+  }),
+  markerId: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
 };
 
 export default Polyline
