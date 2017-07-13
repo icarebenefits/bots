@@ -9,11 +9,14 @@ import _ from 'lodash';
 import validate from 'validate.js';
 import html2canvas from 'html2canvas';
 import {dataURIToBlob} from '/imports/utils';
+import accounting from 'accounting';
 
 // Components
 import {Spinner} from '/imports/ui/components/common';
 import {Dialog} from '/imports/ui/components/elements';
-import {MapsSearch, MapsNav} from '/imports/ui/containers/location';
+import {MapsSearch, MapsNav, StatisticBox} from '/imports/ui/containers/location';
+// Constants
+import {COUNTRY_CONST} from '/imports/ui/containers/location/CONSTANTS';
 
 // Methods
 import ESMethods from '/imports/api/elastic/methods';
@@ -38,13 +41,19 @@ class Location extends Component {
 
     this.state = {
       ready: false,
+
       index, type,
       name: '',
       search: null,
       country: 'vn',
       timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
+
       mapsData: {},
+      stats: {},
+      totalFieldSales: 0,
+
       activeTab: '',
+
       center: {lat: 16.002808, lng: 105.488322},
       zoom: null,
       activeMarker: {},
@@ -52,12 +61,14 @@ class Location extends Component {
       activeMarkerId: null,
       showInfoWindow: false,
       showPolyline: false,
+
       dialog: {}
     };
 
     /* Handlers */
     // private
     this._getMapsData = this._getMapsData.bind(this);
+    this._getStats = this._getStats.bind(this);
     this._getMapsProps = this._getMapsProps.bind(this);
     this._closeDialog = this._closeDialog.bind(this);
 
@@ -90,10 +101,29 @@ class Location extends Component {
         })
       }
 
-      const {ready, hits: mapsData} = res;
+      const {ready, hits: mapsData, aggregations} = res;
+      let stats = [], totalFS = 0;
+      if (!_.isEmpty(aggregations)) {
+        const {terms_country: {buckets}, totalFieldSales} = aggregations;
+        if (!_.isEmpty(buckets)) {
+          stats = buckets;
+        }
+        if(!_.isEmpty(totalFieldSales)) {
+          totalFS = totalFieldSales.value;
+        }
+      }
+
+      let emailList = [];
+      if(!_.isEmpty(mapsData)) {
+        emailList = _.uniq(mapsData.hits.map(fs => fs._source.email));
+      }
+      console.log('emailList', emailList);
+
       return this.setState({
         ready,
-        mapsData
+        mapsData,
+        stats,
+        totalFieldSales: totalFS
       });
     });
   }
@@ -148,6 +178,14 @@ class Location extends Component {
       gte: timeRange.from,
       lte: timeRange.to
     });
+
+    // aggregation
+    body.aggregation('terms', 'country', {shard_size: 200}, 'terms_country', (a) => {
+      return a
+        .aggregation('value_count', 'gps_id', 'noOfLocations')
+        .aggregation('cardinality', 'user_id', 'noOfFieldSales')
+    });
+    body.aggregation('cardinality', 'user_id', 'totalFieldSales');
 
     return body.build();
   }
@@ -360,6 +398,37 @@ class Location extends Component {
     };
   }
 
+  _getStats() {
+    const {stats, totalFieldSales, mapsData: {total: totalLocations}} = this.state;
+
+    // const {
+    //   noOfFieldSales = accounting.format(3203),
+    //   noOfLocations = accounting.format(2347822),
+    //   totalRevenue = `$${accounting.format(34023003)}`,
+    //   stats = [
+    //     ['Vietnam', '$345', 124, 45],
+    //     ['Cambodia', '$560', 24, 12],
+    //     ['Laos', '$1,568', 46, 450]
+    //   ]
+    // } = this.props;
+
+    console.log('stats', stats);
+    return {
+      totalFieldSales,
+      totalLocations,
+      totalRevenue: 0,
+      stats: stats.map(stat => {
+        const {
+            key,
+            noOfFieldSales: {value: noOfFieldSales},
+            noOfLocations: {value: noOfLocations}
+          } = stat,
+          country = COUNTRY_CONST.buttons.filter(c => c.name === key)[0].label;
+        return [country, accounting.format(noOfFieldSales), accounting.format(noOfLocations)];
+      })
+    };
+  }
+
   _renderDialog() {
     const {dialog} = this.state;
 
@@ -394,7 +463,7 @@ class Location extends Component {
     const {ready} = this.state;
 
     const
-      {mapsData, activeTab, name, search, country, timeRange} = this.state,
+      {mapsData, stats, totalNoOfFieldSales, activeTab, name, search, country, timeRange} = this.state,
       handlers = {
         marker: {
           onClick: this.onClickMarker
@@ -406,6 +475,8 @@ class Location extends Component {
           onApply: this.onApply
         }
       };
+
+    console.log('stats', stats, totalNoOfFieldSales);
 
     return (
       <div className="page-content-col">
@@ -430,7 +501,14 @@ class Location extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col-md-12">
+              <div className="col-md-3 col-xs-12">
+                {!_.isEmpty(stats) && (
+                  <StatisticBox
+                    {...this._getStats()}
+                  />
+                )}
+              </div>
+              <div className="col-md-9 col-xs-12">
                 <div className="search-container bordered">
                   {ready ? (
                     (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
