@@ -127,12 +127,23 @@ class Map extends React.Component {
   }
 
   getCenter() {
-    return this.state.currentLocation;
+    if(this.map) {
+      const center = this.map.getCenter();
+      return {
+        lat: center.lat(),
+        lng: center.lng()
+      };
+    } else {
+      return this.state.currentLocation;
+    }
   }
 
   getZoom() {
-    if (this.map)
-      this.map.getZoom();
+    if(this.map) {
+      return this.map.getZoom();
+    } else {
+      return 5;
+    }
   }
 
   loadMap() {

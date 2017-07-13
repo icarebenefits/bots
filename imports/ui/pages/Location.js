@@ -49,7 +49,7 @@ class Location extends Component {
       timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
       mapsData: {},
       activeTab: '',
-      center: {},
+      center: {lat: 16.002808, lng: 105.488322},
       zoom: null,
       activeMarker: {},
       activeMarkerInfo: {},
@@ -159,26 +159,27 @@ class Location extends Component {
   _saveGeo(action, _id) {
     const {
       name, search, timeRange, country,
+      center, zoom,
       activeMarkerId,
-      showPolyline, showInfoWindow
-    } = this.state,
-    center = this.refs.gmap.getCenter(),
-    zoom = this.refs.gmap.getZoom();
+      showPolyline
+    } = this.state;
     Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
     console.log('save GEO SLA', {
       _id, name,
       condition: {search, timeRange, country},
-      gmap: {center, zoom,
+      gmap: {
+        center, zoom,
         activeMarkerId,
-        showInfoWindow, showPolyline
+        showPolyline
       }
     });
     GEOMethods[action].call({
         _id, name,
         condition: {search, timeRange, country},
-        gmap: {center, zoom,
-          activeMarkerId,
-          showInfoWindow, showPolyline
+        gmap: {
+          center, zoom,
+          activeMarkerId: activeMarkerId.toString(),
+          showPolyline
         }
       },
       (err, res) => {
@@ -235,32 +236,36 @@ class Location extends Component {
           const {
             name,
             condition: {search, timeRange, country},
-            gmap: {center, zoom,
+            gmap: {
+              center, zoom,
               activeMarkerId,
-              showInfoWindow, showPolyline
+              showPolyline
             }
           } = geoSLA;
           console.log('gonna set state', {
             name,
             condition: {search, timeRange, country},
-            gmap: {center, zoom,
+            gmap: {
+              center, zoom,
               activeMarkerId,
-              showInfoWindow, showPolyline
+              showPolyline
             }
           });
           this.setState({
             name, search, timeRange, country,
             center, zoom, activeMarkerId,
-            showPolyline, showInfoWindow
+            showPolyline
           }, this._getMapsData);
           return Notify.info({title: 'OPEN GEO SLA', message: `DONE.`});
         });
         break;
       }
       case 'save': {
-        const {name} = data;
+        const {name} = data,
+          center = this.refs.googleMaps.refs.wrapped.refs.map.getCenter(),
+          zoom = this.refs.googleMaps.refs.wrapped.refs.map.getZoom();
 
-        this.setState({name});
+        this.setState({name, center, zoom});
         // validate geo Name before save
         GEOMethods.validateGeoName.call({name, type: 'field_sales'}, (err, res) => {
           if (err) {
@@ -406,8 +411,6 @@ class Location extends Component {
         }
       };
 
-    console.log('Location props', this.props);
-
     return (
       <div className="page-content-col">
         <MapsNav
@@ -436,7 +439,7 @@ class Location extends Component {
                   {ready ? (
                     (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
                       <GoogleMaps
-                        ref="gmap"
+                        ref="googleMaps"
                         {...this._getMapsProps()}
                         handlers={handlers.marker}
                       />
