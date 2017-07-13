@@ -14,9 +14,9 @@ class StatisticBox extends Component {
         ['Laos', '$1,568', 46, 450]
       ]
     } = this.props;
-    console.log('statistic box', this.props)
+    // console.log('statistic box', this.props)
     return (
-      <div className="profile-sidebar">
+      <div className="profile-sidebar" style={{width: '100%'}}>
         <div className="portlet light bordered">
           <div className="row list-separated profile-stat">
             <div className="col-md-6 col-sm-6 col-xs-6">

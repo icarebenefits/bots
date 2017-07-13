@@ -113,11 +113,12 @@ class Location extends Component {
         }
       }
 
+      // Get Revenue Stats
       let emailList = [];
       if(!_.isEmpty(mapsData)) {
         emailList = _.uniq(mapsData.hits.map(fs => fs._source.email));
       }
-      console.log('emailList', emailList);
+      // console.log('emailList', emailList);
 
       return this.setState({
         ready,
@@ -198,15 +199,15 @@ class Location extends Component {
       showPolyline
     } = this.state;
     Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
-    console.log('save GEO SLA', {
-      _id, name,
-      condition: {search, timeRange, country},
-      gmap: {
-        center, zoom,
-        activeMarkerId,
-        showPolyline
-      }
-    });
+    // console.log('save GEO SLA', {
+    //   _id, name,
+    //   condition: {search, timeRange, country},
+    //   gmap: {
+    //     center, zoom,
+    //     activeMarkerId,
+    //     showPolyline
+    //   }
+    // });
     GEOMethods[action].call({
         _id, name,
         condition: {search, timeRange, country},
@@ -276,15 +277,15 @@ class Location extends Component {
               showPolyline
             }
           } = geoSLA;
-          console.log('gonna set state', {
-            name,
-            condition: {search, timeRange, country},
-            gmap: {
-              center, zoom,
-              activeMarkerId,
-              showPolyline
-            }
-          });
+          // console.log('gonna set state', {
+          //   name,
+          //   condition: {search, timeRange, country},
+          //   gmap: {
+          //     center, zoom,
+          //     activeMarkerId,
+          //     showPolyline
+          //   }
+          // });
           this.setState({
             name, search, timeRange, country,
             center, zoom, activeMarkerId,
@@ -401,21 +402,10 @@ class Location extends Component {
   _getStats() {
     const {stats, totalFieldSales, mapsData: {total: totalLocations}} = this.state;
 
-    // const {
-    //   noOfFieldSales = accounting.format(3203),
-    //   noOfLocations = accounting.format(2347822),
-    //   totalRevenue = `$${accounting.format(34023003)}`,
-    //   stats = [
-    //     ['Vietnam', '$345', 124, 45],
-    //     ['Cambodia', '$560', 24, 12],
-    //     ['Laos', '$1,568', 46, 450]
-    //   ]
-    // } = this.props;
-
-    console.log('stats', stats);
+    // console.log('stats', stats);
     return {
-      totalFieldSales,
-      totalLocations,
+      totalFieldSales: accounting.format(totalFieldSales),
+      totalLocations: accounting.format(totalLocations),
       totalRevenue: 0,
       stats: stats.map(stat => {
         const {
@@ -476,8 +466,6 @@ class Location extends Component {
         }
       };
 
-    console.log('stats', stats, totalNoOfFieldSales);
-
     return (
       <div className="page-content-col">
         <MapsNav
@@ -501,14 +489,14 @@ class Location extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col-md-3 col-xs-12">
+              <div className="col-md-4 col-xs-12">
                 {!_.isEmpty(stats) && (
                   <StatisticBox
                     {...this._getStats()}
                   />
                 )}
               </div>
-              <div className="col-md-9 col-xs-12">
+              <div className="col-md-8 col-xs-12">
                 <div className="search-container bordered">
                   {ready ? (
                     (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
@@ -531,7 +519,6 @@ class Location extends Component {
           </div>
         </div>
         {this._renderDialog()}
-        <div ref="imgOut"></div>
       </div>
     );
   }
