@@ -1,11 +1,17 @@
 import {Meteor} from 'meteor/meteor';
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
+import ReactDOM from 'react-dom';
 import {GoogleMaps} from '/imports/ui/components/google/maps';
 import bodybuilder from 'bodybuilder';
 import moment from 'moment';
 import S from 'string';
 import _ from 'lodash';
 import validate from 'validate.js';
+import html2canvas from 'html2canvas';
+import {dataURIToBlob} from '/imports/utils';
+
+// Collections
+import {ImagesStore} from '/imports/api/collections/fileStore';
 
 // Components
 import {Spinner} from '/imports/ui/components/common';
@@ -15,6 +21,7 @@ import {MapsSearch, MapsNav} from '/imports/ui/containers/location';
 // Methods
 import ESMethods from '/imports/api/elastic/methods';
 import {Methods as GEOMethods} from '/imports/api/collections/geo';
+import {Methods as ImagesMethods} from '/imports/api/collections/fileStore';
 
 // Functions
 import * as Notify from '/imports/api/notifications';
@@ -42,10 +49,13 @@ class Location extends Component {
       timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
       mapsData: {},
       activeTab: '',
-      showInfoWindow: false,
-      showPolyline: false,
+      center: {},
+      zoom: null,
       activeMarker: {},
       activeMarkerInfo: {},
+      activeMarkerId: null,
+      showInfoWindow: false,
+      showPolyline: false,
       dialog: {}
     };
 
@@ -110,16 +120,16 @@ class Location extends Component {
         const validation = validate.validate({search}, constraint);
         if (!_.isEmpty(validation)) {
           // warning user if they want to search by email but enter wrong email format
-          if (S(search).contains('@')) {
-            Notify.warning({
-              title: 'Validate search text',
-              message: `Email is not a valid email. Trying to search by name of field sales.`
-            });
-          }
+          // if (S(search).contains('@')) {
+          Notify.warning({
+            title: 'Validate search text',
+            message: validation.search[0]
+          });
+          // }
           // search value is not an email --> suppose to search by name
-          body.query('multi_match', 'query', search,
-            {"fields": ["first_name", "last_name"], "type": "cross_fields"}
-          );
+          // body.query('multi_match', 'query', search,
+          //   {"fields": ["first_name", "last_name"], "type": "cross_fields"}
+          // );
         } else {
           // search value is an email --> search by email
           body.query('term', 'email.keyword', search);
@@ -147,10 +157,30 @@ class Location extends Component {
   }
 
   _saveGeo(action, _id) {
-    const {name, search, timeRange, country} = this.state;
+    const {
+      name, search, timeRange, country,
+      activeMarkerId,
+      showPolyline, showInfoWindow
+    } = this.state,
+    center = this.refs.gmap.getCenter(),
+    zoom = this.refs.gmap.getZoom();
     Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
-    // console.log('save GEO SLA', {name, condition: {search, timeRange, country}});
-    GEOMethods[action].call({_id, name, condition: {search, timeRange, country}},
+    console.log('save GEO SLA', {
+      _id, name,
+      condition: {search, timeRange, country},
+      gmap: {center, zoom,
+        activeMarkerId,
+        showInfoWindow, showPolyline
+      }
+    });
+    GEOMethods[action].call({
+        _id, name,
+        condition: {search, timeRange, country},
+        gmap: {center, zoom,
+          activeMarkerId,
+          showInfoWindow, showPolyline
+        }
+      },
       (err, res) => {
         if (err)
           return Notify.error({
@@ -167,13 +197,13 @@ class Location extends Component {
     this.setState({
       activeMarkerInfo,
       activeMarker,
+      activeMarkerId: activeMarkerInfo.userId,
       showInfoWindow: true,
       showPolyline: true,
     });
   }
 
   onApply(action, data) {
-    console.log('action data', action, data);
     switch (action) {
       case 'search': {
         const {search} = data;
@@ -199,12 +229,30 @@ class Location extends Component {
 
         Notify.info({title: 'OPEN GEO SLA', message: `OPENING.`});
         GEOMethods.getByName.call({name}, (err, geoSLA) => {
-          if(err)
+          if (err)
             return Notify.error({title: 'OPEN GEO SLA', message: `FAILED: ${err.reason}!`});
 
-          const {name, condition: {search, timeRange, country}} = geoSLA;
-          console.log('gonna set state', {name, search, timeRange, country});
-          this.setState({name, search, timeRange, country}, this._getMapsData);
+          const {
+            name,
+            condition: {search, timeRange, country},
+            gmap: {center, zoom,
+              activeMarkerId,
+              showInfoWindow, showPolyline
+            }
+          } = geoSLA;
+          console.log('gonna set state', {
+            name,
+            condition: {search, timeRange, country},
+            gmap: {center, zoom,
+              activeMarkerId,
+              showInfoWindow, showPolyline
+            }
+          });
+          this.setState({
+            name, search, timeRange, country,
+            center, zoom, activeMarkerId,
+            showPolyline, showInfoWindow
+          }, this._getMapsData);
           return Notify.info({title: 'OPEN GEO SLA', message: `DONE.`});
         });
         break;
@@ -215,14 +263,14 @@ class Location extends Component {
         this.setState({name});
         // validate geo Name before save
         GEOMethods.validateGeoName.call({name, type: 'field_sales'}, (err, res) => {
-          if(err) {
+          if (err) {
             return Notify.error({
               title: 'VALIDATE GEO SLA NAME',
               message: `FAILED: ${err.reason}!`
             });
           }
           const {isExists, _id} = res;
-          if(isExists) {
+          if (isExists) {
             this.setState({
               dialog: {_id}
             });
@@ -231,6 +279,26 @@ class Location extends Component {
           }
         });
 
+        break;
+      }
+      case 'post': {
+        html2canvas(ReactDOM.findDOMNode(this.refs.gmap), {
+          useCORS: true
+        })
+          .then(canvas => {
+            // console.log('canvas', canvas.toDataURL());
+            if (canvas) {
+              const dataURI = canvas.toDataURL("image/png");
+              // console.log('dataURI', dataURI);
+              const imageBlob = dataURIToBlob(dataURI);
+              var blobUrl = URL.createObjectURL(myBlob);
+              console.log('blobUrl', blobUrl);
+
+            }
+          })
+          .catch(err => {
+            console.log('html2canvas', err);
+          });
         break;
       }
       default:
@@ -245,8 +313,11 @@ class Location extends Component {
     const
       {
         mapsData: {total, hits},
+        center,
+        zoom,
         activeMarkerInfo,
         activeMarker,
+        activeMarkerId,
         showInfoWindow,
         showPolyline
       } = this.state;
@@ -276,10 +347,13 @@ class Location extends Component {
 
     return {
       markers,
+      center,
+      zoom,
       activeMarker: {
         info: activeMarkerInfo,
         marker: activeMarker
       },
+      activeMarkerId,
       showPolyline,
       showInfoWindow
     };
@@ -308,7 +382,7 @@ class Location extends Component {
   }
 
   _closeDialog(action) {
-    if(action === 'dismiss') {
+    if (action === 'dismiss') {
       this.setState({dialog: {}});
     } else {
       this._saveGeo('update', this.state.dialog._id);
@@ -332,7 +406,7 @@ class Location extends Component {
         }
       };
 
-    console.log('location state', this.state);
+    console.log('Location props', this.props);
 
     return (
       <div className="page-content-col">
@@ -362,6 +436,7 @@ class Location extends Component {
                   {ready ? (
                     (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
                       <GoogleMaps
+                        ref="gmap"
                         {...this._getMapsProps()}
                         handlers={handlers.marker}
                       />
@@ -379,6 +454,7 @@ class Location extends Component {
           </div>
         </div>
         {this._renderDialog()}
+        <div ref="imgOut"></div>
       </div>
     );
   }
