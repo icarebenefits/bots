@@ -67,6 +67,7 @@ export const COUNTRY_CONST = {
 
 export const NAV_CONST = {
   tabs: [
+    // {name: 'post', label: 'Post', icon: 'fa-facebook'},
     {name: 'save', label: 'Save', icon: 'fa-save'},
     {name: 'open', label: 'Open', icon: 'fa-folder-open'},
     // {name: 'refresh', label: 'Refresh', icon: 'fa-refresh'},

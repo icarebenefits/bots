@@ -1,8 +1,9 @@
 import React, {Component, PropTypes} from 'react';
 import classNames from 'classnames';
+import _ from 'lodash';
 
-// components
-import {FormInput} from '/imports/ui/components/elements';
+// Functions
+import {warning} from '/imports/api/notifications';
 
 class PanelSave extends Component {
   render() {
@@ -27,11 +28,15 @@ class PanelSave extends Component {
                 className="btn green margin-top-30"
                 onClick={e => {
                   e.preventDefault();
-                  onApply('save', {name: this.refs.name.value});
+                  const name = this.refs.name.value;
+                  if(_.isEmpty(name)) {
+                    return warning({title: 'VALIDATE SLA NAME', message: 'Name is empty.'})
+                  }
+                  return onApply('save', {name});
                 }}
               >Save</button>
             </form>
-          </div>
+          </div>z
         </div>
       </div>
     );

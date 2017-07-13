@@ -19,15 +19,130 @@ const Methods = {};
  */
 Methods.create = new ValidatedMethod({
   name: 'geo.create',
-  validate: null,
-  run({name, description, workplace, frequency, condition, type = 'field_sales'}) {
+  validate: new SimpleSchema({
+    _id: {
+      type: String,
+      optional: true
+    },
+    name: {
+      type: String,
+    },
+    type: {
+      type: String,
+      allowedValues: ['field_sales'],
+      defaultValue: 'field_sales',
+      optional: true,
+    },
+    description: {
+      type: String,
+      optional: true
+    },
+    workplace: {
+      type: String,
+      optional: true
+    },
+    frequency: {
+      type: Object,
+      optional: true
+    },
+    'frequency.preps': {
+      type: String,
+      optional: true
+    },
+    'frequency.range': {
+      type: String,
+      optional: true
+    },
+    'frequency.unit': {
+      type: String,
+      optional: true
+    },
+    'frequency.preps2': {
+      type: String,
+      optional: true
+    },
+    'frequency.range2': {
+      type: String,
+      optional: true
+    },
+    condition: {
+      type: Object,
+      optional: true
+    },
+    "condition.search": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange": {
+      type: Object,
+      optional: true
+    },
+    "condition.timeRange.from": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange.to": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange.label": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange.mode": {
+      type: String,
+      optional: true
+    },
+    "condition.country": {
+      type: String,
+      optional: true
+    },
+    gmap: {
+      type: Object,
+      optional: true
+    },
+    "gmap.center": {
+      type: Object,
+      optional: true
+    },
+    "gmap.center.lat": {
+      type: Number,
+      decimal: true,
+      optional: true
+    },
+    "gmap.center.lng": {
+      type: Number,
+      decimal: true,
+      optional: true
+    },
+    "gmap.zoom": {
+      type: Number,
+      optional: true
+    },
+    "gmap.activeMarkerId": {
+      type: String,
+      optional: true
+    },
+    "gmap.showPolyline": {
+      type: Boolean,
+      optional: true
+    },
+    status: {
+      type: String,
+      optional: true,
+      allowedValues: ['draft', 'active', 'inactive'],
+      defaultValue: 'draft'
+    },
+  }).validator(),
+  run({_id, name, description, workplace, frequency, condition, gmap, type = 'field_sales'}) {
     try {
-      const _id = GEO_SLA.insert({
+      const geoSLAId = GEO_SLA.insert({
         name,
         description,
         workplace,
         frequency,
         condition,
+        gmap,
         status: 'draft'
       });
       // if (status === 'active') {
@@ -41,7 +156,7 @@ Methods.create = new ValidatedMethod({
       //   const createResult = await createJob(jobParams);
       //   return {_id, createResult};
       // }
-      return {_id};
+      return {geoSLAId};
     } catch (err) {
       throw new Meteor.Error('GEO_SLA_CREATE', err.message);
     }
@@ -55,17 +170,134 @@ Methods.create = new ValidatedMethod({
  */
 Methods.update = new ValidatedMethod({
   name: 'geo.update',
-  validate: null,
-  run({_id, name, description, workplace, frequency, condition, type = 'field_sales'}) {
+  validate: new SimpleSchema({
+    _id: {
+      type: String,
+      optional: true
+    },
+    name: {
+      type: String,
+    },
+    type: {
+      type: String,
+      allowedValues: ['field_sales'],
+      defaultValue: 'field_sales',
+      optional: true,
+    },
+    description: {
+      type: String,
+      optional: true
+    },
+    workplace: {
+      type: String,
+      optional: true
+    },
+    frequency: {
+      type: Object,
+      optional: true
+    },
+    'frequency.preps': {
+      type: String,
+      optional: true
+    },
+    'frequency.range': {
+      type: String,
+      optional: true
+    },
+    'frequency.unit': {
+      type: String,
+      optional: true
+    },
+    'frequency.preps2': {
+      type: String,
+      optional: true
+    },
+    'frequency.range2': {
+      type: String,
+      optional: true
+    },
+    condition: {
+      type: Object,
+      optional: true
+    },
+    "condition.search": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange": {
+      type: Object,
+      optional: true
+    },
+    "condition.timeRange.from": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange.to": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange.label": {
+      type: String,
+      optional: true
+    },
+    "condition.timeRange.mode": {
+      type: String,
+      optional: true
+    },
+    "condition.country": {
+      type: String,
+      optional: true
+    },
+    gmap: {
+      type: Object,
+      optional: true
+    },
+    "gmap.center": {
+      type: Object,
+      optional: true
+    },
+    "gmap.center.lat": {
+      type: Number,
+      decimal: true,
+      optional: true
+    },
+    "gmap.center.lng": {
+      type: Number,
+      decimal: true,
+      optional: true
+    },
+    "gmap.zoom": {
+      type: Number,
+      optional: true
+    },
+    "gmap.activeMarkerId": {
+      type: String,
+      optional: true
+    },
+    "gmap.showPolyline": {
+      type: Boolean,
+      optional: true
+    },
+    status: {
+      type: String,
+      optional: true,
+      allowedValues: ['draft', 'active', 'inactive'],
+      defaultValue: 'draft'
+    },
+  }).validator(),
+  run({_id, name, description, workplace, frequency, condition, gmap, type = 'field_sales'}) {
     try {
-      const result = GEO_SLA.update({_id}, {$set: {
-        name,
-        description,
-        workplace,
-        frequency,
-        condition,
-        status: 'draft'
-      }});
+      const result = GEO_SLA.update({_id}, {
+        $set: {
+          name,
+          description,
+          workplace,
+          frequency,
+          condition,
+          gmap,
+          status: 'draft'
+        }
+      });
       // if (status === 'active') {
       //   const freqText = getScheduleText(frequency);
       //   const jobParams = {
@@ -119,12 +351,17 @@ Methods.validateGeoName = new ValidatedMethod({
   }).validator(),
   run({name, type}) {
     try {
-      const
-        {_id} = GEO_SLA.findOne({name, type}, {fields: {_id: true}}),
-        isExists = !!_id;
+      const geoSLA = GEO_SLA.findOne({name, type}, {fields: {_id: true}});
+      let isExists = false, _id = null;
+
+      if (geoSLA) {
+        isExists = true;
+        _id = geoSLA._id;
+      }
 
       return {isExists, _id};
     } catch (err) {
+      console.log('validateGeoName.Error', err);
       throw new Meteor.Error('validateGeoName', err.reason);
     }
   }

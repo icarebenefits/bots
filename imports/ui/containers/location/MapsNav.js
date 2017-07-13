@@ -3,9 +3,15 @@ import classNames from 'classnames';
 import _ from 'lodash';
 
 // components
-import {PanelSave, PanelOpen, PanelCountry, PanelTimeRange} from './panel';
+import {
+  PanelPost,
+  PanelSave, PanelOpen,
+  PanelCountry, PanelTimeRange
+} from './panel';
 // constants
 import {NAV_CONST, COUNTRY_CONST, TIME_RANGE_CONST} from './CONSTANTS';
+// Functions
+import {Parser} from '/imports/utils';
 
 class MapsNav extends Component {
   constructor(props) {
@@ -29,7 +35,6 @@ class MapsNav extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log('nextProps', nextProps);
     const {activeTab, name, timeRange, country} = this.props;
     if(activeTab !== nextProps.activeTab) {
       this.setState({activeTab: nextProps.activeTab});
@@ -41,7 +46,6 @@ class MapsNav extends Component {
       timeRange.to !== nextProps.timeRange.to ||
       timeRange.label !== nextProps.timeRange.label ||
       timeRange.mode !== nextProps.timeRange.mode) {
-      console.log('nextTimeRange', nextProps.timeRange, this._getTimeRangeLabel(nextProps.timeRange));
       this.setState({
         timeRange: nextProps.timeRange,
         timeRangeLabel: this._getTimeRangeLabel(nextProps.timeRange)
@@ -65,19 +69,32 @@ class MapsNav extends Component {
     }
 
     let label = 'Today';
-    TIME_RANGE_CONST[timeRange.mode].ranges
-      .forEach(r => {
-        const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
-        if(!_.isEmpty(range)) {
-          label = range[0].label;
-        }
-      });
+    switch (timeRange.mode) {
+      case 'quick': {
+        TIME_RANGE_CONST[timeRange.mode].ranges
+          .forEach(r => {
+            const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
+            if(!_.isEmpty(range)) {
+              label = range[0].label;
+            }
+          });
+        break;
+      }
+      case 'relative': {
+        const {from, to} = Parser().elasticRelativeParts(timeRange.from, timeRange.to);
+        label = `${from.count} ${TIME_RANGE_CONST[timeRange.mode].options.filter(r => r.name === from.unit)[0].label}`;
+        break;
+      }
+      case 'absolute': {
+        label = `From: ${timeRange.from}, To: ${timeRange.to}`;
+        break;
+      }
+    }
 
     return label;
   }
 
   _getCountryLabel(country) {
-    console.log('country', country);
     if(!_.isEmpty(country)) {
       const labels = COUNTRY_CONST.buttons.filter(c => c.name === country);
       if(!_.isEmpty(labels)) {
@@ -99,12 +116,6 @@ class MapsNav extends Component {
   }
 
   _onClickTab(name) {
-    switch (name) {
-      case 'refresh': {
-        console.log('gonna refresh the filters');
-        break;
-      }
-    }
     this.setState({
       activeTab: this.state.activeTab !== name ? name : ''
     });
@@ -112,11 +123,9 @@ class MapsNav extends Component {
 
   render() {
     const
-      {activeTab, name, timeRange, timeRangeLabel, country, countryLabel} = this.state,
+      {activeTab, name, timeRange, country} = this.state,
       {title} = this.props,
       {tabs} = NAV_CONST;
-
-    console.log('maps nav state', this.state);
 
     return (
       <div>
@@ -143,6 +152,10 @@ class MapsNav extends Component {
             </div>
             <div className="portlet-body">
               <div className="tab-content">
+                <PanelPost
+                  visible={activeTab === 'post'}
+                  onApply={this.onApplyPanel}
+                />
                 <PanelSave
                   visible={activeTab === 'save'}
                   name={name}

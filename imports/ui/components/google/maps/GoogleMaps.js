@@ -14,19 +14,20 @@ import {Tooltip} from '/imports/ui/components/common';
 
 class GoogleMaps extends Component {
   render() {
-    const {markers, activeMarker, showInfoWindow, showPolyline, handlers} = this.props;
+    const {center, zoom, markers, activeMarker, activeMarkerId, showInfoWindow, showPolyline, handlers} = this.props;
 
     return (
       <Map
         google={window.google}
+        ref="map"
         className={'gmaps'}
-        center={{lat: 16.002808, lng: 105.488322}}
+        center={center || {lat: 16.002808, lng: 105.488322}}
         containerStyle={{
           position: 'relative',
           height: 500,
           width: '100%'
         }}
-        zoom={5}
+        zoom={zoom || 5}
       >
         {!_.isEmpty(markers) && (
           markers.map((marker, idx) => {
@@ -56,8 +57,7 @@ class GoogleMaps extends Component {
         <Polyline
           visible={showPolyline}
           markers={markers}
-          marker={activeMarker.marker}
-          markerInfo={activeMarker.info}
+          markerId={activeMarkerId}
         />
       </Map>
     );
