@@ -102,6 +102,36 @@ GEO_SLA.schema = new SimpleSchema({
     type: String,
     optional: true
   },
+  gmap: {
+    type: Object,
+    optional: true
+  },
+  "gmap.center": {
+    type: Object,
+    optional: true
+  },
+  "gmap.center.lat": {
+    type: Number,
+    decimal: true,
+    optional: true
+  },
+  "gmap.center.lng": {
+    type: Number,
+    decimal: true,
+    optional: true
+  },
+  "gmap.zoom": {
+    type: Number,
+    optional: true
+  },
+  "gmap.activeMarkerId": {
+    type: String,
+    optional: true
+  },
+  "gmap.showPolyline": {
+    type: Boolean,
+    optional: true
+  },
   status: {
     type: String,
     allowedValues: ['draft', 'active', 'inactive'],

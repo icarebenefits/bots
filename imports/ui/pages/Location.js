@@ -10,9 +10,6 @@ import validate from 'validate.js';
 import html2canvas from 'html2canvas';
 import {dataURIToBlob} from '/imports/utils';
 
-// Collections
-import {ImagesStore} from '/imports/api/collections/fileStore';
-
 // Components
 import {Spinner} from '/imports/ui/components/common';
 import {Dialog} from '/imports/ui/components/elements';
@@ -21,7 +18,6 @@ import {MapsSearch, MapsNav} from '/imports/ui/containers/location';
 // Methods
 import ESMethods from '/imports/api/elastic/methods';
 import {Methods as GEOMethods} from '/imports/api/collections/geo';
-import {Methods as ImagesMethods} from '/imports/api/collections/fileStore';
 
 // Functions
 import * as Notify from '/imports/api/notifications';
