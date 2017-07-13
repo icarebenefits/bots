@@ -10,6 +10,8 @@ import {
 } from './panel';
 // constants
 import {NAV_CONST, COUNTRY_CONST, TIME_RANGE_CONST} from './CONSTANTS';
+// Functions
+import {Parser} from '/imports/utils';
 
 class MapsNav extends Component {
   constructor(props) {
@@ -67,13 +69,27 @@ class MapsNav extends Component {
     }
 
     let label = 'Today';
-    TIME_RANGE_CONST[timeRange.mode].ranges
-      .forEach(r => {
-        const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
-        if(!_.isEmpty(range)) {
-          label = range[0].label;
-        }
-      });
+    switch (timeRange.mode) {
+      case 'quick': {
+        TIME_RANGE_CONST[timeRange.mode].ranges
+          .forEach(r => {
+            const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
+            if(!_.isEmpty(range)) {
+              label = range[0].label;
+            }
+          });
+        break;
+      }
+      case 'relative': {
+        const {from, to} = Parser().elasticRelativeParts(timeRange.from, timeRange.to);
+        label = `${from.count} ${TIME_RANGE_CONST[timeRange.mode].options.filter(r => r.name === from.unit)[0].label}`;
+        break;
+      }
+      case 'absolute': {
+        label = `From: ${timeRange.from}, To: ${timeRange.to}`;
+        break;
+      }
+    }
 
     return label;
   }
