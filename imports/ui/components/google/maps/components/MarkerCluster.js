@@ -4,18 +4,21 @@ import _ from 'lodash';
 
 class MarkerCluster extends Component {
 
-  componentDidMount() {
-    this._renderCluster();
-  }
-
-  componentWillUpdate() {
-    if(this.mCluster) {
-      this.mCluster.clearMarkers();
-    }
-  }
+  // componentDidMount() {
+  //   this._renderCluster();
+  // }
 
   componentDidUpdate(prevProps) {
     if (prevProps.map !== this.props.map) {
+      if(this.mCluster) {
+        this.mCluster.clearMarkers();
+      }
+      this._renderCluster();
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if(nextProps.children !== this.props.children) {
       if(this.mCluster) {
         this.mCluster.clearMarkers();
       }
@@ -55,6 +58,7 @@ class MarkerCluster extends Component {
     }
 
     this.mCluster = new MarkerClusterer(map, [], options);
+    this.mCluster.clearMarkers();
     this._renderChildren();
 
     this.mCluster.repaint();
