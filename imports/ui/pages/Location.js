@@ -213,7 +213,7 @@ class Location extends Component {
         condition: {search, timeRange, country},
         gmap: {
           center, zoom,
-          activeMarkerId: activeMarkerId.toString(),
+          activeMarkerId: activeMarkerId ? activeMarkerId.toString() : '',
           showPolyline
         }
       },
@@ -482,7 +482,7 @@ class Location extends Component {
               <div className="row">
                 <div className="col-md-12">
                   <MapsSearch
-                    {...search}
+                    value={search}
                     {...handlers.searchBox}
                   />
                 </div>
