@@ -40,7 +40,8 @@ const evtNames = [
   'rightclick',
   'tilesloaded',
   'tilt_changed',
-  'zoom_changed'
+  'zoom_changed',
+  'clearMarkers'
 ];
 
 class Map extends React.Component {
