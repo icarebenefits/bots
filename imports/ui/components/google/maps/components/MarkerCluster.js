@@ -8,12 +8,25 @@ class MarkerCluster extends Component {
     this._renderCluster();
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.mCluster) {
-      this.mCluster.repaint();
+  componentWillUpdate() {
+    if(this.mCluster) {
+      this.mCluster.clearMarkers();
     }
+  }
+
+  componentDidUpdate(prevProps) {
     if (prevProps.map !== this.props.map) {
+      if(this.mCluster) {
+        this.mCluster.clearMarkers();
+      }
       this._renderCluster();
+    }
+  }
+
+  componentWillUnmount() {
+    if(this.mCluster) {
+      this.mCluster.clearMarkers();
+      this.mCluster = null;
     }
   }
 
