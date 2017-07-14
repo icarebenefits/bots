@@ -1,4 +1,3 @@
-import {Meteor} from 'meteor/meteor';
 import React, {Component, PropTypes} from 'react';
 import _ from 'lodash';
 
@@ -8,13 +7,19 @@ import {
   Map,
   Marker,
   InfoWindow,
-  Polyline
+  Polyline,
+  MarkerCluster
 } from '/imports/ui/components/google/maps/index';
 import {Tooltip} from '/imports/ui/components/common';
 
 class GoogleMaps extends Component {
   render() {
-    const {center, zoom, markers, activeMarker, activeMarkerId, showInfoWindow, showPolyline, handlers} = this.props;
+    const {
+      center, zoom,
+      markers, activeMarker, activeMarkerId,
+      showInfoWindow, showPolyline,
+      handlers
+    } = this.props;
 
     return (
       <Map
@@ -29,16 +34,21 @@ class GoogleMaps extends Component {
         }}
         zoom={zoom || 5}
       >
-        {!_.isEmpty(markers) && (
-          markers.map((marker, idx) => {
-            return (<Marker
-              key={idx}
-              {...marker}
-              {...handlers}
-            >
-            </Marker>);
-          })
-        )}
+        <MarkerCluster
+          options={{gridSize: 50, maxZoom: 15}}
+          markers={markers}
+        >
+          {!_.isEmpty(markers) && (
+            markers.map((marker, idx) => {
+              return (<Marker
+                key={idx}
+                {...marker}
+                {...handlers}
+              >
+              </Marker>);
+            })
+          )}
+        </MarkerCluster>
         <InfoWindow
           marker={activeMarker.marker}
           visible={showInfoWindow}>

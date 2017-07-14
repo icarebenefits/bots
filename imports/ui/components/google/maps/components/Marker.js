@@ -12,12 +12,13 @@ class Marker extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if ((this.props.map !== prevProps.map) ||
-      (this.props.position !== prevProps.position)) {
-        if (this.marker) {
-            this.marker.setMap(null);
-        }
-        this.renderMarker();
+    if (this.props.map !== prevProps.map ||
+      this.props.position !== prevProps.position ||
+      this.props.MarkerCluster !== prevProps.MarkerCluster) {
+      if (this.marker) {
+        this.marker.setMap(null);
+      }
+      this.renderMarker();
     }
   }
 
@@ -29,7 +30,9 @@ class Marker extends React.Component {
 
   renderMarker() {
     let {
-      map, google, position, mapCenter, icon, label, draggable, title
+      map, google, position, mapCenter,
+      icon, label, draggable, title,
+      MarkerCluster
     } = this.props;
     if (!google) {
       return null
@@ -49,6 +52,10 @@ class Marker extends React.Component {
       draggable: draggable
     };
     this.marker = new google.maps.Marker(pref);
+
+    if (MarkerCluster) {
+      MarkerCluster.addMarker(this.marker);
+    }
 
     evtNames.forEach(e => {
       this.marker.addListener(e, this.handleEvent(e));
