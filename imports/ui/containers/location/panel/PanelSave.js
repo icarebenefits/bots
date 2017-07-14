@@ -36,13 +36,12 @@ class PanelSave extends Component {
                 }}
               >Save</button>
             </form>
-          </div>z
+          </div>
         </div>
       </div>
     );
   }
 }
-;
 
 PanelSave.propTypes = {
   visible: PropTypes.bool,
