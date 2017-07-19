@@ -112,14 +112,14 @@ class Location extends Component {
         if (!_.isEmpty(buckets)) {
           stats = buckets;
         }
-        if(!_.isEmpty(totalFieldSales)) {
+        if (!_.isEmpty(totalFieldSales)) {
           totalFS = totalFieldSales.value;
         }
       }
 
       // Get Revenue Stats
       let emailList = [];
-      if(!_.isEmpty(mapsData)) {
+      if (!_.isEmpty(mapsData)) {
         emailList = _.uniq(mapsData.hits.map(fs => fs._source.email));
       }
       // console.log('emailList', emailList);
@@ -318,64 +318,64 @@ class Location extends Component {
         break;
       }
       case 'post': {
-          html2canvas(ReactDOM.findDOMNode(this.refs.fsLocation), {
-            useCORS: true
-          })
-            .then(canvas => {
-              if (canvas) {
-                const
-                  {suffix} = Parser().indexSuffix(new Date(), 'second'),
-                  {region, bucket, album} = Meteor.settings.public.aws.s3,
-                  file = {
-                    name: `fs_location-${suffix}.png`
-                  };
-                document.body.appendChild(canvas)
-                const dataURI = canvas.toDataURL(file.type);
-                file.body = dataURI;
-                AWSMethods.addPhoto.call({album, file}, err => {
+        html2canvas(ReactDOM.findDOMNode(this.refs.fsLocation), {
+          useCORS: true
+        })
+          .then(canvas => {
+            if (canvas) {
+              const
+                {suffix} = Parser().indexSuffix(new Date(), 'second'),
+                {region, bucket, album} = Meteor.settings.public.aws.s3,
+                file = {
+                  name: `fs_location-${suffix}.png`
+                };
+              document.body.appendChild(canvas)
+              const dataURI = canvas.toDataURL(file.type);
+              file.body = dataURI;
+              AWSMethods.addPhoto.call({album, file}, err => {
+                if (err) {
+                  Notify.error({
+                    title: 'GENERATE_FS_LOCATION_IMAGE',
+                    message: err.reason
+                  });
+                }
+                // gonna post to workplace
+                const {message, workplace} = data;
+                const imageUrl = `https://${region}.amazonaws.com/${bucket}/${album}/${file.name}`;
+                Notify.info({
+                  title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                  message: 'POSTING.'
+                });
+
+                FBMethods.addPhoto.call({groupId: "405969529772344", message, imageUrl}, err => {
                   if (err) {
-                    Notify.error({
-                      title: 'GENERATE_FS_LOCATION_IMAGE',
+                    return Notify.error({
+                      title: 'POST_FS_LOCATION_TO_WORKPLACE',
                       message: err.reason
                     });
                   }
-                  // gonna post to workplace
-                  const {message, workplace} = data;
-                  const imageUrl = `https://${region}.amazonaws.com/${bucket}/${album}/${file.name}`;
-                  Notify.info({
-                    title: 'POST_FS_LOCATION_TO_WORKPLACE',
-                    message: 'POSTING.'
-                  });
 
-                  FBMethods.addPhoto.call({groupId: "405969529772344", message, imageUrl}, err => {
-                    if (err) {
-                      return Notify.error({
-                        title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                  // Delete the posted photo
+                  AWSMethods.deletePhoto.call({album, fileName: file.name}, err => {
+                    if(err) {
+                      Notify.error({
+                        title: 'DELETE_TMP_GMAP_PHOTO',
                         message: err.reason
                       });
                     }
+                  });
 
-                    // Delete the posted photo
-                    AWSMethods.deletePhoto.call({album, fileName: file.name}, err => {
-                      if(err) {
-                        Notify.error({
-                          title: 'DELETE_TMP_GMAP_PHOTO',
-                          message: err.reason
-                        });
-                      }
-                    });
-
-                    return Notify.info({
-                      title: 'POST_FS_LOCATION_TO_WORKPLACE',
-                      message: 'SUCCESS'
-                    });
+                  return Notify.info({
+                    title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                    message: 'SUCCESS'
                   });
                 });
-              }
-            })
-            .catch(err => {
-              console.log('html2canvas', err);
-            });
+              });
+            }
+          })
+          .catch(err => {
+            console.log('html2canvas', err);
+          });
         break;
       }
       default:

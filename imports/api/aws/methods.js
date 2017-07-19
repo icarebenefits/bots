@@ -3,7 +3,6 @@ import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {check} from 'meteor/check';
 
-
 const addPhoto = new ValidatedMethod({
   name: 's3.addPhoto',
   validate: new SimpleSchema({
