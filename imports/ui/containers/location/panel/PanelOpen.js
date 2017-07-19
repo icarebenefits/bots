@@ -38,14 +38,12 @@ class PanelOpen extends Component {
             {ready ? (
               !_.isEmpty(geoList) ? (
                 <form className="form-inline margin-bottom-40" role="form">
-                  <div className="form-group form-md-line-input has-success margin-top-30">
-                    <Suggest
-                      className="form-control"
-                      ref="name"
-                      options={this._getNameSuggestOptions(geoList)}
-                      handleOnChange={value => this.setState({name: value})}
-                    />
-                  </div>
+                  <Suggest
+                    className="form-group form-md-line-input has-success margin-top-30"
+                    ref="name"
+                    options={this._getNameSuggestOptions(geoList)}
+                    handleOnChange={value => this.setState({name: value})}
+                  />
                   <button
                     type="button"
                     className="btn green margin-top-30"
@@ -53,7 +51,8 @@ class PanelOpen extends Component {
                       e.preventDefault();
                       onApply('open', {name: this.state.name});
                     }}
-                  >Open</button>
+                  >Open
+                  </button>
                 </form>
               ) : (
                 <div>No GEO SLA found.</div>
