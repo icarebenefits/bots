@@ -8,7 +8,6 @@ import S from 'string';
 import _ from 'lodash';
 import validate from 'validate.js';
 import html2canvas from 'html2canvas';
-import {dataURIToBlob} from '/imports/utils';
 import accounting from 'accounting';
 
 // Components
@@ -18,8 +17,13 @@ import {MapsSearch, MapsNav, StatisticBox} from '/imports/ui/containers/location
 // Constants
 import {COUNTRY_CONST} from '/imports/ui/containers/location/CONSTANTS';
 
+/* Utils */
+import {Parser} from '/imports/utils';
+
 // Methods
 import ESMethods from '/imports/api/elastic/methods';
+import AWSMethods from '/imports/api/aws/methods';
+import FBMethods from '/imports/api/facebook-graph/methods';
 import {Methods as GEOMethods} from '/imports/api/collections/geo';
 
 // Functions
@@ -277,15 +281,7 @@ class Location extends Component {
               showPolyline
             }
           } = geoSLA;
-          // console.log('gonna set state', {
-          //   name,
-          //   condition: {search, timeRange, country},
-          //   gmap: {
-          //     center, zoom,
-          //     activeMarkerId,
-          //     showPolyline
-          //   }
-          // });
+
           this.setState({
             name, search, timeRange, country,
             center, zoom, activeMarkerId,
@@ -322,23 +318,64 @@ class Location extends Component {
         break;
       }
       case 'post': {
-        html2canvas(ReactDOM.findDOMNode(this.refs.gmap), {
-          useCORS: true
-        })
-          .then(canvas => {
-            // console.log('canvas', canvas.toDataURL());
-            if (canvas) {
-              const dataURI = canvas.toDataURL("image/png");
-              // console.log('dataURI', dataURI);
-              const imageBlob = dataURIToBlob(dataURI);
-              var blobUrl = URL.createObjectURL(myBlob);
-              console.log('blobUrl', blobUrl);
-
-            }
+          html2canvas(ReactDOM.findDOMNode(this.refs.fsLocation), {
+            useCORS: true
           })
-          .catch(err => {
-            console.log('html2canvas', err);
-          });
+            .then(canvas => {
+              if (canvas) {
+                const
+                  {suffix} = Parser().indexSuffix(new Date(), 'second'),
+                  {region, bucket, album} = Meteor.settings.public.aws.s3,
+                  file = {
+                    name: `fs_location-${suffix}.png`
+                  };
+                document.body.appendChild(canvas)
+                const dataURI = canvas.toDataURL(file.type);
+                file.body = dataURI;
+                AWSMethods.addPhoto.call({album, file}, err => {
+                  if (err) {
+                    Notify.error({
+                      title: 'GENERATE_FS_LOCATION_IMAGE',
+                      message: err.reason
+                    });
+                  }
+                  // gonna post to workplace
+                  const {message, workplace} = data;
+                  const imageUrl = `https://${region}.amazonaws.com/${bucket}/${album}/${file.name}`;
+                  Notify.info({
+                    title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                    message: 'POSTING.'
+                  });
+
+                  FBMethods.addPhoto.call({groupId: "405969529772344", message, imageUrl}, err => {
+                    if (err) {
+                      return Notify.error({
+                        title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                        message: err.reason
+                      });
+                    }
+
+                    // Delete the posted photo
+                    AWSMethods.deletePhoto.call({album, fileName: file.name}, err => {
+                      if(err) {
+                        Notify.error({
+                          title: 'DELETE_TMP_GMAP_PHOTO',
+                          message: err.reason
+                        });
+                      }
+                    });
+
+                    return Notify.info({
+                      title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                      message: 'SUCCESS'
+                    });
+                  });
+                });
+              }
+            })
+            .catch(err => {
+              console.log('html2canvas', err);
+            });
         break;
       }
       default:
@@ -467,7 +504,7 @@ class Location extends Component {
       };
 
     return (
-      <div className="page-content-col">
+      <div className="page-content-col" ref="location">
         <MapsNav
           title={`Field Sales Location ${name ? `- ${name}` : ''}`}
           activeTab={activeTab}
@@ -488,7 +525,7 @@ class Location extends Component {
                 </div>
               </div>
             </div>
-            <div className="row">
+            <div className="row" ref="fsLocation">
               <div className="col-md-4 col-xs-12">
                 {!_.isEmpty(stats) && (
                   <StatisticBox

@@ -9,18 +9,18 @@ class Suggest extends Component {
   
   render() {
     const 
-      {options, value, placeHolder, className, handleOnChange} = this.props,
+      {options, value, placeHolder, className, handleOnChange, label} = this.props,
       randomId = Math.random().toString(16).substring(2)
     ;
     
     return (
-      <div>
+      <div className={className}>
         <input 
           list={randomId}
           value={value}
           placeholder={placeHolder}
           ref="lowLevelInput"
-          className={className}
+          className="form-control"
           onChange={e => {if(handleOnChange) handleOnChange(e.target.value);}}
         />
         <datalist
@@ -30,6 +30,9 @@ class Suggest extends Component {
             <option value={item.name} key={item.name}>{item.label}</option>
           ))}
         </datalist>
+        {label && (
+          <label>{label}</label>
+        )}
       </div>
     );
   }

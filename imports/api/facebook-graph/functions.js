@@ -157,10 +157,11 @@ const Facebook = () => {
         throw new Meteor.Error('FB_GRAPH.fetchGroups', err.message);
       }
     },
-    postMessage: async(groupId, message) => {
+    postMessage: async(groupId, message, picture) => {
       /* check arguments */
       check(groupId, Match.OneOf(Number, String));
       check(message, String);
+      check(picture, Match.Maybe(String));
 
       try {
         const accessToken = await Facebook().getAccessToken();
@@ -181,6 +182,34 @@ const Facebook = () => {
         return result;
       } catch (err) {
         throw new Meteor.Error('FB_GRAPH.postMessage', err.message);
+      }
+    },
+    addPhoto: async(groupId, message, imageUrl) => {
+      /* check arguments */
+      check(groupId, Match.OneOf(Number, String));
+      check(message, Match.Maybe(String));
+      check(imageUrl, String);
+
+      try {
+        const accessToken = await Facebook().getAccessToken();
+        const request = {
+          method: 'POST',
+          url: prefixUrl + groupId + "/photos",
+          headers: {
+            authorization: 'Bearer ' + accessToken
+          },
+          body: {
+            message,
+            url: imageUrl,
+            "type": "status",
+            formatting: "MARKDOWN"
+          },
+          json: true
+        };
+        const result = await RequestPromise(request);
+        return result;
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.addPhoto', err.message);
       }
     }
   };

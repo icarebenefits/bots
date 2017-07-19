@@ -123,7 +123,7 @@ class MapsNav extends Component {
 
   render() {
     const
-      {activeTab, name, timeRange, country} = this.state,
+      {activeTab = 'post', name, timeRange, country} = this.state,
       {title} = this.props,
       {tabs} = NAV_CONST;
 
