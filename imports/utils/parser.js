@@ -69,6 +69,11 @@ const parseIndexSuffix = (runDate, unit) => {
         return {
           suffix: moment(runDate).format('YYYY.MM.DD-HH.mm')
         };
+      case 'second':
+      case 'seconds':
+        return {
+          suffix: moment(runDate).format('YYYY.MM.DD-HH.mm.ss')
+        };
       default:
         throw new Meteor.Error('PARSE_INDEX_SUFFIX', `Unsupported Unit: ${unit}`)
     }
