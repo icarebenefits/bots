@@ -12,6 +12,8 @@ import {Countries} from '/imports/api/collections/countries';
 import SLAsCollection from '/imports/api/collections/slas/slas';
 // Methods
 import ESMethods from '/imports/api/elastic/methods';
+// Functions
+import * as Notify from '/imports/api/notifications';
 
 class Home extends Component {
   constructor() {
@@ -38,9 +40,12 @@ class Home extends Component {
         .build()
     }, (err, res) => {
       if(err) {
-        return console.log('err', err);
+        return Notify.warning({
+          title: 'GET_TOTAL_FIELD_SALES',
+          message: `Failed: ${err.reason}`
+        })
       }
-      const {ready, aggregations: {distinct_users: {value: totalFieldSales}}} = res;
+      const {aggregations: {distinct_users: {value: totalFieldSales}}} = res;
       if(totalFieldSales) {
         this.setState({totalFieldSales});
       }

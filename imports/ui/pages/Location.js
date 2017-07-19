@@ -87,9 +87,9 @@ class Location extends Component {
   }
 
   _getMapsData() {
-    const {search, country, timeRange, index, type} = this.state;
+    const {search, country, timeRange, index, type, activeMarkerId} = this.state;
     // console.log('searchCondition', {search, country, timeRange, index, type});
-    const body = this._buildESBody({search, country, timeRange});
+    const body = this._buildESBody({search, country, timeRange, activeMarkerId});
     console.log('body', JSON.stringify(body));
 
     this.setState({ready: false});
@@ -357,7 +357,7 @@ class Location extends Component {
 
                   // Delete the posted photo
                   AWSMethods.deletePhoto.call({album, fileName: file.name}, err => {
-                    if(err) {
+                    if (err) {
                       Notify.error({
                         title: 'DELETE_TMP_GMAP_PHOTO',
                         message: err.reason
@@ -398,7 +398,10 @@ class Location extends Component {
         showInfoWindow,
         showPolyline
       } = this.state;
-    let markers = [];
+    let
+      markers = [],
+      startMarkerGpsId = null,
+      endMarkerGpsId = null;
     hits.forEach(({_source}) => {
       const {
         gps_id, user_id,
@@ -421,6 +424,25 @@ class Location extends Component {
         icon: '/img/google/gmap-location.png'
       });
     });
+
+    if (activeMarkerId) {
+      const activeMarkers = markers.filter(m => m.userId === activeMarkerId);
+
+      startMarkerGpsId = activeMarkers[0].key;
+      endMarkerGpsId = activeMarkers[activeMarkers.length - 1].key;
+
+      markers = markers.map(m => {
+        if(startMarkerGpsId && m.key === startMarkerGpsId) {
+          m.icon = undefined;
+          m.label = 'S';
+        }
+        if(endMarkerGpsId && m.key === endMarkerGpsId) {
+          m.icon = undefined;
+          m.label = 'E';
+        }
+        return m;
+      });
+    }
 
     return {
       markers,
