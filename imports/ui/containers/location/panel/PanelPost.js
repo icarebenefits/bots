@@ -17,7 +17,7 @@ class PanelPost extends Component {
                   e.preventDefault();
                   onApply('post');
                 }}
-              >Save</button>
+              >Post</button>
             </form>
           </div>
         </div>

@@ -157,10 +157,11 @@ const Facebook = () => {
         throw new Meteor.Error('FB_GRAPH.fetchGroups', err.message);
       }
     },
-    postMessage: async(groupId, message) => {
+    postMessage: async(groupId, message, picture) => {
       /* check arguments */
       check(groupId, Match.OneOf(Number, String));
       check(message, String);
+      check(picture, Match.Maybe(String));
 
       try {
         const accessToken = await Facebook().getAccessToken();
@@ -172,11 +173,13 @@ const Facebook = () => {
           },
           body: {
             message,
+            link: picture,
             "type": "status",
             formatting: "MARKDOWN"
           },
           json: true
         };
+        console.log('postMessage', request);
         const result = await RequestPromise(request);
         return result;
       } catch (err) {
