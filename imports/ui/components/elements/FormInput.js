@@ -17,11 +17,11 @@ export class FormInput extends Component {
     const
       {
         id, type, defaultValue, label, value, className, placeholder = '', suggests = [],
-        multiline, options, handleOnChange, hidden, index
+        multiline, options, handleOnChange, hidden, index, height
       } = this.props,
       common = {
         id, ref: 'input', className, defaultValue, placeholder,
-        multiline, value, handleOnChange, hidden, type
+        multiline, value, handleOnChange, hidden, type, height
       }
       ;
 

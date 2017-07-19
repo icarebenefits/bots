@@ -27,6 +27,7 @@ import '/imports/api/fields';
  */
 // workplaces
 import '/imports/api/facebook-graph/index.old';
+import '/imports/api/facebook-graph';
 
 /**
  * Clients
@@ -65,3 +66,8 @@ import '/imports/api/rfm';
  * Admin Tasks
  */
 import '/imports/api/admin';
+
+/**
+ * AWS-SDK
+ */
+import '/imports/api/aws';
