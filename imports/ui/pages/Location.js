@@ -325,13 +325,14 @@ class Location extends Component {
               if (canvas) {
                 const
                   {suffix} = Parser().indexSuffix(new Date(), 'second'),
+                  {region, bucket, album} = Meteor.settings.public.aws.s3,
                   file = {
-                    name: `fs_location-${suffix}.png`,
-                    type: 'image/png'
+                    name: `fs_location-${suffix}.png`
                   };
+                document.body.appendChild(canvas)
                 const dataURI = canvas.toDataURL(file.type);
                 file.body = dataURI;
-                AWSMethods.addPhoto.call({album: 'images', file}, (err, res) => {
+                AWSMethods.addPhoto.call({album, file}, err => {
                   if (err) {
                     Notify.error({
                       title: 'GENERATE_FS_LOCATION_IMAGE',
@@ -339,17 +340,35 @@ class Location extends Component {
                     });
                   }
                   // gonna post to workplace
-                  const message = 'Field Sales Location';
-                  const imageUrl = `https://icbbots-stage.s3-ap-southeast-1.amazonaws.com/images/${file.name}`;
-                  FBMethods.post.call({groupId: '405969529772344', message, picture: imageUrl}, (err, res) => {
+                  const {message, workplace} = data;
+                  const imageUrl = `https://${region}.amazonaws.com/${bucket}/${album}/${file.name}`;
+                  Notify.info({
+                    title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                    message: 'POSTING.'
+                  });
+
+                  FBMethods.addPhoto.call({groupId: "405969529772344", message, imageUrl}, err => {
                     if (err) {
-                      console.log(err);
-                      Notify.error({
+                      return Notify.error({
                         title: 'POST_FS_LOCATION_TO_WORKPLACE',
                         message: err.reason
                       });
                     }
-                    console.log('post FB', res);
+
+                    // Delete the posted photo
+                    AWSMethods.deletePhoto.call({album, fileName: file.name}, err => {
+                      if(err) {
+                        Notify.error({
+                          title: 'DELETE_TMP_GMAP_PHOTO',
+                          message: err.reason
+                        });
+                      }
+                    });
+
+                    return Notify.info({
+                      title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                      message: 'SUCCESS'
+                    });
                   });
                 });
               }
@@ -485,7 +504,7 @@ class Location extends Component {
       };
 
     return (
-      <div className="page-content-col">
+      <div className="page-content-col" ref="location">
         <MapsNav
           title={`Field Sales Location ${name ? `- ${name}` : ''}`}
           activeTab={activeTab}

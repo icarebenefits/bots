@@ -104,16 +104,16 @@ userRoutes.route('/setup/:country', {
   }
 });
 
-// userRoutes.route('/maps', {
-//   name: 'maps',
-//   action(params) {
-//     return mount(MainLayout, {
-//       content() {
-//         return <LocationPage />;
-//       }
-//     });
-//   }
-// });
+userRoutes.route('/maps', {
+  name: 'maps',
+  action(params) {
+    return mount(MainLayout, {
+      content() {
+        return <LocationPage />;
+      }
+    });
+  }
+});
 
 const adminRoutes = FlowRouter.group({
   prefix: '/admin',
@@ -129,17 +129,6 @@ adminRoutes.route('/access-list', {
         return (
           <AccessListPage />
         );
-      }
-    });
-  }
-});
-
-adminRoutes.route('/maps', {
-  name: 'maps',
-  action(params) {
-    return mount(MainLayout, {
-      content() {
-        return <LocationPage />;
       }
     });
   }

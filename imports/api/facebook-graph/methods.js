@@ -1,7 +1,7 @@
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 
-const post = new ValidatedMethod({
+const addPhoto = new ValidatedMethod({
   name: 'graph.post',
   validate: new SimpleSchema({
     groupId: {
@@ -10,28 +10,27 @@ const post = new ValidatedMethod({
     message: {
       type: String
     },
-    picture: {
+    imageUrl: {
       type: String,
       optional: true
     }
   }).validator(),
-  async run({groupId, message, picture}) {
+  async run({groupId, message, imageUrl}) {
     try {
       if(!this.isSimulation) {
-        console.log('post', groupId, message, picture);
         const {default: Facebook} = require('./functions');
 
-        const result = await Facebook().postMessage(groupId, message, picture);
+        const result = await Facebook().addPhoto(groupId, message, imageUrl);
         return result;
       }
     } catch(err) {
-      throw new Meteor.Error('WORKPLACE_POST', err.message);
+      throw new Meteor.Error('WORKPLACE_ADD_PHOTO', err.message);
     }
   }
 });
 
 const Methods = {
-  post
+  addPhoto
 };
 
 export default Methods

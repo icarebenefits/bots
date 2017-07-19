@@ -173,17 +173,43 @@ const Facebook = () => {
           },
           body: {
             message,
-            link: picture,
             "type": "status",
             formatting: "MARKDOWN"
           },
           json: true
         };
-        console.log('postMessage', request);
         const result = await RequestPromise(request);
         return result;
       } catch (err) {
         throw new Meteor.Error('FB_GRAPH.postMessage', err.message);
+      }
+    },
+    addPhoto: async(groupId, message, imageUrl) => {
+      /* check arguments */
+      check(groupId, Match.OneOf(Number, String));
+      check(message, Match.Maybe(String));
+      check(imageUrl, String);
+
+      try {
+        const accessToken = await Facebook().getAccessToken();
+        const request = {
+          method: 'POST',
+          url: prefixUrl + groupId + "/photos",
+          headers: {
+            authorization: 'Bearer ' + accessToken
+          },
+          body: {
+            message,
+            url: imageUrl,
+            "type": "status",
+            formatting: "MARKDOWN"
+          },
+          json: true
+        };
+        const result = await RequestPromise(request);
+        return result;
+      } catch (err) {
+        throw new Meteor.Error('FB_GRAPH.addPhoto', err.message);
       }
     }
   };

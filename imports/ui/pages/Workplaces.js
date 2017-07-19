@@ -192,7 +192,6 @@ class Workplaces extends Component {
                   <div className="col-md-6 pull-left" style={{marginTop: 2, paddingRight: 0}}>
                     <Suggest
                       ref="suggest"
-                      className="form-control"
                       options={suggests}
                       defaultValue={currentSuggest}
                       placeHolder="Enter Id or search by name..."
