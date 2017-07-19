@@ -3,14 +3,55 @@ import React, {Component, PropTypes} from 'react';
 import {createContainer} from 'meteor/react-meteor-data';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {Session} from 'meteor/session';
+import bodybuilder from 'bodybuilder';
 // components
 import {DashboardStat} from '../components';
 import {Spinner} from '/imports/ui/components/common';
 // collections
 import {Countries} from '/imports/api/collections/countries';
 import SLAsCollection from '/imports/api/collections/slas/slas';
+// Methods
+import ESMethods from '/imports/api/elastic/methods';
+// Functions
+import * as Notify from '/imports/api/notifications';
 
 class Home extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      totalFieldSales: 0
+    };
+  }
+
+  componentDidMount() {
+    const
+      {
+        env,
+        elastic: {indices: {geo: {prefix, types: {fieldSales}}}}
+      } = Meteor.settings.public,
+      index = `${prefix}_${env}`,
+      type = fieldSales;
+    ESMethods.search.call({
+      index,
+      type,
+      body: bodybuilder()
+        .aggregation('cardinality', 'user_id', 'distinct_users')
+        .build()
+    }, (err, res) => {
+      if(err) {
+        return Notify.warning({
+          title: 'GET_TOTAL_FIELD_SALES',
+          message: `Failed: ${err.reason}`
+        })
+      }
+      const {aggregations: {distinct_users: {value: totalFieldSales}}} = res;
+      if(totalFieldSales) {
+        this.setState({totalFieldSales});
+      }
+    });
+  }
+
   render() {
     const
       {
@@ -20,6 +61,7 @@ class Home extends Component {
         showAdminBox,
         activeUsers,
       } = this.props,
+      {totalFieldSales} = this.state,
       colors = ['blue', 'red', 'green', 'yellow', 'purple', 'dark', 'default']
     ;
 
@@ -70,7 +112,7 @@ class Home extends Component {
                   title={"Field Sales Location"}
                   color="green-meadow"
                   icon="fa-map-marker"
-                  stat={200}
+                  stat={totalFieldSales}
                   description="field Sales"
                   label="Maps"
                   moreHref={FlowRouter.path('maps')}
