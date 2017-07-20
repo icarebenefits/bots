@@ -389,14 +389,8 @@ const RFMContainer = createContainer(() => {
     subTT = Meteor.subscribe('rfm.topten', country),
     ready = subSB.ready() && subTT.ready(),
     ScoreBoard = RFMScoreBoard.find({}, {sort: {date: -1}, limit: 1}).fetch(),
-    TopTen = RFMTopTen.find({}, {sort: {date: -1}, limit: 1}).fetch();
-  let currency = 'VND';
-  if(country === 'kh') {
-    currency = 'KHR';
-  }
-  if(country === 'la') {
-    currency = 'LAK';
-  }
+    TopTen = RFMTopTen.find({}, {sort: {date: -1}, limit: 1}).fetch(),
+    {currency} = Meteor.settings.public.countries[country];
 
   return {
     ready,
