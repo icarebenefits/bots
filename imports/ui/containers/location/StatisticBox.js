@@ -7,14 +7,13 @@ class StatisticBox extends Component {
     const {
       totalFieldSales = accounting.format(3203),
       totalLocations = accounting.format(2347822),
-      totalRevenue = `$${accounting.format(34023003)}`,
       stats = [
         ['Vietnam', '$345', 124, 45],
         ['Cambodia', '$560', 24, 12],
         ['Laos', '$1,568', 46, 450]
       ]
     } = this.props;
-    // console.log('statistic box', this.props)
+
     return (
       <div className="profile-sidebar" style={{width: '100%'}}>
         <div className="portlet light bordered">
@@ -37,7 +36,7 @@ class StatisticBox extends Component {
                 <thead>
                 <tr className="uppercase bold">
                   <th> Country</th>
-                  {/*<th> Revenue</th>*/}
+                  <th> Revenue</th>
                   <th> Field Sales</th>
                   <th> Locations</th>
                 </tr>
@@ -50,7 +49,7 @@ class StatisticBox extends Component {
                         {i === 1 ? (
                           <span className="theme-font">{s}</span>
                         ) : (
-                          <span className="theme-font">{s}</span>
+                          s
                         )}
                       </td>
                     ))}
