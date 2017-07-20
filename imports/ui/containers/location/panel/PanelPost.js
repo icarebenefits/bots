@@ -26,7 +26,6 @@ class PanelPost extends Component {
 
     if (ready) {
       const {visible, onApply, Workplaces} = this.props;
-      console.log('workplaces', Workplaces);
       return (
         <div className={classNames({"tab-pane ": true, "active": visible})}>
           <div className="row">
@@ -40,6 +39,7 @@ class PanelPost extends Component {
                     multiline={true}
                     height={100}
                     value={this.state.message}
+                    placeholder="Caption for the location."
                     handleOnChange={value => this.setState({message: value})}
                   />
                   <label>Message: </label>
