@@ -39,14 +39,14 @@ class Home extends Component {
         .aggregation('cardinality', 'user_id', 'distinct_users')
         .build()
     }, (err, res) => {
-      if(err) {
+      if (err) {
         return Notify.warning({
           title: 'GET_TOTAL_FIELD_SALES',
           message: `Failed: ${err.reason}`
         })
       }
       const {aggregations: {distinct_users: {value: totalFieldSales}}} = res;
-      if(totalFieldSales) {
+      if (totalFieldSales) {
         this.setState({totalFieldSales});
       }
     });
@@ -102,23 +102,21 @@ class Home extends Component {
             })}
           </div>
           <div className="row">
-            {(showAdminBox) && (
-              <div key='location' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
-                   onClick={() => {
-                     FlowRouter.go('maps')
-                   }}
-              >
-                <DashboardStat
-                  title={"Field Sales Location"}
-                  color="green-meadow"
-                  icon="fa-map-marker"
-                  stat={totalFieldSales}
-                  description="field Sales"
-                  label="Maps"
-                  moreHref={FlowRouter.path('maps')}
-                />
-              </div>
-            )}
+            <div key='location' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
+                 onClick={() => {
+                   FlowRouter.go('maps')
+                 }}
+            >
+              <DashboardStat
+                title={"Field Sales Location"}
+                color="green-meadow"
+                icon="fa-map-marker"
+                stat={totalFieldSales}
+                description="field Sales"
+                label="Maps"
+                moreHref={FlowRouter.path('maps')}
+              />
+            </div>
             {(showAdminBox) && (
               <div key='admin' className="col-lg-4 col-md-4 col-sm-6 col-xs-12 margin-bottom-10"
                    onClick={() => {
