@@ -14,6 +14,7 @@ import accounting from 'accounting';
 import {Spinner} from '/imports/ui/components/common';
 import {Dialog} from '/imports/ui/components/elements';
 import {MapsSearch, MapsNav, StatisticBox} from '/imports/ui/containers/location';
+
 // Constants
 import {COUNTRY_CONST} from '/imports/ui/containers/location/CONSTANTS';
 
@@ -55,6 +56,7 @@ class Location extends Component {
       mapsData: {},
       stats: {},
       totalFieldSales: 0,
+      totalRevenues: {},
 
       activeTab: '',
 
@@ -72,7 +74,7 @@ class Location extends Component {
     /* Handlers */
     // private
     this._getMapsData = this._getMapsData.bind(this);
-    this._getStats = this._getStats.bind(this);
+    this._getStatsProps = this._getStatsProps.bind(this);
     this._getMapsProps = this._getMapsProps.bind(this);
     this._closeDialog = this._closeDialog.bind(this);
 
@@ -86,154 +88,7 @@ class Location extends Component {
     this._getMapsData();
   }
 
-  _getMapsData() {
-    const {search, country, timeRange, index, type, activeMarkerId} = this.state;
-    // console.log('searchCondition', {search, country, timeRange, index, type});
-    const body = this._buildESBody({search, country, timeRange, activeMarkerId});
-    console.log('body', JSON.stringify(body));
-
-    this.setState({ready: false});
-    ESMethods.search.call({
-      index,
-      type,
-      body
-    }, (err, res) => {
-      if (err) {
-        return this.setState({
-          ready: false,
-          error: err.reason
-        })
-      }
-
-      const {ready, hits: mapsData, aggregations} = res;
-      let stats = [], totalFS = 0;
-      if (!_.isEmpty(aggregations)) {
-        const {terms_country: {buckets}, totalFieldSales} = aggregations;
-        if (!_.isEmpty(buckets)) {
-          stats = buckets;
-        }
-        if (!_.isEmpty(totalFieldSales)) {
-          totalFS = totalFieldSales.value;
-        }
-      }
-
-      // Get Revenue Stats
-      let emailList = [];
-      if (!_.isEmpty(mapsData)) {
-        emailList = _.uniq(mapsData.hits.map(fs => fs._source.email));
-      }
-      // console.log('emailList', emailList);
-
-      return this.setState({
-        ready,
-        mapsData,
-        stats,
-        totalFieldSales: totalFS
-      });
-    });
-  }
-
-  _buildESBody(searchCondition) {
-    const {search, country, timeRange} = searchCondition;
-    let body = bodybuilder();
-
-    body.sort('created_at', 'asc');
-    body.size(10000);
-
-    if (!_.isEmpty(search)) {
-      if (isNaN(search)) {
-        // search value is not a number --> suppose to search by name or email
-        const constraint = {
-          search: {
-            email: true
-          }
-        };
-        const validation = validate.validate({search}, constraint);
-        if (!_.isEmpty(validation)) {
-          // warning user if they want to search by email but enter wrong email format
-          // if (S(search).contains('@')) {
-          Notify.warning({
-            title: 'Validate search text',
-            message: validation.search[0]
-          });
-          // }
-          // search value is not an email --> suppose to search by name
-          // body.query('multi_match', 'query', search,
-          //   {"fields": ["first_name", "last_name"], "type": "cross_fields"}
-          // );
-        } else {
-          // search value is an email --> search by email
-          body.query('term', 'email.keyword', search);
-        }
-      } else {
-        // search value is number --> suppose to search by userId
-        const userId = Number(search);
-        body.filter('term', 'user_id', userId);
-      }
-    } else {
-      body.query('match_all', {});
-    }
-
-
-    (!_.isEmpty((country)) && country !== 'all') &&
-    body.filter('term', 'country', country);
-
-    !_.isEmpty(timeRange) &&
-    body.filter('range', 'created_at', {
-      gte: timeRange.from,
-      lte: timeRange.to
-    });
-
-    // aggregation
-    body.aggregation('terms', 'country', {shard_size: 200}, 'terms_country', (a) => {
-      return a
-        .aggregation('value_count', 'gps_id', 'noOfLocations')
-        .aggregation('cardinality', 'user_id', 'noOfFieldSales')
-    });
-    body.aggregation('cardinality', 'user_id', 'totalFieldSales');
-
-    return body.build();
-  }
-
-  _saveGeo(action, _id) {
-    const {
-      name, search, timeRange, country,
-      center, zoom,
-      activeMarkerId,
-      showPolyline
-    } = this.state;
-    Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
-    // console.log('save GEO SLA', {
-    //   _id, name,
-    //   condition: {search, timeRange, country},
-    //   gmap: {
-    //     center, zoom,
-    //     activeMarkerId,
-    //     showPolyline
-    //   }
-    // });
-    GEOMethods[action].call({
-        _id, name,
-        condition: {search, timeRange, country},
-        gmap: {
-          center, zoom,
-          activeMarkerId: activeMarkerId ? activeMarkerId.toString() : '',
-          showPolyline
-        }
-      },
-      (err, res) => {
-        if (err)
-          return Notify.error({
-            title: 'SAVE GEO SLA',
-            message: `FAILED: ${err.reason}!`
-          });
-
-        this.setState({dialog: {}});
-        return Notify.info({title: 'SAVE GEO SLA', message: `DONE.`});
-      });
-  }
-
-  onClickMarker(activeMarkerInfo, activeMarker, event) {
+  onClickMarker(activeMarkerInfo, activeMarker) {
     this.setState({
       activeMarkerInfo,
       activeMarker,
@@ -318,18 +173,42 @@ class Location extends Component {
         break;
       }
       case 'post': {
+        // Fix problem on Chrome
+        // when create the canvas after did some actions on maps (zoom, click, move, ...)
+        // which happened because html2canvas can't render some CSS of google maps script
+        // https://github.com/niklasvh/html2canvas/issues/345
+        if (window.chrome) {// Fix for Chrome
+          var transform = $(".gm-style>div:first>div").css("transform");
+          var comp = transform.split(","); //split up the transform matrix
+          var mapleft = parseFloat(comp[4]); //get left value
+          var maptop = parseFloat(comp[5]);  //get top value
+          $(".gm-style>div:first>div").css({ //get the map container. not sure if stable
+            "transform": "none",
+            "left": mapleft,
+            "top": maptop,
+          });
+        }
+
         html2canvas(ReactDOM.findDOMNode(this.refs.fsLocation), {
           useCORS: true
         })
           .then(canvas => {
             if (canvas) {
+              // Rollback CSS to google maps after canvas created
+              if (window.chrome) {// Fix for Chrome
+                $(".gm-style>div:first>div").css({
+                  left: 0,
+                  top: 0,
+                  "transform": transform
+                });
+              }
+
               const
-                {suffix} = Parser().indexSuffix(new Date(), 'second'),
+                {suffix} = Parser().indexSuffix(new Date(), 'milisecond'),
                 {region, bucket, album} = Meteor.settings.public.aws.s3,
                 file = {
                   name: `fs_location-${suffix}.png`
                 };
-              document.body.appendChild(canvas)
               const dataURI = canvas.toDataURL(file.type);
               file.body = dataURI;
               AWSMethods.addPhoto.call({album, file}, err => {
@@ -340,17 +219,17 @@ class Location extends Component {
                   });
                 }
                 // gonna post to workplace
-                const {message, workplace} = data;
+                const {message, workplace = "405969529772344"} = data;
                 const imageUrl = `https://${region}.amazonaws.com/${bucket}/${album}/${file.name}`;
                 Notify.info({
-                  title: 'POST_FS_LOCATION_TO_WORKPLACE',
-                  message: 'POSTING.'
+                  title: 'FS LOCATION',
+                  message: 'POSTING TO WORKPLACE.'
                 });
 
-                FBMethods.addPhoto.call({groupId: "405969529772344", message, imageUrl}, err => {
+                FBMethods.addPhoto.call({groupId: workplace, message, imageUrl}, err => {
                   if (err) {
                     return Notify.error({
-                      title: 'POST_FS_LOCATION_TO_WORKPLACE',
+                      title: 'FS LOCATION',
                       message: err.reason
                     });
                   }
@@ -366,8 +245,8 @@ class Location extends Component {
                   });
 
                   return Notify.info({
-                    title: 'POST_FS_LOCATION_TO_WORKPLACE',
-                    message: 'SUCCESS'
+                    title: 'FS_LOCATION',
+                    message: 'POSTED TO WORKPLACE'
                   });
                 });
               });
@@ -380,28 +259,225 @@ class Location extends Component {
       }
       default:
         Notify.warning({
-          title: 'Apply condition',
+          title: 'APPLY CONDITION',
           message: `Action: ${action} is unsupported!`
         });
     }
   }
 
-  _getMapsProps() {
+  _saveGeo(action, _id) {
+    const {
+      name, search, timeRange, country,
+      center, zoom,
+      activeMarkerId,
+      showPolyline
+    } = this.state;
+
+    Notify.info({title: 'SAVE GEO SLA', message: 'SAVING.'});
+    GEOMethods[action].call({
+        _id, name,
+        condition: {search, timeRange, country},
+        gmap: {
+          center, zoom,
+          activeMarkerId: activeMarkerId ? activeMarkerId.toString() : '',
+          showPolyline
+        }
+      },
+      (err) => {
+        if (err)
+          return Notify.error({
+            title: 'SAVE GEO SLA',
+            message: `FAILED: ${err.reason}!`
+          });
+
+        this.setState({dialog: {}});
+        return Notify.info({title: 'SAVE GEO SLA', message: `DONE.`});
+      });
+  }
+
+  _buildESBodyWithSearchText(body, search) {
+    if (!_.isEmpty(search)) {
+      if (isNaN(search)) {
+        // search value is not a number --> suppose to search by name or email
+        const constraint = {
+          search: {
+            email: true
+          }
+        };
+        const validation = validate.validate({search}, constraint);
+        if (!_.isEmpty(validation)) {
+          // warning user if they want to search by email but enter wrong email format
+          // if (S(search).contains('@')) {
+          Notify.warning({
+            title: 'Validate search text',
+            message: validation.search[0]
+          });
+          // }
+          // search value is not an email --> suppose to search by name
+          // body.query('multi_match', 'query', search,
+          //   {"fields": ["first_name", "last_name"], "type": "cross_fields"}
+          // );
+        } else {
+          // search value is an email --> search by email
+          body.query('term', 'email.keyword', search);
+        }
+      } else {
+        // search value is number --> suppose to search by userId
+        const userId = Number(search);
+        body.filter('term', 'user_id', userId);
+      }
+    } else {
+      body.query('match_all', {});
+    }
+
+    return body;
+  }
+
+  _buildESBody(searchCondition) {
+    const {search, country, timeRange} = searchCondition;
+    let body = bodybuilder();
+
+    body.sort('created_at', 'asc');
+    body.size(10000);
+
+    body = this._buildESBodyWithSearchText(body, search);
+
+    (!_.isEmpty((country)) && country !== 'all') &&
+    body.filter('term', 'country', country);
+
+    !_.isEmpty(timeRange) &&
+    body.filter('range', 'created_at', {
+      gte: timeRange.from,
+      lte: timeRange.to
+    });
+
+    // aggregations
+    body.aggregation('terms', 'country', {shard_size: 200}, 'terms_country', (a) => {
+      return a
+        .aggregation('value_count', 'gps_id', 'noOfLocations')
+        .aggregation('cardinality', 'user_id', 'noOfFieldSales')
+    });
+    body.aggregation('cardinality', 'user_id', 'totalFieldSales');
+
+    return body.build();
+  }
+
+  _getMapsData() {
     const
-      {
-        mapsData: {total, hits},
-        center,
-        zoom,
-        activeMarkerInfo,
-        activeMarker,
-        activeMarkerId,
-        showInfoWindow,
-        showPolyline
-      } = this.state;
+      {search, country, timeRange, index, type, activeMarkerId} = this.state,
+      body = this._buildESBody({search, country, timeRange, activeMarkerId});
+    console.log('body', JSON.stringify(body));
+
+    this.setState({ready: false});
+    ESMethods.search.call({
+      index,
+      type,
+      body
+    }, (err, res) => {
+      if (err) {
+        return this.setState({
+          ready: false,
+          error: err.reason
+        })
+      }
+
+      const {ready, hits: mapsData, aggregations} = res;
+      let stats = [], totalFS = 0;
+      if (!_.isEmpty(aggregations)) {
+        const {terms_country: {buckets}, totalFieldSales} = aggregations;
+        if (!_.isEmpty(buckets)) {
+          stats = buckets;
+        }
+        if (!_.isEmpty(totalFieldSales)) {
+          totalFS = totalFieldSales.value;
+        }
+      }
+
+      // Get Revenue Stats
+      const
+        {
+          env,
+          elastic: {indices: {bots: {prefix, types: {salesOrder}}}},
+          countries
+        } = Meteor.settings.public,
+        type = salesOrder,
+        totalRevenues = [];
+      Object.keys(countries).map(country => {
+        const index = `${prefix}_${country}_${env}`;
+        let emailList = [];
+        if (!_.isEmpty(mapsData.hits)) {
+          emailList = _.uniq(mapsData.hits
+            .filter(({_source: fsLoc}) => (fsLoc.country === country))
+            .map(fsLoc => fsLoc._source.email));
+
+          if(!_.isEmpty(emailList)) {
+            // build search query
+            let body = bodybuilder()
+              .size(0)
+              .filter('terms', 'purchased_by.keyword', emailList)
+              .notFilter('term', 'so_status.keyword', 'canceled')
+              .aggregation('sum', 'grand_total_purchase', 'totalRevenue');
+
+            body = this._buildESBodyWithSearchText(body, search);
+
+            !_.isEmpty(timeRange) &&
+            body.filter('range', 'purchase_date', {
+              gte: timeRange.from,
+              lte: timeRange.to
+            });
+
+            body = body.build();
+            console.log('getRevenue body', JSON.stringify(body));
+
+            // get total revenue
+            ESMethods.search.call({index, type, body}, (err, res) => {
+              if(err) {
+                Notify.warning({
+                  title: 'GET TOTAL REVENUE',
+                  message: `Failed: ${err.reason}`
+                });
+              }
+              if(!_.isEmpty(res.aggregations)) {
+                const {aggregations: {totalRevenue: {value: totalRevenue}}} = res;
+
+                this.setState({
+                  totalRevenues: {
+                    ...this.state.totalRevenues,
+                    [country]: totalRevenue
+                  }
+                });
+              }
+            });
+          }
+        }
+      });
+
+      return this.setState({
+        ready,
+        mapsData,
+        stats,
+        totalFieldSales: totalFS,
+        totalRevenues,
+      });
+    });
+  }
+
+  _getMapsProps() {
+    const {
+      mapsData: {total, hits},
+      center,
+      zoom,
+      activeMarkerInfo,
+      activeMarker,
+      activeMarkerId,
+      showInfoWindow,
+      showPolyline
+    } = this.state;
     let
       markers = [],
       startMarkerGpsId = null,
       endMarkerGpsId = null;
+
     hits.forEach(({_source}) => {
       const {
         gps_id, user_id,
@@ -409,7 +485,7 @@ class Location extends Component {
         email, location,
         store_id, created_at
       } = _source;
-      // marker
+      // get marker info
       markers.push({
         key: gps_id,
         time: moment(created_at).format('LLL'),
@@ -425,23 +501,26 @@ class Location extends Component {
       });
     });
 
+    // get start & end markers
     if (activeMarkerId) {
-      const activeMarkers = markers.filter(m => m.userId === activeMarkerId);
+      const activeMarkers = markers.filter(m => m.userId === Number(activeMarkerId));
 
-      startMarkerGpsId = activeMarkers[0].key;
-      endMarkerGpsId = activeMarkers[activeMarkers.length - 1].key;
+      if (!_.isEmpty(activeMarkers)) {
+        startMarkerGpsId = activeMarkers[0].key;
+        endMarkerGpsId = activeMarkers[activeMarkers.length - 1].key;
 
-      markers = markers.map(m => {
-        if(startMarkerGpsId && m.key === startMarkerGpsId) {
-          m.icon = undefined;
-          m.label = 'S';
-        }
-        if(endMarkerGpsId && m.key === endMarkerGpsId) {
-          m.icon = undefined;
-          m.label = 'E';
-        }
-        return m;
-      });
+        markers = markers.map(m => {
+          if (startMarkerGpsId && m.key === startMarkerGpsId) {
+            m.icon = undefined;
+            m.label = 'S';
+          }
+          if (endMarkerGpsId && m.key === endMarkerGpsId) {
+            m.icon = undefined;
+            m.label = 'E';
+          }
+          return m;
+        });
+      }
     }
 
     return {
@@ -458,22 +537,26 @@ class Location extends Component {
     };
   }
 
-  _getStats() {
-    const {stats, totalFieldSales, mapsData: {total: totalLocations}} = this.state;
+  _getStatsProps() {
+    const {stats, totalFieldSales, totalRevenues, mapsData: {total: totalLocations}} = this.state;
 
-    // console.log('stats', stats);
     return {
       totalFieldSales: accounting.format(totalFieldSales),
       totalLocations: accounting.format(totalLocations),
-      totalRevenue: 0,
       stats: stats.map(stat => {
         const {
             key,
             noOfFieldSales: {value: noOfFieldSales},
             noOfLocations: {value: noOfLocations}
           } = stat,
-          country = COUNTRY_CONST.buttons.filter(c => c.name === key)[0].label;
-        return [country, accounting.format(noOfFieldSales), accounting.format(noOfLocations)];
+          {name: country, currency} = Meteor.settings.public.countries[key];
+        let revenue = totalRevenues[key];
+        if(revenue) {
+          revenue = accounting.format(revenue);
+        } else {
+          revenue = 0;
+        }
+        return [`${country} (${currency})`, revenue, accounting.format(noOfFieldSales), accounting.format(noOfLocations)];
       })
     };
   }
@@ -512,7 +595,7 @@ class Location extends Component {
     const {ready} = this.state;
 
     const
-      {mapsData, stats, totalNoOfFieldSales, activeTab, name, search, country, timeRange} = this.state,
+      {mapsData, stats, activeTab, name, search, country, timeRange} = this.state,
       handlers = {
         marker: {
           onClick: this.onClickMarker
@@ -551,7 +634,7 @@ class Location extends Component {
               <div className="col-md-4 col-xs-12">
                 {!_.isEmpty(stats) && (
                   <StatisticBox
-                    {...this._getStats()}
+                    {...this._getStatsProps()}
                   />
                 )}
               </div>

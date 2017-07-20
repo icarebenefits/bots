@@ -52,7 +52,7 @@ const addPhoto = new ValidatedMethod({
           if (err) {
             throw new Meteor.Error('AWS_S3_ADD_PHOTO', err.message);
           }
-          console.log('AWS_S3_ADD_PHOTO', res);
+          // console.log('AWS_S3_ADD_PHOTO', res);
           return res;
         });
       }
