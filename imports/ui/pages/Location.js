@@ -51,7 +51,7 @@ class Location extends Component {
       name: '',
       search: null,
       country: 'vn',
-      timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
+      timeRange: {from: 'now-24h', to: 'now', label: 'Last 24 hours'},
 
       mapsData: {},
       stats: {},
