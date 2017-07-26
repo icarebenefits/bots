@@ -1,4 +1,5 @@
-import React, {Component, PropsTypes} from 'react';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import accounting from 'accounting';
 import _ from 'lodash';
 

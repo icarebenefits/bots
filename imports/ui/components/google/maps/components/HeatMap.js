@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import S from 'string';
 
 import {wrappedPromise} from '/imports/ui/components/google/maps';

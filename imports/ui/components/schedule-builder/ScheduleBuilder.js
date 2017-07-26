@@ -1,4 +1,5 @@
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {later} from 'meteor/mrt:later';
 import momentTZ from 'moment-timezone';
 import _ from 'lodash';
