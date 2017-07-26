@@ -15,9 +15,6 @@ import {Spinner} from '/imports/ui/components/common';
 import {Dialog} from '/imports/ui/components/elements';
 import {MapsSearch, MapsNav, StatisticBox} from '/imports/ui/containers/location';
 
-// Constants
-import {COUNTRY_CONST} from '/imports/ui/containers/location/CONSTANTS';
-
 /* Utils */
 import {Parser} from '/imports/utils';
 
@@ -334,11 +331,17 @@ class Location extends Component {
   }
 
   _buildESBody(searchCondition) {
-    const {search, country, timeRange} = searchCondition;
+    const {search, country, timeRange} = searchCondition,
+      {maxSize} = Meteor.settings.public.elastic;
     let body = bodybuilder();
 
     body.sort('created_at', 'asc');
-    body.size(10000);
+    body.size(maxSize);
+
+    body.rawOption('_source', [
+      'gps_id', 'user_id', 'first_name', 'last_name',
+      'email', 'location', 'store_id', 'created_at', 'country'
+    ]);
 
     body = this._buildESBodyWithSearchText(body, search);
 
@@ -356,6 +359,10 @@ class Location extends Component {
       return a
         .aggregation('value_count', 'gps_id', 'noOfLocations')
         .aggregation('cardinality', 'user_id', 'noOfFieldSales')
+    });
+    body.aggregation('terms', 'user_id', {shard_size: 200}, 'terms_user', (a) => {
+      return a
+        .aggregation('value_count', 'gps_id', 'noOfLocations')
     });
     body.aggregation('cardinality', 'user_id', 'totalFieldSales');
 
@@ -397,7 +404,7 @@ class Location extends Component {
       const
         {
           env,
-          elastic: {indices: {bots: {prefix, types: {salesOrder}}}},
+          elastic: {maxSize, indices: {bots: {prefix, types: {salesOrder}}}},
           countries
         } = Meteor.settings.public,
         type = salesOrder,
@@ -410,10 +417,12 @@ class Location extends Component {
             .filter(({_source: fsLoc}) => (fsLoc.country === country))
             .map(fsLoc => fsLoc._source.email));
 
-          if(!_.isEmpty(emailList)) {
+          if (!_.isEmpty(emailList)) {
+            console.log('emailList', emailList.length);
             // build search query
             let body = bodybuilder()
-              .size(0)
+              .size(maxSize)
+              .rawOption('_source', ['purchased_by', 'so_number', 'grand_total_purchase', 'purchase_date'])
               .filter('terms', 'purchased_by.keyword', emailList)
               .notFilter('term', 'so_status.keyword', 'canceled')
               .aggregation('sum', 'grand_total_purchase', 'totalRevenue');
@@ -431,13 +440,27 @@ class Location extends Component {
 
             // get total revenue
             ESMethods.search.call({index, type, body}, (err, res) => {
-              if(err) {
+              if (err) {
                 Notify.warning({
                   title: 'GET TOTAL REVENUE',
                   message: `Failed: ${err.reason}`
                 });
               }
-              if(!_.isEmpty(res.aggregations)) {
+
+              if(res.hits.total > 0) {
+                this.setState({
+                  revenues: res.hits.hits.map(({_source}) => {
+                    const {
+                      purchased_by: email,
+                      so_number: soNumber,
+                      grand_total_purchase: revenue,
+                      purchase_date: date
+                    } = _source;
+                    return {email, soNumber, revenue, date};
+                  })
+                });
+              }
+              if (!_.isEmpty(res.aggregations)) {
                 const {aggregations: {totalRevenue: {value: totalRevenue}}} = res;
 
                 this.setState({
@@ -538,9 +561,10 @@ class Location extends Component {
   }
 
   _getStatsProps() {
-    const {stats, totalFieldSales, totalRevenues, mapsData: {total: totalLocations}} = this.state;
+    const {stats, totalFieldSales, revenues, totalRevenues, mapsData: {total: totalLocations}} = this.state;
 
     return {
+      revenues,
       totalFieldSales: accounting.format(totalFieldSales),
       totalLocations: accounting.format(totalLocations),
       stats: stats.map(stat => {
@@ -551,7 +575,7 @@ class Location extends Component {
           } = stat,
           {name: country, currency} = Meteor.settings.public.countries[key];
         let revenue = totalRevenues[key];
-        if(revenue) {
+        if (revenue) {
           revenue = accounting.format(revenue);
         } else {
           revenue = 0;
@@ -630,31 +654,31 @@ class Location extends Component {
                 </div>
               </div>
             </div>
-            <div className="row" ref="fsLocation">
-              <div className="col-md-4 col-xs-12">
-                {!_.isEmpty(stats) && (
-                  <StatisticBox
-                    {...this._getStatsProps()}
-                  />
-                )}
-              </div>
-              <div className="col-md-8 col-xs-12">
-                <div className="search-container bordered">
-                  {ready ? (
-                    (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
-                      <GoogleMaps
-                        ref="googleMaps"
-                        {...this._getMapsProps()}
-                        handlers={handlers.marker}
-                      />
+            <div ref="fsLocation">
+              {!_.isEmpty(stats) && (
+                <StatisticBox
+                  {...this._getStatsProps()}
+                />
+              )}
+              <div className="row">
+                <div className="col-md-12 col-xs-12">
+                  <div className="search-container bordered">
+                    {ready ? (
+                      (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
+                        <GoogleMaps
+                          ref="googleMaps"
+                          {...this._getMapsProps()}
+                          handlers={handlers.marker}
+                        />
+                      ) : (
+                        <div>No data found</div>
+                      )
                     ) : (
-                      <div>No data found</div>
-                    )
-                  ) : (
-                    <div>
-                      <Spinner/>
-                    </div>
-                  )}
+                      <div>
+                        <Spinner/>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
