@@ -51,9 +51,10 @@ class Location extends Component {
       timeRange: {from: 'now-24h', to: 'now', label: 'Last 24 hours'},
 
       mapsData: {},
-      stats: {},
+      purchases: {},
+      stats: [],
       totalFieldSales: 0,
-      totalRevenues: {},
+      totalPurchases: {},
 
       activeTab: '',
 
@@ -83,6 +84,11 @@ class Location extends Component {
   componentDidMount() {
     /* Load initial data from Elastic */
     this._getMapsData();
+  }
+
+  componentDidUpdate() {
+    /* Temporary fix for update Statistic box when data changed */
+    this._getStatsProps();
   }
 
   onClickMarker(activeMarkerInfo, activeMarker) {
@@ -292,7 +298,7 @@ class Location extends Component {
       });
   }
 
-  _buildESBodyWithSearchText(body, search) {
+  _buildESBodyWithSearchText(body, search, idField, emailField) {
     if (!_.isEmpty(search)) {
       if (isNaN(search)) {
         // search value is not a number --> suppose to search by name or email
@@ -316,12 +322,12 @@ class Location extends Component {
           // );
         } else {
           // search value is an email --> search by email
-          body.query('term', 'email.keyword', search);
+          body.query('term', emailField, search);
         }
       } else {
         // search value is number --> suppose to search by userId
         const userId = Number(search);
-        body.filter('term', 'user_id', userId);
+        body.filter('term', idField, userId);
       }
     } else {
       body.query('match_all', {});
@@ -335,15 +341,16 @@ class Location extends Component {
       {maxSize} = Meteor.settings.public.elastic;
     let body = bodybuilder();
 
-    body.sort('created_at', 'asc');
+    body.sort('@timestamp', 'asc');
+    // body.sort('created_at', 'asc');
     body.size(maxSize);
 
     body.rawOption('_source', [
       'gps_id', 'user_id', 'first_name', 'last_name',
-      'email', 'location', 'store_id', 'created_at', 'country'
+      'email', 'location', 'store_id', 'created_at', '@timestamp', 'country'
     ]);
 
-    body = this._buildESBodyWithSearchText(body, search);
+    body = this._buildESBodyWithSearchText(body, search, 'user_id', 'email.keyword');
 
     (!_.isEmpty((country)) && country !== 'all') &&
     body.filter('term', 'country', country);
@@ -400,7 +407,7 @@ class Location extends Component {
         }
       }
 
-      // Get Revenue Stats
+      // Get Purchase Stats
       const
         {
           env,
@@ -408,79 +415,100 @@ class Location extends Component {
           countries
         } = Meteor.settings.public,
         type = salesOrder,
-        totalRevenues = [];
-      Object.keys(countries).map(country => {
-        const index = `${prefix}_${country}_${env}`;
-        let emailList = [];
-        if (!_.isEmpty(mapsData.hits)) {
-          emailList = _.uniq(mapsData.hits
-            .filter(({_source: fsLoc}) => (fsLoc.country === country))
-            .map(fsLoc => fsLoc._source.email));
+        totalPurchases = [];
+      let currentCountries = [];
+      // get currentCountries
+      if (!_.isEmpty(mapsData.hits)) {
+        currentCountries = _.uniq(mapsData.hits.map(({_source}) => _source.country));
+      }
+      console.log('currentCountries', currentCountries);
+      if (!_.isEmpty(currentCountries)) {
+        this.setState({
+          totalPurchases: {},
+          purchases: {}
+        }, () => {
+          currentCountries.map(country => {
+            const index = `${prefix}_${country}_${env}`;
+            let emailList = [];
+            if (!_.isEmpty(mapsData.hits)) {
+              emailList = _.uniq(mapsData.hits
+                .filter(({_source: fsLoc}) => (fsLoc.country === country))
+                .map(fsLoc => fsLoc._source.email));
 
-          if (!_.isEmpty(emailList)) {
-            console.log('emailList', emailList.length);
-            // build search query
-            let body = bodybuilder()
-              .size(maxSize)
-              .rawOption('_source', ['purchased_by', 'so_number', 'grand_total_purchase', 'purchase_date'])
-              .filter('terms', 'purchased_by.keyword', emailList)
-              .notFilter('term', 'so_status.keyword', 'canceled')
-              .aggregation('sum', 'grand_total_purchase', 'totalRevenue');
+              if (!_.isEmpty(emailList)) {
+                // console.log('emailList', emailList.length);
+                // build search query
+                let body = bodybuilder()
+                  .size(maxSize)
+                  .sort('purchase_date', 'asc')
+                  .rawOption('_source', ['purchased_by', 'so_number', 'grand_total_purchase', 'purchase_date'])
+                  .filter('terms', 'purchased_by.keyword', emailList)
+                  .notFilter('term', 'so_status.keyword', 'canceled')
+                  .aggregation('sum', 'grand_total_purchase', 'totalPurchase');
 
-            body = this._buildESBodyWithSearchText(body, search);
+                body = this._buildESBodyWithSearchText(body, search, 'magento_customer_id', 'purchased_by.keyword');
 
-            !_.isEmpty(timeRange) &&
-            body.filter('range', 'purchase_date', {
-              gte: timeRange.from,
-              lte: timeRange.to
-            });
-
-            body = body.build();
-            console.log('getRevenue body', JSON.stringify(body));
-
-            // get total revenue
-            ESMethods.search.call({index, type, body}, (err, res) => {
-              if (err) {
-                Notify.warning({
-                  title: 'GET TOTAL REVENUE',
-                  message: `Failed: ${err.reason}`
+                !_.isEmpty(timeRange) &&
+                body.filter('range', 'purchase_date', {
+                  gte: timeRange.from,
+                  lte: timeRange.to
                 });
-              }
 
-              if(res.hits.total > 0) {
-                this.setState({
-                  revenues: res.hits.hits.map(({_source}) => {
-                    const {
-                      purchased_by: email,
-                      so_number: soNumber,
-                      grand_total_purchase: revenue,
-                      purchase_date: date
-                    } = _source;
-                    return {email, soNumber, revenue, date};
-                  })
-                });
-              }
-              if (!_.isEmpty(res.aggregations)) {
-                const {aggregations: {totalRevenue: {value: totalRevenue}}} = res;
+                body = body.build();
+                console.log('getPurchase body', JSON.stringify(body));
 
-                this.setState({
-                  totalRevenues: {
-                    ...this.state.totalRevenues,
-                    [country]: totalRevenue
+                // get total purchase
+                ESMethods.search.call({index, type, body}, (err, res) => {
+                  if (err) {
+                    Notify.warning({
+                      title: 'GET TOTAL PURCHASE',
+                      message: `Failed: ${err.reason}`
+                    });
+                  }
+
+                  if (res.hits.total > 0) {
+                    this.setState({
+                      purchases: {
+                        ...this.state.purchases,
+                        [country]: res.hits.hits.map(({_source}) => {
+                          const {
+                            purchased_by: email,
+                            so_number: soNumber,
+                            grand_total_purchase,
+                            purchase_date: date
+                          } = _source;
+                          return {
+                            email, soNumber,
+                            purchase: Math.ceil(grand_total_purchase / countries[country].exchangeRate),
+                            country, date
+                          };
+                        })
+                      }
+                    });
+                  }
+                  if (!_.isEmpty(res.aggregations)) {
+                    const {aggregations: {totalPurchase: {value: totalPurchase}}} = res;
+
+                    this.setState({
+                      totalPurchases: {
+                        ...this.state.totalPurchases,
+                        [country]: Math.ceil(totalPurchase / countries[country].exchangeRate)
+                      }
+                    });
                   }
                 });
               }
-            });
-          }
-        }
-      });
+            }
+          })
+        });
+      }
 
       return this.setState({
         ready,
         mapsData,
         stats,
         totalFieldSales: totalFS,
-        totalRevenues,
+        totalPurchases,
       });
     });
   }
@@ -550,6 +578,7 @@ class Location extends Component {
       markers,
       center,
       zoom,
+      height: 700,
       activeMarker: {
         info: activeMarkerInfo,
         marker: activeMarker
@@ -561,27 +590,28 @@ class Location extends Component {
   }
 
   _getStatsProps() {
-    const {stats, totalFieldSales, revenues, totalRevenues, mapsData: {total: totalLocations}} = this.state;
+    const {countries} = Meteor.settings.public;
+    const {totalFieldSales, totalPurchases, purchases, mapsData: {total: totalLocations, hits}} = this.state;
+    let locations = {};
+
+    if (!_.isEmpty(hits)) {
+      Object.keys(countries).map(country => {
+        locations[country] = hits
+          .filter(hit => hit._source.country === country)
+          .map(({_source}) => {
+            const {gps_id: gpsId, email, country, '@timestamp': date} = _source;
+            return {gpsId, email, country, date};
+          });
+      });
+    }
+
 
     return {
-      revenues,
+      purchases,
+      locations,
       totalFieldSales: accounting.format(totalFieldSales),
       totalLocations: accounting.format(totalLocations),
-      stats: stats.map(stat => {
-        const {
-            key,
-            noOfFieldSales: {value: noOfFieldSales},
-            noOfLocations: {value: noOfLocations}
-          } = stat,
-          {name: country, currency} = Meteor.settings.public.countries[key];
-        let revenue = totalRevenues[key];
-        if (revenue) {
-          revenue = accounting.format(revenue);
-        } else {
-          revenue = 0;
-        }
-        return [`${country} (${currency})`, revenue, accounting.format(noOfFieldSales), accounting.format(noOfLocations)];
-      })
+      totalPurchases
     };
   }
 
@@ -654,17 +684,17 @@ class Location extends Component {
                 </div>
               </div>
             </div>
-            <div ref="fsLocation">
-              {!_.isEmpty(stats) && (
-                <StatisticBox
-                  {...this._getStatsProps()}
-                />
-              )}
-              <div className="row">
-                <div className="col-md-12 col-xs-12">
-                  <div className="search-container bordered">
-                    {ready ? (
-                      (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
+            {ready ? (
+              <div ref="fsLocation">
+                {!_.isEmpty(stats) && (
+                  <StatisticBox
+                    {...this._getStatsProps()}
+                  />
+                )}
+                <div className="row">
+                  <div className="col-md-12 col-xs-12">
+                    <div className="search-container bordered">
+                      {(!_.isEmpty(mapsData) && mapsData.total > 0) ? (
                         <GoogleMaps
                           ref="googleMaps"
                           {...this._getMapsProps()}
@@ -672,16 +702,16 @@ class Location extends Component {
                         />
                       ) : (
                         <div>No data found</div>
-                      )
-                    ) : (
-                      <div>
-                        <Spinner/>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <Spinner/>
+              </div>
+            )}
           </div>
         </div>
         {this._renderDialog()}

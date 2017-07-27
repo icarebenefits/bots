@@ -17,7 +17,7 @@ export const TIME_RANGE_CONST = {
         { from: 'now-7d/d', to: 'now-7d/d', label: 'This day last week' },
         { from: 'now-1w/w', to: 'now-1w/w', label: 'Previous week' },
         { from: 'now-1M/M', to: 'now-1M/M', label: 'Previous month' },
-        { from: 'now-1y/y', to: 'now-1y/y', label: 'Previous year' },
+        // { from: 'now-1y/y', to: 'now-1y/y', label: 'Previous year' },
       ],
       [
         { from: 'now-15m',  to: 'now',      label: 'Last 15 minutes' },
@@ -34,8 +34,8 @@ export const TIME_RANGE_CONST = {
         { from: 'now-90d',  to: 'now',      label: 'Last 90 days' },
         { from: 'now-6M',   to: 'now',      label: 'Last 6 months' },
         { from: 'now-1y',   to: 'now',      label: 'Last 1 year' },
-        { from: 'now-2y',   to: 'now',      label: 'Last 2 years' },
-        { from: 'now-5y',   to: 'now',      label: 'Last 5 years' },
+        // { from: 'now-2y',   to: 'now',      label: 'Last 2 years' },
+        // { from: 'now-5y',   to: 'now',      label: 'Last 5 years' },
       ]
     ],
     buttons: [

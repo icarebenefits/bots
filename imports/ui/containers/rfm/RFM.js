@@ -7,6 +7,9 @@ import _ from 'lodash';
 import accounting from 'accounting';
 import moment from 'moment';
 
+// Components
+import {WidgetThumb} from '/imports/ui/components';
+
 /* Collections */
 import {RFMScoreBoard, RFMTopTen} from '/imports/api/collections/rfm';
 /* Utils */
@@ -32,7 +35,7 @@ class RFM extends Component {
     const
       {filter} = this.state,
       {TopTen: [topten], currency} = this.props;
-    if(!_.isEmpty(topten[filter])) {
+    if (!_.isEmpty(topten[filter])) {
       return topten[filter].map((iCM, index) => {
         const {name, company, monetary} = iCM;
         return (
@@ -65,7 +68,7 @@ class RFM extends Component {
 
   render() {
     const {ready} = this.props;
-    if(ready) {
+    if (ready) {
       const
         {filter} = this.state,
         {country, currency, ScoreBoard: [scoreboard]} = this.props,
@@ -122,32 +125,20 @@ class RFM extends Component {
               <div className="col-md-4">
                 <div className="row">
                   <div className="col-md-8">
-                    <div className="widget-thumb widget-bg-color-white text-uppercase margin-bottom-20 bordered">
-                      <h4 className="widget-thumb-heading">Total</h4>
-                      <div className="widget-thumb-wrap">
-                        <i className="widget-thumb-icon bg-green icon-bulb"></i>
-                        <div className="widget-thumb-body">
-                          <span className="widget-thumb-subtitle">iCare members</span>
-                      <span className="widget-thumb-body-stat" data-counter="counterup"
-                            data-value="7,644">{accounting.format(total)}</span>
-                        </div>
-                      </div>
-                    </div>
+                    <WidgetThumb
+                      title={'Total'}
+                      subTitle={'iCare members'}
+                      stat={accounting.format(total)}
+                    />
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-md-8">
-                    <div className="widget-thumb widget-bg-color-white text-uppercase margin-bottom-20 bordered">
-                      <h4 className="widget-thumb-heading">Has purchased</h4>
-                      <div className="widget-thumb-wrap">
-                        <i className="widget-thumb-icon bg-green icon-bulb"></i>
-                        <div className="widget-thumb-body">
-                          <span className="widget-thumb-subtitle">iCare members</span>
-                          <span className="widget-thumb-body-stat" data-counter="counterup">
-                            {accounting.format(purchased)}</span>
-                        </div>
-                      </div>
-                    </div>
+                    <WidgetThumb
+                      title={'Has purchased'}
+                      subTitle={'iCare members'}
+                      stat={accounting.format(purchased)}
+                    />
                   </div>
                 </div>
               </div>
@@ -156,7 +147,8 @@ class RFM extends Component {
                   <div className="portlet-title tabbable-line">
                     <div className="caption">
                       <i className="icon-bubbles font-dark hide"></i>
-                      <span className="caption-subject font-dark bold uppercase">Scorboard of purchased iCare members</span>
+                      <span
+                        className="caption-subject font-dark bold uppercase">Scorboard of purchased iCare members</span>
                     </div>
                   </div>
                   <div className="portlet-body">
@@ -342,8 +334,8 @@ class RFM extends Component {
                             return (
                               <li key={name}>
                                 <a onClick={e => {
-                                e.preventDefault();
-                                this._onChangeFilter(name);
+                                  e.preventDefault();
+                                  this._onChangeFilter(name);
                                 }}>{label}</a>
                               </li>
                             );

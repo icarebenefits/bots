@@ -5,106 +5,189 @@ import _ from 'lodash';
 import moment from 'moment';
 
 // Components
-import {FieldSalesRevenueChart} from '/imports/ui/components/chart';
+import {FieldSalesRevenueLocation} from '/imports/ui/components/chart';
+import {WidgetThumb} from '/imports/ui/components';
 // Constants
 import {COLORS} from '/imports/ui/components/colors';
 
 class StatisticBox extends Component {
 
+  constructor() {
+    super();
 
-  _getDataSet() {
-    const {revenues} = this.props;
+    this.state = {
+      totalPurchases: 0,
+      biggestPurchase: 0
+    };
+
+    /* Handlers */
+    // Private
+    this._getStatisticState = this._getStatisticState.bind(this);
+  }
+
+  _getStatisticState() {
+    const {countries} = Meteor.settings.public;
+    const {purchases, locations} = this.props;
     const timeFormat = 'MM/DD/YYYY HH:mm';
-    let data = [];
+    const commonProps = {
+      pointRadius: 5,
+      pointHoverRadius: 10,
+      showLine: false, // no line shown
+    };
+    let
+      biggestPurchase = 0,
+      totalPurchases = 0, // total revenue
+      purchaseDataSets = [], // revenue Data Sets
+      locationDataSets = []; // location Data Sets
 
-    if(!_.isEmpty(revenues)) {
-      data = revenues.map(({email, soNumber, revenue, date}) => {
-        return {
-          x: moment(date).format(timeFormat),
-          y: revenue
-        };
+    // revenueDataSets: collect data
+    if (!_.isEmpty(purchases)) {
+      const pointColors = [
+        COLORS['yellow-lemon'],
+        COLORS['yellow'],
+        COLORS['yellow-gold'],
+        COLORS['yellow-casablanca'],
+        COLORS['yellow-crusta'],
+        COLORS['yellow-saffron']
+      ];
+      Object.keys(countries).map((country, idx) => {
+        let totalPurchase = 0;
+        purchaseDataSets = [
+          ...purchaseDataSets,
+          {
+            ...commonProps,
+            label: `Revenue: ${countries[country].name}`,
+            backgroundColor: pointColors[idx],
+            borderColor: pointColors[idx],
+            pointStyle: 'circle',
+            yAxisID: "y-axis-revenue",
+            data: !_.isEmpty(purchases[country]) ?
+              purchases[country].map(({purchase, date}) => {
+                if (purchase > biggestPurchase) {
+                  biggestPurchase = purchase;
+                }
+                totalPurchase += purchase;
+                return {
+                  x: moment(date).format(timeFormat),
+                  y: totalPurchase
+                };
+              }) :
+              []
+          }
+        ];
+        totalPurchases += totalPurchase;
+      });
+    }
+    // locationDataSets: collect data
+    if (!_.isEmpty(locations)) {
+      const pointColors = [
+        COLORS['green'],
+        COLORS['green-meadow'],
+        COLORS['green-seagreen'],
+        COLORS['green-turquoise'],
+        COLORS['green-haze'],
+        COLORS['green-jungle']
+      ];
+      Object.keys(countries).map((country, idx) => {
+        let count = 0;
+        locationDataSets = [
+          ...locationDataSets,
+          {
+            ...commonProps,
+            label: `Location: ${countries[country].name}`,
+            backgroundColor: pointColors[idx],
+            borderColor: pointColors[idx],
+            pointStyle: 'rectRot',
+            yAxisID: "y-axis-location",
+            data: !_.isEmpty(locations[country]) ?
+              locations[country].map(({date}) => {
+                return {
+                  x: moment(date).format(timeFormat),
+                  y: ++count
+                };
+              }) :
+              []
+          }
+        ];
       });
     }
 
-    return [{
-      label: 'All Field Sales',
-      pointRadius: 5,
-      pointHoverRadius: 15,
-      showLine: false, // no line shown
-      backgroundColor: COLORS.green,
-      borderColor: COLORS.green,
-      data
-    }];
+    return {
+      totalPurchases,
+      biggestPurchase,
+      dataSets: [
+        ...purchaseDataSets,
+        ...locationDataSets
+      ]
+    };
   }
 
   render() {
-    const {
-      totalFieldSales = accounting.format(3203),
-      totalLocations = accounting.format(2347822),
-      stats = [
-        ['Vietnam', '$345', 124, 45],
-        ['Cambodia', '$560', 24, 12],
-        ['Laos', '$1,568', 46, 450]
-      ]
-    } = this.props;
+    const
+      {
+        totalFieldSales = accounting.format(3203),
+        totalLocations = accounting.format(2347822)
+      } = this.props,
+      {totalPurchases, biggestPurchase, dataSets} = this._getStatisticState();
+    // console.log('dataSets', this._getDataSet());
 
     return (
-      <div className="row">
-        <div className="col-md-6 col-xs-12">
-          <div className="profile-sidebar" style={{width: '100%'}}>
-            <div className="portlet light bordered">
-              <div className="row list-separated profile-stat">
-                <div className="col-md-6 col-sm-6 col-xs-6">
-                  <div className="uppercase profile-stat-title">{totalFieldSales}</div>
-                  <div className="uppercase profile-stat-text text-right">Field Sales</div>
-                </div>
-                <div className="col-md-6 col-sm-6 col-xs-6">
-                  <div className="uppercase profile-stat-title">{totalLocations}</div>
-                  <div className="uppercase profile-stat-text text-right"> Locations</div>
-                </div>
-              </div>
-              <div className="portlet-body">
-                {/*<h4 className="profile-desc-title">Total Revenue: {` ${totalRevenue}`}</h4>*/}
-                {/*<span className="profile-desc-text"> Lorem ipsum dolor sit amet diam nonummy nibh dolore. </span>*/}
-
-                <div className="table-scrollable table-scrollable-borderless">
-                  <table className="table table-hover table-light">
-                    <thead>
-                    <tr className="uppercase bold">
-                      <th> Country</th>
-                      <th> Revenue</th>
-                      <th> Field Sales</th>
-                      <th> Locations</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {!_.isEmpty(stats) && stats.map((stat, i) => (
-                      <tr key={i}>
-                        {stat.map((s, i) => (
-                          <td key={i}>
-                            {i === 1 ? (
-                              <span className="theme-font">{s}</span>
-                            ) : (
-                              s
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+      <div>
+        <div className="row">
+          <div className="col-md-3 col-xs-6">
+            <WidgetThumb
+              title={'Total Purchase'}
+              icon="fa-dollar"
+              iconBg="blue"
+              subTitle={'USD'}
+              stat={accounting.format(totalPurchases)}
+            />
+          </div>
+          <div className="col-md-3 col-xs-6">
+            <WidgetThumb
+              title={'Biggest Purchase'}
+              icon="fa-diamond"
+              iconBg="yellow-saffron"
+              subTitle={'USD'}
+              stat={accounting.format(biggestPurchase)}
+            />
+          </div>
+          <div className="col-md-3 col-xs-6">
+            <WidgetThumb
+              title={'Field Sales'}
+              icon="fa-user-secret"
+              iconBg="purple"
+              subTitle={''}
+              stat={totalFieldSales}
+            />
+          </div>
+          <div className="col-md-3 col-xs-6">
+            <WidgetThumb
+              title={'Locations'}
+              icon="fa-map-marker"
+              iconBg="green-meadow"
+              subTitle={''}
+              stat={totalLocations}
+            />
           </div>
         </div>
-        <div className="col-md-6 col-xs-12">
-          <div className="portlet light bordered">
-            <div className="portlet-body">
-              <FieldSalesRevenueChart
-                datasets={this._getDataSet()}
-              />
-            </div>
+        <div className="row">
+          <div className="col-md-12">
+            <FieldSalesRevenueLocation
+              datasets={dataSets}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-6 col-xs-12">
+            <FieldSalesRevenueLocation
+              datasets={[]}
+            />
+          </div>
+          <div className="col-md-6 col-xs-12">
+            <FieldSalesRevenueLocation
+              datasets={[]}
+            />
           </div>
         </div>
       </div>

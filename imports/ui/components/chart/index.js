@@ -1,2 +1,2 @@
 export {default as Chart} from './Chart';
-export {default as FieldSalesRevenueChart} from './FieldSalesRevenue';
+export {default as FieldSalesRevenueLocation} from './FieldSalesRevenueLocation';
