@@ -38,12 +38,7 @@ class FieldSalesRevenue extends Component {
             //   console.log('title items', tooltipItems);
             //   return `Changed title`;
             // },
-            label: (tooltipItems, data) => {
-              const {xLabel, yLabel} = tooltipItems;
-
-                console.log('label items', tooltipItems);
-              return `${xLabel}: ${yLabel}`;
-            }
+            label: ({yLabel}) => accounting.format(yLabel)
           },
           footerFontStyle: 'normal'
         },

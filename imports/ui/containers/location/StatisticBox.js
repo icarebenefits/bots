@@ -36,6 +36,7 @@ class StatisticBox extends Component {
     };
     let
       biggestPurchase = 0,
+      biggestPurchaseCountry = '',
       totalPurchases = 0, // total revenue
       purchaseDataSets = [], // revenue Data Sets
       locationDataSets = []; // location Data Sets
@@ -65,6 +66,7 @@ class StatisticBox extends Component {
               purchases[country].map(({purchase, date}) => {
                 if (purchase > biggestPurchase) {
                   biggestPurchase = purchase;
+                  biggestPurchaseCountry = countries[country].name;
                 }
                 totalPurchase += purchase;
                 return {
@@ -115,6 +117,7 @@ class StatisticBox extends Component {
     return {
       totalPurchases,
       biggestPurchase,
+      biggestPurchaseCountry,
       dataSets: [
         ...purchaseDataSets,
         ...locationDataSets
@@ -128,7 +131,7 @@ class StatisticBox extends Component {
         totalFieldSales = accounting.format(3203),
         totalLocations = accounting.format(2347822)
       } = this.props,
-      {totalPurchases, biggestPurchase, dataSets} = this._getStatisticState();
+      {totalPurchases, biggestPurchase, biggestPurchaseCountry, dataSets} = this._getStatisticState();
     // console.log('dataSets', this._getDataSet());
 
     return (
@@ -145,7 +148,7 @@ class StatisticBox extends Component {
           </div>
           <div className="col-md-3 col-xs-6">
             <WidgetThumb
-              title={'Biggest Purchase'}
+              title={`${biggestPurchaseCountry} Has Biggest Purchase`}
               icon="fa-diamond"
               iconBg="yellow-saffron"
               subTitle={'USD'}
@@ -157,7 +160,7 @@ class StatisticBox extends Component {
               title={'Field Sales'}
               icon="fa-user-secret"
               iconBg="purple"
-              subTitle={''}
+              subTitle={'total'}
               stat={totalFieldSales}
             />
           </div>
@@ -166,7 +169,7 @@ class StatisticBox extends Component {
               title={'Locations'}
               icon="fa-map-marker"
               iconBg="green-meadow"
-              subTitle={''}
+              subTitle={'total'}
               stat={totalLocations}
             />
           </div>
@@ -178,18 +181,18 @@ class StatisticBox extends Component {
             />
           </div>
         </div>
-        <div className="row">
-          <div className="col-md-6 col-xs-12">
-            <FieldSalesRevenueLocation
-              datasets={[]}
-            />
-          </div>
-          <div className="col-md-6 col-xs-12">
-            <FieldSalesRevenueLocation
-              datasets={[]}
-            />
-          </div>
-        </div>
+        {/*<div className="row">*/}
+          {/*<div className="col-md-6 col-xs-12">*/}
+            {/*<FieldSalesRevenueLocation*/}
+              {/*datasets={[]}*/}
+            {/*/>*/}
+          {/*</div>*/}
+          {/*<div className="col-md-6 col-xs-12">*/}
+            {/*<FieldSalesRevenueLocation*/}
+              {/*datasets={[]}*/}
+            {/*/>*/}
+          {/*</div>*/}
+        {/*</div>*/}
       </div>
     );
   }

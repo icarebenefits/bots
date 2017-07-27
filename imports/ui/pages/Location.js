@@ -380,7 +380,7 @@ class Location extends Component {
     const
       {search, country, timeRange, index, type, activeMarkerId} = this.state,
       body = this._buildESBody({search, country, timeRange, activeMarkerId});
-    console.log('body', JSON.stringify(body));
+    // console.log('body', JSON.stringify(body));
 
     this.setState({ready: false});
     ESMethods.search.call({
@@ -421,7 +421,7 @@ class Location extends Component {
       if (!_.isEmpty(mapsData.hits)) {
         currentCountries = _.uniq(mapsData.hits.map(({_source}) => _source.country));
       }
-      console.log('currentCountries', currentCountries);
+
       if (!_.isEmpty(currentCountries)) {
         this.setState({
           totalPurchases: {},
@@ -455,7 +455,7 @@ class Location extends Component {
                 });
 
                 body = body.build();
-                console.log('getPurchase body', JSON.stringify(body));
+                // console.log('getPurchase body', JSON.stringify(body));
 
                 // get total purchase
                 ESMethods.search.call({index, type, body}, (err, res) => {
