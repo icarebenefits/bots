@@ -15,9 +15,6 @@ import {Spinner} from '/imports/ui/components/common';
 import {Dialog} from '/imports/ui/components/elements';
 import {MapsSearch, MapsNav, StatisticBox} from '/imports/ui/containers/location';
 
-// Constants
-import {COUNTRY_CONST} from '/imports/ui/containers/location/CONSTANTS';
-
 /* Utils */
 import {Parser} from '/imports/utils';
 
@@ -51,12 +48,13 @@ class Location extends Component {
       name: '',
       search: null,
       country: 'vn',
-      timeRange: {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
+      timeRange: {from: 'now-24h', to: 'now', label: 'Last 24 hours'},
 
       mapsData: {},
-      stats: {},
+      purchases: {},
+      stats: [],
       totalFieldSales: 0,
-      totalRevenues: {},
+      totalPurchases: {},
 
       activeTab: '',
 
@@ -86,6 +84,11 @@ class Location extends Component {
   componentDidMount() {
     /* Load initial data from Elastic */
     this._getMapsData();
+  }
+
+  componentDidUpdate() {
+    /* Temporary fix for update Statistic box when data changed */
+    this._getStatsProps();
   }
 
   onClickMarker(activeMarkerInfo, activeMarker) {
@@ -295,7 +298,7 @@ class Location extends Component {
       });
   }
 
-  _buildESBodyWithSearchText(body, search) {
+  _buildESBodyWithSearchText(body, search, idField, emailField) {
     if (!_.isEmpty(search)) {
       if (isNaN(search)) {
         // search value is not a number --> suppose to search by name or email
@@ -319,12 +322,12 @@ class Location extends Component {
           // );
         } else {
           // search value is an email --> search by email
-          body.query('term', 'email.keyword', search);
+          body.query('term', emailField, search);
         }
       } else {
         // search value is number --> suppose to search by userId
         const userId = Number(search);
-        body.filter('term', 'user_id', userId);
+        body.filter('term', idField, userId);
       }
     } else {
       body.query('match_all', {});
@@ -334,13 +337,20 @@ class Location extends Component {
   }
 
   _buildESBody(searchCondition) {
-    const {search, country, timeRange} = searchCondition;
+    const {search, country, timeRange} = searchCondition,
+      {maxSize} = Meteor.settings.public.elastic;
     let body = bodybuilder();
 
-    body.sort('created_at', 'asc');
-    body.size(10000);
+    body.sort('@timestamp', 'asc');
+    // body.sort('created_at', 'asc');
+    body.size(maxSize);
 
-    body = this._buildESBodyWithSearchText(body, search);
+    body.rawOption('_source', [
+      'gps_id', 'user_id', 'first_name', 'last_name',
+      'email', 'location', 'store_id', 'created_at', '@timestamp', 'country'
+    ]);
+
+    body = this._buildESBodyWithSearchText(body, search, 'user_id', 'email.keyword');
 
     (!_.isEmpty((country)) && country !== 'all') &&
     body.filter('term', 'country', country);
@@ -357,6 +367,10 @@ class Location extends Component {
         .aggregation('value_count', 'gps_id', 'noOfLocations')
         .aggregation('cardinality', 'user_id', 'noOfFieldSales')
     });
+    body.aggregation('terms', 'user_id', {shard_size: 200}, 'terms_user', (a) => {
+      return a
+        .aggregation('value_count', 'gps_id', 'noOfLocations')
+    });
     body.aggregation('cardinality', 'user_id', 'totalFieldSales');
 
     return body.build();
@@ -366,7 +380,7 @@ class Location extends Component {
     const
       {search, country, timeRange, index, type, activeMarkerId} = this.state,
       body = this._buildESBody({search, country, timeRange, activeMarkerId});
-    console.log('body', JSON.stringify(body));
+    // console.log('body', JSON.stringify(body));
 
     this.setState({ready: false});
     ESMethods.search.call({
@@ -393,71 +407,108 @@ class Location extends Component {
         }
       }
 
-      // Get Revenue Stats
+      // Get Purchase Stats
       const
         {
           env,
-          elastic: {indices: {bots: {prefix, types: {salesOrder}}}},
+          elastic: {maxSize, indices: {bots: {prefix, types: {salesOrder}}}},
           countries
         } = Meteor.settings.public,
         type = salesOrder,
-        totalRevenues = [];
-      Object.keys(countries).map(country => {
-        const index = `${prefix}_${country}_${env}`;
-        let emailList = [];
-        if (!_.isEmpty(mapsData.hits)) {
-          emailList = _.uniq(mapsData.hits
-            .filter(({_source: fsLoc}) => (fsLoc.country === country))
-            .map(fsLoc => fsLoc._source.email));
+        totalPurchases = [];
+      let currentCountries = [];
+      // get currentCountries
+      if (!_.isEmpty(mapsData.hits)) {
+        currentCountries = _.uniq(mapsData.hits.map(({_source}) => _source.country));
+      }
 
-          if(!_.isEmpty(emailList)) {
-            // build search query
-            let body = bodybuilder()
-              .size(0)
-              .filter('terms', 'purchased_by.keyword', emailList)
-              .notFilter('term', 'so_status.keyword', 'canceled')
-              .aggregation('sum', 'grand_total_purchase', 'totalRevenue');
+      if (!_.isEmpty(currentCountries)) {
+        this.setState({
+          totalPurchases: {},
+          purchases: {}
+        }, () => {
+          currentCountries.map(country => {
+            const index = `${prefix}_${country}_${env}`;
+            let emailList = [];
+            if (!_.isEmpty(mapsData.hits)) {
+              emailList = _.uniq(mapsData.hits
+                .filter(({_source: fsLoc}) => (fsLoc.country === country))
+                .map(fsLoc => fsLoc._source.email));
 
-            body = this._buildESBodyWithSearchText(body, search);
+              if (!_.isEmpty(emailList)) {
+                // console.log('emailList', emailList.length);
+                // build search query
+                let body = bodybuilder()
+                  .size(maxSize)
+                  .sort('purchase_date', 'asc')
+                  .rawOption('_source', ['purchased_by', 'so_number', 'grand_total_purchase', 'purchase_date'])
+                  .filter('terms', 'purchased_by.keyword', emailList)
+                  .notFilter('term', 'so_status.keyword', 'canceled')
+                  .aggregation('sum', 'grand_total_purchase', 'totalPurchase');
 
-            !_.isEmpty(timeRange) &&
-            body.filter('range', 'purchase_date', {
-              gte: timeRange.from,
-              lte: timeRange.to
-            });
+                body = this._buildESBodyWithSearchText(body, search, 'magento_customer_id', 'purchased_by.keyword');
 
-            body = body.build();
-            console.log('getRevenue body', JSON.stringify(body));
-
-            // get total revenue
-            ESMethods.search.call({index, type, body}, (err, res) => {
-              if(err) {
-                Notify.warning({
-                  title: 'GET TOTAL REVENUE',
-                  message: `Failed: ${err.reason}`
+                !_.isEmpty(timeRange) &&
+                body.filter('range', 'purchase_date', {
+                  gte: timeRange.from,
+                  lte: timeRange.to
                 });
-              }
-              if(!_.isEmpty(res.aggregations)) {
-                const {aggregations: {totalRevenue: {value: totalRevenue}}} = res;
 
-                this.setState({
-                  totalRevenues: {
-                    ...this.state.totalRevenues,
-                    [country]: totalRevenue
+                body = body.build();
+                // console.log('getPurchase body', JSON.stringify(body));
+
+                // get total purchase
+                ESMethods.search.call({index, type, body}, (err, res) => {
+                  if (err) {
+                    Notify.warning({
+                      title: 'GET TOTAL PURCHASE',
+                      message: `Failed: ${err.reason}`
+                    });
+                  }
+
+                  if (res.hits.total > 0) {
+                    this.setState({
+                      purchases: {
+                        ...this.state.purchases,
+                        [country]: res.hits.hits.map(({_source}) => {
+                          const {
+                            purchased_by: email,
+                            so_number: soNumber,
+                            grand_total_purchase,
+                            purchase_date: date
+                          } = _source;
+                          return {
+                            email, soNumber,
+                            purchase: Math.ceil(grand_total_purchase / countries[country].exchangeRate),
+                            country, date
+                          };
+                        })
+                      }
+                    });
+                  }
+                  if (!_.isEmpty(res.aggregations)) {
+                    const {aggregations: {totalPurchase: {value: totalPurchase}}} = res;
+
+                    this.setState({
+                      totalPurchases: {
+                        ...this.state.totalPurchases,
+                        [country]: Math.ceil(totalPurchase / countries[country].exchangeRate)
+                      }
+                    });
                   }
                 });
               }
-            });
-          }
-        }
-      });
+            }
+          })
+        });
+      }
 
       return this.setState({
         ready,
         mapsData,
         stats,
         totalFieldSales: totalFS,
-        totalRevenues,
+        totalPurchases,
       });
     });
   }
@@ -527,6 +578,7 @@ class Location extends Component {
       markers,
       center,
       zoom,
+      height: 700,
       activeMarker: {
         info: activeMarkerInfo,
         marker: activeMarker
@@ -538,26 +590,28 @@ class Location extends Component {
   }
 
   _getStatsProps() {
-    const {stats, totalFieldSales, totalRevenues, mapsData: {total: totalLocations}} = this.state;
+    const {countries} = Meteor.settings.public;
+    const {totalFieldSales, totalPurchases, purchases, mapsData: {total: totalLocations, hits}} = this.state;
+    let locations = {};
+
+    if (!_.isEmpty(hits)) {
+      Object.keys(countries).map(country => {
+        locations[country] = hits
+          .filter(hit => hit._source.country === country)
+          .map(({_source}) => {
+            const {gps_id: gpsId, email, country, '@timestamp': date} = _source;
+            return {gpsId, email, country, date};
+          });
+      });
+    }
+
 
     return {
+      purchases,
+      locations,
       totalFieldSales: accounting.format(totalFieldSales),
       totalLocations: accounting.format(totalLocations),
-      stats: stats.map(stat => {
-        const {
-            key,
-            noOfFieldSales: {value: noOfFieldSales},
-            noOfLocations: {value: noOfLocations}
-          } = stat,
-          {name: country, currency} = Meteor.settings.public.countries[key];
-        let revenue = totalRevenues[key];
-        if(revenue) {
-          revenue = accounting.format(revenue);
-        } else {
-          revenue = 0;
-        }
-        return [`${country} (${currency})`, revenue, accounting.format(noOfFieldSales), accounting.format(noOfLocations)];
-      })
+      totalPurchases
     };
   }
 
@@ -630,34 +684,34 @@ class Location extends Component {
                 </div>
               </div>
             </div>
-            <div className="row" ref="fsLocation">
-              <div className="col-md-4 col-xs-12">
+            {ready ? (
+              <div ref="fsLocation">
                 {!_.isEmpty(stats) && (
                   <StatisticBox
                     {...this._getStatsProps()}
                   />
                 )}
-              </div>
-              <div className="col-md-8 col-xs-12">
-                <div className="search-container bordered">
-                  {ready ? (
-                    (!_.isEmpty(mapsData) && mapsData.total > 0) ? (
-                      <GoogleMaps
-                        ref="googleMaps"
-                        {...this._getMapsProps()}
-                        handlers={handlers.marker}
-                      />
-                    ) : (
-                      <div>No data found</div>
-                    )
-                  ) : (
-                    <div>
-                      <Spinner/>
+                <div className="row">
+                  <div className="col-md-12 col-xs-12">
+                    <div className="search-container bordered">
+                      {(!_.isEmpty(mapsData) && mapsData.total > 0) ? (
+                        <GoogleMaps
+                          ref="googleMaps"
+                          {...this._getMapsProps()}
+                          handlers={handlers.marker}
+                        />
+                      ) : (
+                        <div>No data found</div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <Spinner/>
+              </div>
+            )}
           </div>
         </div>
         {this._renderDialog()}
