@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 // pages
 import {WorkplacesPage, SLAsPage, RFMPage} from '/imports/ui/pages';
