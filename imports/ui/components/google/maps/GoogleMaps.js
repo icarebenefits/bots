@@ -1,4 +1,5 @@
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import _ from 'lodash';
 
 // Components
@@ -15,7 +16,7 @@ import {Tooltip} from '/imports/ui/components/common';
 class GoogleMaps extends Component {
   render() {
     const {
-      center, zoom,
+      center, zoom, height = 500,
       markers, activeMarker, activeMarkerId,
       showInfoWindow, showPolyline,
       handlers
@@ -29,7 +30,7 @@ class GoogleMaps extends Component {
         center={center || {lat: 16.002808, lng: 105.488322}}
         containerStyle={{
           position: 'relative',
-          height: 500,
+          height,
           width: '100%'
         }}
         zoom={zoom || 5}
