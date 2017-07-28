@@ -58,7 +58,7 @@ export const TIME_RANGE_CONST = {
 
 export const COUNTRY_CONST = {
   buttons: [
-    {name: 'all', label: 'All'},
+    {name: 'all', label: 'All Countries'},
     {name: 'vn', label: 'Vietnam'},
     {name: 'kh', label: 'Cambodia'},
     {name: 'la', label: 'Laos'}

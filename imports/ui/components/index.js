@@ -1,5 +1,7 @@
 export {default as DashboardStat} from './DashboardStat';
 export {default as WidgetThumb} from './WidgetThumb';
+export {default as Note} from './Note';
+export {default as Clock} from './Clock';
 export {default as Toolbar} from './common/Toolbar';
 export {default as List} from './list/List';
 export {default as ListHeader} from './list/ListHeader';
