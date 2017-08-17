@@ -9,6 +9,7 @@ import {
   Label,
   Button,
 } from '../elements';
+import Note from '../Note';
 import Clock from '../Clock';
 import * as Notify from '/imports/api/notifications';
 import {SCHEDULER_OPTIONS} from '/imports/ui/store/constants';
@@ -79,34 +80,29 @@ class ScheduleBuilder extends Component {
 
   _handleFieldChange(field, value) {
     switch (field) {
-      case 'preps':
-      {
+      case 'preps': {
         return this.setState({
           ...this._defaultState(),
           preps: value
         });
       }
-      case 'range':
-      {
+      case 'range': {
         return this.setState({
           range: value
         });
       }
-      case 'unit':
-      {
+      case 'unit': {
         return this.setState({
           unit: value,
         });
       }
-      case 'preps2':
-      {
+      case 'preps2': {
         return this.setState({
           preps2: value,
           range2: '',
         });
       }
-      case 'range2':
-      {
+      case 'range2': {
         return this.setState({
           range2: value,
         });
@@ -133,11 +129,14 @@ class ScheduleBuilder extends Component {
         {/* Note */}
         <div className="row">
           <div className="col-md-12">
-            <div className="note note-info">
-              <h4 className="block">All time for the schedule should be in GMT+0.</h4>
-              <h5 className="block">{`You are in ${userTZ}. Your current time is: `} <Button
-                className="green"><Clock /></Button></h5>
-            </div>
+            <Note
+              title={`All time for the schedule should be in GMT+0.`}
+              message={`You are in ${userTZ}. Your current time is: `}
+            >
+              <Button
+                className="green"><Clock />
+              </Button>
+            </Note>
           </div>
         </div>
         {/* Schedule */}

@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import accounting from 'accounting';
 
 // Components
+import {Spinner} from '/imports/ui/components/common';
 import Chart from './Chart';
 
 class FieldSalesRevenue extends Component {
   render() {
-
     const {
+      ready,
       label = 'Field Sales Chart',
       xLabel = "Last 24 hours", yLabel = {left: 'Revenue', right: 'Location'},
       xAxesTime = {
@@ -89,9 +90,13 @@ class FieldSalesRevenue extends Component {
     return (
       <div className="portlet light bordered">
         <div className="portlet-body">
-          <Chart
-            config={config}
-          />
+          {ready ? (
+            <Chart
+              config={config}
+            />
+          ) : (
+            <Spinner/>
+          )}
         </div>
       </div>
     );

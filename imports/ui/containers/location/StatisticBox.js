@@ -26,31 +26,49 @@ class StatisticBox extends Component {
   }
 
   _getStatisticState() {
-    const {countries} = Meteor.settings.public;
-    const {purchases, locations} = this.props;
-    const timeFormat = 'MM/DD/YYYY HH:mm';
-    const commonProps = {
-      pointRadius: 5,
-      pointHoverRadius: 10,
-      showLine: false, // no line shown
-    };
+    const
+      {countries} = Meteor.settings.public,
+      {
+        purchases, locations,
+        topFSSize, topBestFS, topWorstFS,
+      } = this.props,
+      timeFormat = 'MM/DD/YYYY HH:mm',
+      commonProps = {
+        pointRadius: 5,
+        pointHoverRadius: 10,
+        showLine: false, // no line shown
+      };
     let
       biggestPurchase = 0,
       biggestPurchaseCountry = '',
-      totalPurchases = 0, // total revenue
-      purchaseDataSets = [], // revenue Data Sets
-      locationDataSets = []; // location Data Sets
+      pointColors = {
+        purchase: [
+          COLORS['yellow-lemon'],
+          COLORS['yellow'],
+          COLORS['yellow-gold'],
+          COLORS['yellow-casablanca'],
+          COLORS['yellow-crusta'],
+          COLORS['yellow-saffron']
+        ],
+        location: [
+          COLORS['green'],
+          COLORS['green-meadow'],
+          COLORS['green-seagreen'],
+          COLORS['green-turquoise'],
+          COLORS['green-haze'],
+          COLORS['green-jungle']
+        ]
+      },
+      totalPurchases = 0, // total purchase
+      purchaseDataSets = [], // temporary purchase Data Sets
+      locationDataSets = [], // temporary location Data Sets
+      summaryDataSets = [], // datasets for summary chart
+      topBestDataSets = [], // datasets for top best FS chart
+      topWorstDataSets = []; // datasets for top worst FS chart
 
-    // revenueDataSets: collect data
+    // purchaseDataSets: collect data
     if (!_.isEmpty(purchases)) {
-      const pointColors = [
-        COLORS['yellow-lemon'],
-        COLORS['yellow'],
-        COLORS['yellow-gold'],
-        COLORS['yellow-casablanca'],
-        COLORS['yellow-crusta'],
-        COLORS['yellow-saffron']
-      ];
+      // Summary
       Object.keys(countries).map((country, idx) => {
         let totalPurchase = 0;
         purchaseDataSets = [
@@ -58,8 +76,8 @@ class StatisticBox extends Component {
           {
             ...commonProps,
             label: `Revenue: ${countries[country].name}`,
-            backgroundColor: pointColors[idx],
-            borderColor: pointColors[idx],
+            backgroundColor: pointColors.purchase[idx],
+            borderColor: pointColors.purchase[idx],
             pointStyle: 'circle',
             yAxisID: "y-axis-revenue",
             data: !_.isEmpty(purchases[country]) ?
@@ -79,17 +97,40 @@ class StatisticBox extends Component {
         ];
         totalPurchases += totalPurchase;
       });
+      summaryDataSets = [
+        ...summaryDataSets,
+        ...purchaseDataSets
+      ];
+
+      // Top Worst FS Revenue
+      topWorstFS.map((fs, idx) => {
+        if (idx < topFSSize) {
+          const {email, country} = fs;
+          let totalPurchase = 0;
+          topWorstDataSets.push({
+            ...commonProps,
+            label: `Revenue: ${email}`,
+            backgroundColor: pointColors.purchase[idx],
+            borderColor: pointColors.purchase[idx],
+            pointStyle: 'circle',
+            yAxisID: "y-axis-revenue",
+            data: !_.isEmpty(purchases[country]) ?
+              purchases[country]
+                .filter(f => f.email === email)
+                .map(({purchase, date}) => {
+                  totalPurchase += purchase;
+                  return {
+                    x: moment(date).format(timeFormat),
+                    y: totalPurchase
+                  };
+                }) :
+              []
+          });
+        }
+      });
     }
     // locationDataSets: collect data
     if (!_.isEmpty(locations)) {
-      const pointColors = [
-        COLORS['green'],
-        COLORS['green-meadow'],
-        COLORS['green-seagreen'],
-        COLORS['green-turquoise'],
-        COLORS['green-haze'],
-        COLORS['green-jungle']
-      ];
       Object.keys(countries).map((country, idx) => {
         let count = 0;
         locationDataSets = [
@@ -97,8 +138,8 @@ class StatisticBox extends Component {
           {
             ...commonProps,
             label: `Location: ${countries[country].name}`,
-            backgroundColor: pointColors[idx],
-            borderColor: pointColors[idx],
+            backgroundColor: pointColors.location[idx],
+            borderColor: pointColors.location[idx],
             pointStyle: 'rectRot',
             yAxisID: "y-axis-location",
             data: !_.isEmpty(locations[country]) ?
@@ -112,26 +153,70 @@ class StatisticBox extends Component {
           }
         ];
       });
+      summaryDataSets = [
+        ...summaryDataSets,
+        ...locationDataSets
+      ];
+
+      // Top Worst FS Location
+      topWorstFS.map((fs, idx) => {
+        if (idx < topFSSize) {
+          const {email, country} = fs;
+          let count = 0;
+          topWorstDataSets.push({
+            ...commonProps,
+            label: `Location: ${email}`,
+            backgroundColor: pointColors.location[idx],
+            borderColor: pointColors.location[idx],
+            pointStyle: 'rectRot',
+            yAxisID: "y-axis-location",
+            data: !_.isEmpty(locations[country]) ?
+              locations[country]
+                .filter(f => f.email === email)
+                .map(({date}) => {
+                  return {
+                    x: moment(date).format(timeFormat),
+                    y: ++count
+                  };
+                }) :
+              []
+          });
+        }
+      });
     }
 
     return {
       totalPurchases,
       biggestPurchase,
       biggestPurchaseCountry,
-      dataSets: [
-        ...purchaseDataSets,
-        ...locationDataSets
-      ]
+      summaryDataSets,
+      topBestDataSets,
+      topWorstDataSets
     };
   }
 
   render() {
     const
       {
+        ready,
         totalFieldSales = accounting.format(3203),
         totalLocations = accounting.format(2347822)
       } = this.props,
-      {totalPurchases, biggestPurchase, biggestPurchaseCountry, dataSets} = this._getStatisticState();
+      {
+        totalPurchases, biggestPurchase, biggestPurchaseCountry,
+        summaryDataSets, topBestDataSets, topWorstDataSets
+      } = this._getStatisticState(),
+      timeRangeLabel = this.props.getTimeRangeLabel(this.props.timeRange),
+      countryLabel = this.props.getCountryLabel(this.props.country),
+      chartCommonProps = {
+        ready,
+        xLabel: timeRangeLabel,
+        yLabel: {left: 'Revenue', right: 'Location'},
+        xAxesTime: {
+          format: 'MM/DD/YYYY HH:mm',
+          round: 'minute'
+        }
+      };
     // console.log('dataSets', this._getDataSet());
 
     return (
@@ -177,22 +262,21 @@ class StatisticBox extends Component {
         <div className="row">
           <div className="col-md-12">
             <FieldSalesRevenueLocation
-              datasets={dataSets}
+              {...chartCommonProps}
+              label={`${countryLabel} Field Sales Summary`}
+              datasets={summaryDataSets}
             />
           </div>
         </div>
-        {/*<div className="row">*/}
-          {/*<div className="col-md-6 col-xs-12">*/}
-            {/*<FieldSalesRevenueLocation*/}
-              {/*datasets={[]}*/}
-            {/*/>*/}
-          {/*</div>*/}
-          {/*<div className="col-md-6 col-xs-12">*/}
-            {/*<FieldSalesRevenueLocation*/}
-              {/*datasets={[]}*/}
-            {/*/>*/}
-          {/*</div>*/}
-        {/*</div>*/}
+        <div className="row">
+          <div className="col-md-12 col-xs-12">
+            <FieldSalesRevenueLocation
+              {...chartCommonProps}
+              label={`Field Sales Need To Increase Revenue`}
+              datasets={topWorstDataSets}
+            />
+          </div>
+        </div>
       </div>
     );
   }

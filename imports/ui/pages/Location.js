@@ -4,28 +4,28 @@ import ReactDOM from 'react-dom';
 import {GoogleMaps} from '/imports/ui/components/google/maps';
 import bodybuilder from 'bodybuilder';
 import moment from 'moment';
+import momentTZ from 'moment-timezone';
 import S from 'string';
 import _ from 'lodash';
 import validate from 'validate.js';
 import html2canvas from 'html2canvas';
 import accounting from 'accounting';
-
 // Components
 import {Spinner} from '/imports/ui/components/common';
-import {Dialog} from '/imports/ui/components/elements';
+import {Note, Clock} from '/imports/ui/components';
+import {Dialog, Button} from '/imports/ui/components/elements';
 import {MapsSearch, MapsNav, StatisticBox} from '/imports/ui/containers/location';
-
 /* Utils */
 import {Parser} from '/imports/utils';
-
 // Methods
 import ESMethods from '/imports/api/elastic/methods';
 import AWSMethods from '/imports/api/aws/methods';
 import FBMethods from '/imports/api/facebook-graph/methods';
 import {Methods as GEOMethods} from '/imports/api/collections/geo';
-
 // Functions
 import * as Notify from '/imports/api/notifications';
+// constants
+import {COUNTRY_CONST, TIME_RANGE_CONST} from '/imports/ui/containers/location/CONSTANTS';
 
 class Location extends Component {
 
@@ -50,11 +50,15 @@ class Location extends Component {
       country: 'vn',
       timeRange: {from: 'now-24h', to: 'now', label: 'Last 24 hours'},
 
+      topFSSize: 3,
+      exchangeRates: {},
       mapsData: {},
       purchases: {},
       stats: [],
       totalFieldSales: 0,
       totalPurchases: {},
+      topBestFS: [],
+      topWorstFS: [],
 
       activeTab: '',
 
@@ -99,6 +103,52 @@ class Location extends Component {
       showInfoWindow: true,
       showPolyline: true,
     });
+  }
+
+  getTimeRangeLabel(timeRange) {
+    if (_.isEmpty(timeRange)) {
+      return 'Today';
+    }
+
+    if (timeRange.label) {
+      return timeRange.label;
+    }
+
+    let label = 'Today';
+    switch (timeRange.mode) {
+      case 'quick': {
+        TIME_RANGE_CONST[timeRange.mode].ranges
+          .forEach(r => {
+            const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
+            if (!_.isEmpty(range)) {
+              label = range[0].label;
+            }
+          });
+        break;
+      }
+      case 'relative': {
+        const {from, to} = Parser().elasticRelativeParts(timeRange.from, timeRange.to);
+        label = `${from.count} ${TIME_RANGE_CONST[timeRange.mode].options.filter(r => r.name === from.unit)[0].label}`;
+        break;
+      }
+      case 'absolute': {
+        label = `From: ${timeRange.from}, To: ${timeRange.to}`;
+        break;
+      }
+    }
+
+    return label;
+  }
+
+  getCountryLabel(country) {
+    if (!_.isEmpty(country)) {
+      const labels = COUNTRY_CONST.buttons.filter(c => c.name === country);
+      if (!_.isEmpty(labels)) {
+        return labels[0].label;
+      }
+    }
+
+    return 'Vietnam';
   }
 
   onApply(action, data) {
@@ -378,7 +428,7 @@ class Location extends Component {
 
   _getMapsData() {
     const
-      {search, country, timeRange, index, type, activeMarkerId} = this.state,
+      {search, country, topFSSize, timeRange, index, type, activeMarkerId} = this.state,
       body = this._buildESBody({search, country, timeRange, activeMarkerId});
     // console.log('body', JSON.stringify(body));
 
@@ -423,12 +473,18 @@ class Location extends Component {
       }
 
       if (!_.isEmpty(currentCountries)) {
+        // reset states before reFetching data
         this.setState({
           totalPurchases: {},
-          purchases: {}
+          purchases: {},
+          topBestFS: [],
+          topWorstFS: []
         }, () => {
           currentCountries.map(country => {
-            const index = `${prefix}_${country}_${env}`;
+            const
+              index = `${prefix}_${country}_${env}`,
+              {exchangeRates} = this.state,
+              exchangeRate = exchangeRates[country] || countries[country].exchangeRate;
             let emailList = [];
             if (!_.isEmpty(mapsData.hits)) {
               emailList = _.uniq(mapsData.hits
@@ -444,7 +500,19 @@ class Location extends Component {
                   .rawOption('_source', ['purchased_by', 'so_number', 'grand_total_purchase', 'purchase_date'])
                   .filter('terms', 'purchased_by.keyword', emailList)
                   .notFilter('term', 'so_status.keyword', 'canceled')
-                  .aggregation('sum', 'grand_total_purchase', 'totalPurchase');
+                  .aggregation('sum', 'grand_total_purchase', 'totalPurchase')
+                  .aggregation('terms', 'purchased_by.keyword', {
+                    "size": topFSSize,
+                    "shard_size": 300, "order": {"total_purchase": "desc"}
+                  }, 'top_best_fs', a => {
+                    return a.aggregation('sum', 'grand_total_purchase', 'total_purchase')
+                  })
+                  .aggregation('terms', 'purchased_by.keyword', {
+                    "size": topFSSize,
+                    "shard_size": 300, "order": {"total_purchase": "asc"}
+                  }, 'top_worst_fs', a => {
+                    return a.aggregation('sum', 'grand_total_purchase', 'total_purchase')
+                  });
 
                 body = this._buildESBodyWithSearchText(body, search, 'magento_customer_id', 'purchased_by.keyword');
 
@@ -479,7 +547,7 @@ class Location extends Component {
                           } = _source;
                           return {
                             email, soNumber,
-                            purchase: Math.ceil(grand_total_purchase / countries[country].exchangeRate),
+                            purchase: Math.ceil(grand_total_purchase / exchangeRate),
                             country, date
                           };
                         })
@@ -487,13 +555,31 @@ class Location extends Component {
                     });
                   }
                   if (!_.isEmpty(res.aggregations)) {
-                    const {aggregations: {totalPurchase: {value: totalPurchase}}} = res;
+                    const {
+                      aggregations: {
+                        totalPurchase: {value: totalPurchase},
+                        top_best_fs: {buckets: topBestFS},
+                        top_worst_fs: {buckets: topWorstFS}
+                      }
+                    } = res;
 
                     this.setState({
                       totalPurchases: {
                         ...this.state.totalPurchases,
-                        [country]: Math.ceil(totalPurchase / countries[country].exchangeRate)
-                      }
+                        [country]: Math.ceil(totalPurchase / exchangeRate)
+                      },
+                      topBestFS: [
+                        ...this.state.topBestFS,
+                        ...topBestFS.map(({key: email, total_purchase: {value: totalPurchase}}) => ({
+                          email, country, totalPurchase: Math.ceil(totalPurchase / exchangeRate)
+                        }))
+                      ],
+                      topWorstFS: [
+                        ...this.state.topWorstFS,
+                        ...topWorstFS.map(({key: email, total_purchase: {value: totalPurchase}}) => ({
+                          email, country, totalPurchase: Math.ceil(totalPurchase / exchangeRate)
+                        }))
+                      ]
                     });
                   }
                 });
@@ -515,7 +601,8 @@ class Location extends Component {
 
   _getMapsProps() {
     const {
-      mapsData: {total, hits},
+      ready,
+      mapsData: {hits},
       center,
       zoom,
       activeMarkerInfo,
@@ -575,6 +662,7 @@ class Location extends Component {
     }
 
     return {
+      ready,
       markers,
       center,
       zoom,
@@ -591,7 +679,12 @@ class Location extends Component {
 
   _getStatsProps() {
     const {countries} = Meteor.settings.public;
-    const {totalFieldSales, totalPurchases, purchases, mapsData: {total: totalLocations, hits}} = this.state;
+    const {
+      ready, timeRange, country,
+      totalFieldSales, totalPurchases, purchases,
+      topFSSize, topBestFS, topWorstFS,
+      mapsData: {total: totalLocations, hits}
+    } = this.state;
     let locations = {};
 
     if (!_.isEmpty(hits)) {
@@ -605,10 +698,17 @@ class Location extends Component {
       });
     }
 
+    // Get list top best & worst FS ordered asc by total purchase
+    const
+      topBestFSEmails = topBestFS
+        .sort((a, b) => (a.totalPurchase - b.totalPurchase)),
+      topWorstFSEmails = topWorstFS
+        .sort((a, b) => (a.totalPurchase - b.totalPurchase));
 
     return {
-      purchases,
-      locations,
+      ready, timeRange, country,
+      purchases, locations,
+      topFSSize, topBestFS: topBestFSEmails, topWorstFS: topWorstFSEmails,
       totalFieldSales: accounting.format(totalFieldSales),
       totalLocations: accounting.format(totalLocations),
       totalPurchases
@@ -646,21 +746,26 @@ class Location extends Component {
   }
 
   render() {
-    const {ready} = this.state;
-
     const
-      {mapsData, stats, activeTab, name, search, country, timeRange} = this.state,
+      {ready, mapsData, stats, activeTab, name, search, country, timeRange} = this.state,
       handlers = {
         marker: {
           onClick: this.onClickMarker
         },
         tabs: {
-          onApply: this.onApply
+          onApply: this.onApply,
+          getTimeRangeLabel: this.getTimeRangeLabel,
+          getCountryLabel: this.getCountryLabel
         },
         searchBox: {
           onApply: this.onApply
+        },
+        statisticBox: {
+          getTimeRangeLabel: this.getTimeRangeLabel,
+          getCountryLabel: this.getCountryLabel
         }
-      };
+      },
+      userTZ = `GMT ${momentTZ().tz(momentTZ.tz.guess()).format('Z')}`;
 
     return (
       <div className="page-content-col" ref="location">
@@ -684,15 +789,29 @@ class Location extends Component {
                 </div>
               </div>
             </div>
-            {ready ? (
-              <div ref="fsLocation">
-                {!_.isEmpty(stats) && (
-                  <StatisticBox
-                    {...this._getStatsProps()}
-                  />
-                )}
-                <div className="row">
-                  <div className="col-md-12 col-xs-12">
+            <div ref="fsLocation">
+              {/* Note */}
+              <div className="row">
+                <div className="col-md-12">
+                  <Note
+                    title={`All time will be in GMT+08:00.`}
+                    message={`You are in ${userTZ}. Your current time is: `}
+                  >
+                    <Button
+                      className="green"><Clock />
+                    </Button>
+                  </Note>
+                </div>
+              </div>
+              {!_.isEmpty(stats) && (
+                <StatisticBox
+                  {...this._getStatsProps()}
+                  {...handlers.statisticBox}
+                />
+              )}
+              <div className="row">
+                <div className="col-md-12 col-xs-12">
+                  {ready ? (
                     <div className="search-container bordered">
                       {(!_.isEmpty(mapsData) && mapsData.total > 0) ? (
                         <GoogleMaps
@@ -704,14 +823,15 @@ class Location extends Component {
                         <div>No data found</div>
                       )}
                     </div>
-                  </div>
+                  ) : (
+                    <div>
+                      <Spinner/>
+                    </div>
+                  )}
                 </div>
               </div>
-            ) : (
-              <div>
-                <Spinner/>
-              </div>
-            )}
+            </div>
+
           </div>
         </div>
         {this._renderDialog()}
