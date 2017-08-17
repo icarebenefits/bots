@@ -10,7 +10,7 @@ import {
   PanelCountry, PanelTimeRange
 } from './panel';
 // constants
-import {NAV_CONST, COUNTRY_CONST, TIME_RANGE_CONST} from './CONSTANTS';
+import {NAV_CONST} from './CONSTANTS';
 // Functions
 import {Parser} from '/imports/utils';
 
@@ -22,9 +22,9 @@ class MapsNav extends Component {
       activeTab: props.activeTab || '',
       name: props.name || '',
       timeRange: props.timeRange || {from: 'now/d', to: 'now/d', label: 'Today', mode: 'quick'},
-      timeRangeLabel: this._getTimeRangeLabel(props.timeRange),
+      timeRangeLabel: this.props.getTimeRangeLabel(props.timeRange),
       country: props.country || 'vn',
-      countryLabel: this._getCountryLabel(props.country)
+      countryLabel: this.props.getCountryLabel(props.country)
     };
 
     /* Handlers */
@@ -49,61 +49,15 @@ class MapsNav extends Component {
       timeRange.mode !== nextProps.timeRange.mode) {
       this.setState({
         timeRange: nextProps.timeRange,
-        timeRangeLabel: this._getTimeRangeLabel(nextProps.timeRange)
+        timeRangeLabel: this.props.getTimeRangeLabel(nextProps.timeRange)
       });
     }
     if(country !== nextProps.country) {
       this.setState({
         country: nextProps.country,
-        countryLabel: this._getCountryLabel(nextProps.country)
+        countryLabel: this.props.getCountryLabel(nextProps.country)
       });
     }
-  }
-
-  _getTimeRangeLabel(timeRange) {
-    if(_.isEmpty(timeRange)) {
-      return 'Today';
-    }
-
-    if(timeRange.label) {
-      return timeRange.label;
-    }
-
-    let label = 'Today';
-    switch (timeRange.mode) {
-      case 'quick': {
-        TIME_RANGE_CONST[timeRange.mode].ranges
-          .forEach(r => {
-            const range = r.filter(r => (r.from === timeRange.from && r.to === timeRange.to));
-            if(!_.isEmpty(range)) {
-              label = range[0].label;
-            }
-          });
-        break;
-      }
-      case 'relative': {
-        const {from, to} = Parser().elasticRelativeParts(timeRange.from, timeRange.to);
-        label = `${from.count} ${TIME_RANGE_CONST[timeRange.mode].options.filter(r => r.name === from.unit)[0].label}`;
-        break;
-      }
-      case 'absolute': {
-        label = `From: ${timeRange.from}, To: ${timeRange.to}`;
-        break;
-      }
-    }
-
-    return label;
-  }
-
-  _getCountryLabel(country) {
-    if(!_.isEmpty(country)) {
-      const labels = COUNTRY_CONST.buttons.filter(c => c.name === country);
-      if(!_.isEmpty(labels)) {
-        return labels[0].label;
-      }
-    }
-
-    return 'Vietnam';
   }
 
   onApplyPanel(panel, data) {
