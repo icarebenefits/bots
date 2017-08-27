@@ -64,13 +64,6 @@ MSLA.schema = new SimpleSchema({
     minCount: 1,
     regEx: SimpleSchema.RegEx.Id
   },
-  workplaceGroupId: {
-    type: String
-  },
-  messageTemplate: {
-    type: String,
-    optional: true
-  },
   status: {
     type: String,
     defaultValue: 'active',
@@ -101,6 +94,8 @@ MSLA.schema = new SimpleSchema({
     optional: true
   }
 });
+
+// MSLA.insert({name: 'MagentoWebCPU', system: 'magento', service: 'web', metric: 'cpu', conditions: [{value: 20.4, method: 'sms'}, {value: 20.3, method: 'email'}, {value: 20, method: 'note'}], contacts: ['ZgLZLQcLHC9cs35wQ', 'fBY8rMkoxHPTyhYQN']});
 
 MSLA.attachSchema(MSLA.schema);
 

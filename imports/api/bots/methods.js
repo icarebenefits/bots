@@ -3,13 +3,12 @@ import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import Bots from './functions';
 import {ESFuncs} from '/imports/api/elastic';
-import {ETL} from '/imports/api/olap';
 import {Facebook} from '/imports/api/facebook-graph';
 import {formatMessage} from '/imports/utils/defaults';
 import {deleteExpiredIndices, deleteExpiredLog} from '/imports/api/admin';
 
 /* Collections */
-import {Countries} from '/imports/api/collections/countries';
+import {MSLA} from '/imports/api/collections/monitor-sla';
 
 /**
  * Method called by job server for testing the job check SLA
@@ -197,6 +196,25 @@ const cleanupLog = new ValidatedMethod({
       } catch (err) {
         throw new Meteor.Error('bots.cleanupLog', err.message);
       }
+    }
+  }
+});
+
+const notify = new ValidatedMethod({
+  name: 'bots.notify',
+  validate: null,
+  run({data}) {
+    try {
+      if(data) {
+        console.log('processing alarm Data');
+        const {system, service, metric, state, stateValue, timestamp} = Bots.processAlarmData(data);
+        console.log('system, service, metric, state', system, service, metric, state);
+        const SLA = MSLA.findOne({system, service, metric});
+        console.log('SLA', SLA);
+      }
+      return 'received alarm Data';
+    } catch(err) {
+      throw new Meteor.Error('BOTS_API.notify', err.message);
     }
   }
 });

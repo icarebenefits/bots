@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import accounting from 'accounting';
 import _ from 'lodash';
+import S from 'string';
 import moment from 'moment';
 import {Promise} from 'meteor/promise';
 // collections
@@ -33,7 +34,7 @@ const fistSLACheck = () => {
  * @param preview
  * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
-export const executeSLA = async({SLA}) => {
+export const executeSLA = async ({SLA}) => {
   const {Elastic} = require('../elastic');
   const {Facebook} = require('/imports/api/facebook-graph');
   if (_.isEmpty(SLA)) {
@@ -57,7 +58,7 @@ export const executeSLA = async({SLA}) => {
     {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
     index = `${indexPrefix}_${country}_${env}`;
 
-  const promiseArray = variables.map(async(aggregation) => {
+  const promiseArray = variables.map(async (aggregation) => {
     const
       {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
       {type} = Field()[group]().elastic();
@@ -111,7 +112,7 @@ export const executeSLA = async({SLA}) => {
               bucketField = `${bucketField}.keyword`;
             }
             let bucketsAgg = agg[`agg_${type}_${bucketField}`];
-            if(isNestedField) {
+            if (isNestedField) {
               bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
             }
             const {buckets} = bucketsAgg;
@@ -124,7 +125,7 @@ export const executeSLA = async({SLA}) => {
                 size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
               const result = buckets.slice(from, size);
               // console.log('result', result);
-              const promiseArr = result.map(async(b) => {
+              const promiseArr = result.map(async (b) => {
                 let
                   tag = '',
                   key = b.key;
@@ -223,7 +224,7 @@ const checkSLA = (slaId) => {
   }
 };
 
-const addWorkplaceSuggester = async(next, total = 0) => {
+const addWorkplaceSuggester = async (next, total = 0) => {
   /* Fetch groups from fb@work */
   const {adminWorkplace} = Meteor.settings.facebook;
   try {
@@ -296,11 +297,53 @@ const addWorkplaceSuggester = async(next, total = 0) => {
     })
 };
 
+const parseAlarmName = (alarmName) => {
+  const [system, service, metric] = alarmName.split('-');
+  return {system, service, metric};
+};
+
+const parseStateReason = (state, stateReason) => {
+  let stateValue = 0;
+  if (state === 'ALARM') {
+    stateValue = Number(S(stateReason).between('[', ']').s.split(' ')[0]);
+    console.log('stateValue', stateValue);
+  }
+  return {stateValue};
+};
+
+const processAlarmData = (data) => {
+  console.log('processAlarmData', data);
+  if(data.Message) {
+    const {
+      AlarmName, AlarmDescription,
+      NewStateValue: state, NewStateReason: stateReason,
+      StateChangeTime: timestamp,
+      // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
+    } = JSON.parse(data.Message);
+    // console.log('Message', AlarmName, state, stateReason, timestamp);
+
+    const {system, service, metric} = parseAlarmName(AlarmName);
+    const {stateValue} = parseStateReason(state, stateReason);
+
+    return {
+      system,
+      service,
+      metric,
+      state,
+      stateValue,
+      timestamp
+    };
+  }
+
+  return {};
+};
+
 const Bots = {
   fistSLACheck,
   checkSLA,
   executeSLA,
   addWorkplaceSuggester,
+  processAlarmData
 };
 
 /* Test checking SLA */
