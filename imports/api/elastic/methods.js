@@ -53,6 +53,5 @@ Methods.search = new ValidatedMethod({
   }
 });
 
-
 export default Methods
 

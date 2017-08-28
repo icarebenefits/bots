@@ -32,6 +32,11 @@ import {formatMessage} from '/imports/utils/defaults';
 import {Facebook} from '/imports/api/facebook-graph';
 
 Meteor.startup(function () {
+
+  /* Mail Server */
+  const {protocol, username, password, host, port} = Meteor.settings.mail;
+  process.env.MAIL_URL = `${protocol}://${username}:${password}@${host}:${port}`;
+
   /* Migrations */
   const {enable, version} = Meteor.settings.migration;
   Migrations.config({

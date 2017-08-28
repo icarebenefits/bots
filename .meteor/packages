@@ -41,13 +41,12 @@ accounts-ui@1.1.9
 accounts-google@1.1.0
 gadicc:blaze-react-component
 arillo:flow-router-helpers
-useraccounts:flow-routing
 kadira:blaze-layout
 templating
 aldeed:template-extension
-useraccounts:semantic-ui
 google-config-ui@1.0.0
 alanning:roles
 froatsnook:sleep
 tmeasday:publish-counts
 percolate:migrations
+email
