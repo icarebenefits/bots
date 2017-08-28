@@ -268,15 +268,15 @@ class StatisticBox extends Component {
             />
           </div>
         </div>
-        <div className="row">
-          <div className="col-md-12 col-xs-12">
-            <FieldSalesRevenueLocation
-              {...chartCommonProps}
-              label={`Field Sales Need To Increase Revenue`}
-              datasets={topWorstDataSets}
-            />
-          </div>
-        </div>
+        {/*<div className="row">*/}
+          {/*<div className="col-md-12 col-xs-12">*/}
+            {/*<FieldSalesRevenueLocation*/}
+              {/*{...chartCommonProps}*/}
+              {/*label={`Field Sales Need To Increase Revenue`}*/}
+              {/*datasets={topWorstDataSets}*/}
+            {/*/>*/}
+          {/*</div>*/}
+        {/*</div>*/}
       </div>
     );
   }
