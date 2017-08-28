@@ -79,7 +79,7 @@ const migrateToElastic = new ValidatedMethod({
       try {
         const result = await ESFuncs.migrateToElastic(country);
         message = result.message;
-      } catch(e) {
+      } catch (e) {
         message = formatMessage({heading1: 'REINDEX_CUSTOMER_TYPES', code: {error: e}});
       }
 
@@ -116,7 +116,7 @@ const indexRFM = new ValidatedMethod({
       try {
         const result = await ESFuncs.indexRFM(country);
         message = result.message;
-      } catch(err) {
+      } catch (err) {
         message = formatMessage({heading1: 'REINDEX_RFM', code: err.message});
       }
 
@@ -169,7 +169,7 @@ const cleanupIndices = new ValidatedMethod({
       try {
         const result = await deleteExpiredIndices();
         return result;
-      } catch(err) {
+      } catch (err) {
         throw new Meteor.Error('bots.cleanupIndices', err.message);
       }
     }
@@ -205,15 +205,31 @@ const notify = new ValidatedMethod({
   validate: null,
   run({data}) {
     try {
-      if(data) {
+      if (data) {
         console.log('processing alarm Data');
-        const {system, service, metric, state, stateValue, timestamp} = Bots.processAlarmData(data);
-        console.log('system, service, metric, state', system, service, metric, state);
-        const SLA = MSLA.findOne({system, service, metric});
-        console.log('SLA', SLA);
+        if (data.Message) {
+          const
+            subject = data.Subject,
+            message = JSON.parse(data.Message);
+          const {name, system, service, metric, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
+          console.log('system, service, metric, state', system, service, metric, state);
+          const SLA = MSLA.findOne({system, service, metric});
+          if (SLA) {
+            console.log('SLA: ', SLA);
+            const {conditions, noteGroup, contacts} = SLA;
+            const notification = {
+              subject, name, state, stateValue,
+              detail, timestamp, noteGroup, contacts
+            };
+            const {alarmMethod} = Bots.getAlarmMethod(stateValue, conditions);
+            console.log('alarmMethod', alarmMethod);
+            console.log('Notification: ', notification);
+            Bots.notifyByMethod(alarmMethod, notification);
+          }
+        }
       }
       return 'received alarm Data';
-    } catch(err) {
+    } catch (err) {
       throw new Meteor.Error('BOTS_API.notify', err.message);
     }
   }

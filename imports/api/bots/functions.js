@@ -1,4 +1,5 @@
 import {Meteor} from 'meteor/meteor';
+import {check} from 'meteor/check';
 import accounting from 'accounting';
 import _ from 'lodash';
 import S from 'string';
@@ -298,11 +299,15 @@ const addWorkplaceSuggester = async (next, total = 0) => {
 };
 
 const parseAlarmName = (alarmName) => {
+  check(alarmName, String);
   const [system, service, metric] = alarmName.split('-');
   return {system, service, metric};
 };
 
 const parseStateReason = (state, stateReason) => {
+  check(state, String);
+  check(stateReason, String);
+
   let stateValue = 0;
   if (state === 'ALARM') {
     stateValue = Number(S(stateReason).between('[', ']').s.split(' ')[0]);
@@ -311,31 +316,178 @@ const parseStateReason = (state, stateReason) => {
   return {stateValue};
 };
 
-const processAlarmData = (data) => {
-  console.log('processAlarmData', data);
-  if(data.Message) {
-    const {
-      AlarmName, AlarmDescription,
-      NewStateValue: state, NewStateReason: stateReason,
-      StateChangeTime: timestamp,
-      // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
-    } = JSON.parse(data.Message);
-    // console.log('Message', AlarmName, state, stateReason, timestamp);
+const processAlarmData = (message) => {
+  check(message, Object);
+  const {
+    AlarmName, AlarmDescription,
+    NewStateValue: state, NewStateReason: stateReason,
+    StateChangeTime: timestamp,
+    // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
+  } = message;
+  // console.log('Message', AlarmName, state, stateReason, timestamp);
 
-    const {system, service, metric} = parseAlarmName(AlarmName);
-    const {stateValue} = parseStateReason(state, stateReason);
+  const {system, service, metric} = parseAlarmName(AlarmName);
+  const {stateValue} = parseStateReason(state, stateReason);
 
-    return {
-      system,
-      service,
-      metric,
-      state,
-      stateValue,
-      timestamp
-    };
+  return {
+    name: AlarmName,
+    system,
+    service,
+    metric,
+    state,
+    stateValue,
+    detail: stateReason,
+    timestamp
+  };
+};
+
+const getAlarmMethod = (stateValue, conditions) => {
+  // check(stateValue, String);
+  // check(conditions, [Object]);
+
+  let alarmMethod = 'note';
+  const maxCond = conditions.length;
+
+  // First condition matched, first method applied
+  for (let i = 0; i < maxCond; i++) {
+    const {value, method} = conditions[i];
+    if (stateValue >= value) {
+      alarmMethod = method;
+      return {alarmMethod};
+    }
   }
 
-  return {};
+  return {alarmMethod};
+};
+
+const getContactsInfo = (contacts) => {
+  let contactsInfo = [];
+
+  if (!_.isEmpty(contacts)) {
+    const {Accounts} = require('meteor/accounts-base');
+
+    const contactsInfo = Accounts.users
+      .find(
+        {_id: {$in: contacts}},
+        {fields: {profile: true, "services.google.email": true}})
+      .fetch();
+
+    if (!_.isEmpty(contactsInfo)) {
+      return {
+        contactsInfo: contactsInfo.map(c => ({
+          name: c.profile.name,
+          email: c.services.google.email,
+          phone: c.profile.phone
+        }))
+      };
+    }
+  }
+
+  return {contactsInfo};
+};
+
+const notifyBySMS = (content) => {
+  try {
+    const
+      request = require('request'),
+      {url, auth, json} = Meteor.settings.sms,
+      {subject, detail, timestamp, contacts} = content,
+      {contactsInfo} = getContactsInfo(contacts),
+      contactsPhone = contactsInfo.map(c => (c.phone)),
+      requestParams = {
+        url, auth, json,
+        body: {
+          to: contactsPhone,
+          type: 'text/outgoing-sms',
+          body: `${subject}\n${detail}\n${moment(timestamp).format()}`
+        }
+      };
+
+    contactsPhone.forEach(phone => {
+      /* Send SMS with Brand name of MOBIVI - very expensive */
+      requestParams.body.to = phone;
+      const result = request.post(requestParams);
+      console.log('send sms', result);
+    });
+  } catch (err) {
+    console.log('notifyBySMS', err.message);
+  }
+};
+
+const buildEmailHTML = (template, data) => {
+  const emailTemplateBuilder = require('email-template-builder');
+  let mailTemplate = "";
+  switch (template) {
+    case "notification": {
+      mailTemplate = Assets.getText(`templates/email/monitor/${template}.html`);
+      break;
+    }
+    case "invitation":
+    default: {
+      mailTemplate = Assets.getText(`templates/email/${template}.html`);
+    }
+  }
+  return emailTemplateBuilder.generate(data, mailTemplate);
+};
+
+const notifyByEmail = (content) => {
+  try {
+    const
+      {Email} = require('meteor/email'),
+      {name: siteName, url: siteUrl} = Meteor.settings.public,
+      {subject, name: alarmName, state, detail, timestamp, contacts} = content,
+      data = {
+        subject,
+        color: state === 'ALARM' ? '#E7505A' : '#2f373e',
+        siteUrl,
+        siteName,
+        alarmName,
+        state,
+        detail,
+        timestamp
+      },
+      {contactsInfo} = getContactsInfo(contacts),
+      ccEmails = contactsInfo.map(c => c.email) | []
+    ;
+
+    const
+      {name: senderName, email: senderEmail} = Meteor.settings.mail.sender,
+      from = `"${senderName}" <${senderEmail}>`,
+      to = 'icare.bots@icarebenefits.com',
+      cc = ccEmails,
+      html = buildEmailHTML('notification', data);
+
+    /* Notify by email */
+    Email.send({subject, from, to, cc, html});
+
+  } catch (err) {
+    console.log('notifyByEmail', err.message);
+  }
+};
+
+const notifyBySlack = (content) => {
+
+};
+
+const notifyByMethod = (method, content) => {
+  try {
+    switch (method) {
+      case 'sms': {
+        notifyBySMS(content);
+        break;
+      }
+      case 'email': {
+        notifyByEmail(content);
+        break;
+      }
+      case 'note':
+      default: {
+        notifyBySlack(content);
+      }
+    }
+  } catch (err) {
+    throw new Meteor.Error(`BOTS_NOTIFY_BY_METHOD.${method}`, err.message);
+  }
 };
 
 const Bots = {
@@ -343,7 +495,9 @@ const Bots = {
   checkSLA,
   executeSLA,
   addWorkplaceSuggester,
-  processAlarmData
+  processAlarmData,
+  getAlarmMethod,
+  notifyByMethod
 };
 
 /* Test checking SLA */
