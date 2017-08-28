@@ -414,26 +414,11 @@ const notifyBySMS = (content) => {
   }
 };
 
-const buildEmailHTML = (template, data) => {
-  const emailTemplateBuilder = require('email-template-builder');
-  let mailTemplate = "";
-  switch (template) {
-    case "notification": {
-      mailTemplate = Assets.getText(`templates/email/monitor/${template}.html`);
-      break;
-    }
-    case "invitation":
-    default: {
-      mailTemplate = Assets.getText(`templates/email/${template}.html`);
-    }
-  }
-  return emailTemplateBuilder.generate(data, mailTemplate);
-};
-
 const notifyByEmail = (content) => {
   try {
     const
       {Email} = require('meteor/email'),
+      {buildEmailHTML} = require('/imports/api/email'),
       {name: siteName, url: siteUrl} = Meteor.settings.public,
       {subject, name: alarmName, state, detail, timestamp, contacts} = content,
       data = {
@@ -447,7 +432,7 @@ const notifyByEmail = (content) => {
         timestamp
       },
       {contactsInfo} = getContactsInfo(contacts),
-      ccEmails = contactsInfo.map(c => c.email) | []
+      ccEmails = contactsInfo.map(c => c.email) || []
     ;
 
     const
@@ -466,7 +451,28 @@ const notifyByEmail = (content) => {
 };
 
 const notifyBySlack = (content) => {
+  try {
+    const
+      Slack = require('slack-node'),
+      {webhookUri, username} = Meteor.settings.slack,
+      slack = new Slack(),
+      {subject, detail, timestamp, noteGroup} = content;
 
+    slack.setWebhook(webhookUri);
+
+    slack.webhook({
+      channel: `#${noteGroup}`,
+      username,
+      text: `>>> *${subject}* \n ${detail} \n <!here>: ${moment(timestamp).format()}`
+    }, (err) => {
+      if(err) {
+        console.log('notify to Slack', err.reason);
+      }
+    });
+
+  } catch (err) {
+    console.log('notifyBySlack', err.message);
+  }
 };
 
 const notifyByMethod = (method, content) => {

@@ -206,13 +206,13 @@ const notify = new ValidatedMethod({
   run({data}) {
     try {
       if (data) {
-        console.log('processing alarm Data');
+        // console.log('processing alarm Data');
         if (data.Message) {
           const
             subject = data.Subject,
             message = JSON.parse(data.Message);
           const {name, system, service, metric, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
-          console.log('system, service, metric, state', system, service, metric, state);
+          // console.log('system, service, metric, state', system, service, metric, state);
           const SLA = MSLA.findOne({system, service, metric});
           if (SLA) {
             console.log('SLA: ', SLA);
@@ -222,8 +222,8 @@ const notify = new ValidatedMethod({
               detail, timestamp, noteGroup, contacts
             };
             const {alarmMethod} = Bots.getAlarmMethod(stateValue, conditions);
-            console.log('alarmMethod', alarmMethod);
-            console.log('Notification: ', notification);
+            // console.log('alarmMethod', alarmMethod);
+            // console.log('Notification: ', notification);
             Bots.notifyByMethod(alarmMethod, notification);
           }
         }

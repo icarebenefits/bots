@@ -98,7 +98,7 @@ MSLA.schema = new SimpleSchema({
   }
 });
 
-// MSLA.insert({name: 'MagentoWebCPU', system: 'magento', service: 'web', metric: 'cpu', conditions: [{value: 25, method: 'sms'}, {value: 20.3, method: 'email'}, {value: 20, method: 'note'}], noteGroup: 'magento', contacts: ['ZgLZLQcLHC9cs35wQ', 'fBY8rMkoxHPTyhYQN'], status: 'active'});
+// MSLA.insert({name: 'MagentoWebCPU', system: 'magento', service: 'web', metric: 'cpu', conditions: [{value: 25, method: 'sms'}, {value: 24, method: 'email'}, {value: 20, method: 'note'}], noteGroup: 'magento', contacts: ['ZgLZLQcLHC9cs35wQ', 'fBY8rMkoxHPTyhYQN'], status: 'active'});
 
 MSLA.attachSchema(MSLA.schema);
 

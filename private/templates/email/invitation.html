@@ -22,44 +22,15 @@
           <tr>
             <td style="padding: 20px; text-align: center;">
               <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="text-align: left">
-                    <a style="text-decoration: none;
-                                            color: #FFF;
-                                            background-color: #2f373e;
-                                            border: solid #2f373e;
-                                            border-width: 5px 10px;
-                                            line-height: 2;
-                                            font-weight: bold;
-                                            text-align: center;
-                                            cursor: pointer;
-                                            display: inline-block;
-                                            border-radius: 5px;"
-                       href={{siteUrl}}
-                    >
-                      {{siteName}}
-                    </a>
-                  </td>
-                </tr>
-                <tr>
+                <tr style="background-color: #2f373e">
                   <td style="padding:20px 0 0;">
-                    <h2>{{invitator}} invited you to join {{siteName}}</h2>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 0 0 20px; text-align: center;">
-                    <a style="text-decoration: none;
-                                            color: #FFF;
-                                            background-color: #2f373e;
-                                            border: solid #2f373e;
-                                            border-width: 5px 10px;
-                                            line-height: 2;
-                                            font-weight: bold;
-                                            text-align: center;
-                                            cursor: pointer;
-                                            display: inline-block;
-                                            border-radius: 5px;
-                                            text-transform: capitalize;" href="{{siteUrl}}">Join now</a>
+                    <h2 style="color: #FFF">
+                      {{#if invitator}}
+                        {{invitator}} invited you to join {{siteName}}
+                      {{else}}
+                        You are invited to join {{siteName}}
+                      {{/if}}
+                    </h2>
                   </td>
                 </tr>
                 <tr>
@@ -81,6 +52,22 @@
                         </td>
                       </tr>
                     </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0 0 20px; text-align: center;">
+                    <a style="text-decoration: none;
+                                            color: #FFF;
+                                            background-color: #2f373e;
+                                            border: solid #2f373e;
+                                            border-width: 5px 10px;
+                                            line-height: 2;
+                                            font-weight: bold;
+                                            text-align: center;
+                                            cursor: pointer;
+                                            display: inline-block;
+                                            border-radius: 5px;
+                                            text-transform: capitalize;" href="{{siteUrl}}">Join now</a>
                   </td>
                 </tr>
               </table>
