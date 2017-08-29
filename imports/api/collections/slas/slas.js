@@ -1,5 +1,5 @@
-import { Mongo } from 'meteor/mongo';
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import {Mongo} from 'meteor/mongo';
+import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {COUNTRIES} from '/imports/utils/defaults';
 
 class SLAsCollection extends Mongo.Collection {
@@ -7,7 +7,7 @@ class SLAsCollection extends Mongo.Collection {
     // add created and updated Date for document
     doc.createdAt = doc.updatedAt = new Date();
     // add created and updated By if user is logged in
-    if(this.userId)
+    if (this.userId)
       doc.createdBy = doc.updatedBy = this.userId;
 
     return super.insert(doc, callback);
@@ -15,11 +15,11 @@ class SLAsCollection extends Mongo.Collection {
 
   update(selector, modifier) {
     // add the updated Date for document
-    if(!modifier['$set']) {
+    if (!modifier['$set']) {
       modifier['$set'] = {};
     }
     modifier['$set'].updatedAt = new Date();
-    if(this.userId) {
+    if (this.userId) {
       modifier['$set'].updatedBy = this.userId;
     }
 

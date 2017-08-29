@@ -29,8 +29,38 @@ Methods.create = new ValidatedMethod({
       createdBy: Meteor.userId(),
       details: {email}
     });
+    const accessId = AccessList.insert({email});
 
-    return AccessList.insert({email});
+    /* Send invitation email to user */
+    if (accessId) {
+      const
+        {Email} = require('meteor/email'),
+        {Accounts} = require('meteor/accounts-base'),
+        {name: siteName, url: siteUrl} = Meteor.settings.public;
+
+      if (Meteor.userId) {
+        const invitator = Accounts.users.findOne({_id: Meteor.userId}, {fields: {profile: true}});
+        if (!_.isEmpty(invitator)) {
+          const
+            subject = `${siteName} Invitation Email`,
+            {buildEmailHTML} = require('/imports/api/email'),
+            {name: senderName, email: senderEmail} = Meteor.settings.mail.sender,
+            from = `"${senderName}" <${senderEmail}>`,
+            to = email,
+            data = {
+              siteName,
+              siteUrl,
+              invitator: invitator.profile.name
+            },
+            html = buildEmailHTML('invitation', data);
+
+          /* Notify by email */
+          Email.send({subject, from, to, html});
+        }
+      }
+    }
+
+    return accessId;
   }
 });
 

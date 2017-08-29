@@ -1,6 +1,8 @@
 import {Meteor} from 'meteor/meteor';
+import {check} from 'meteor/check';
 import accounting from 'accounting';
 import _ from 'lodash';
+import S from 'string';
 import moment from 'moment';
 import {Promise} from 'meteor/promise';
 // collections
@@ -33,7 +35,7 @@ const fistSLACheck = () => {
  * @param preview
  * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
-export const executeSLA = async({SLA}) => {
+export const executeSLA = async ({SLA}) => {
   const {Elastic} = require('../elastic');
   const {Facebook} = require('/imports/api/facebook-graph');
   if (_.isEmpty(SLA)) {
@@ -57,7 +59,7 @@ export const executeSLA = async({SLA}) => {
     {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
     index = `${indexPrefix}_${country}_${env}`;
 
-  const promiseArray = variables.map(async(aggregation) => {
+  const promiseArray = variables.map(async (aggregation) => {
     const
       {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
       {type} = Field()[group]().elastic();
@@ -111,7 +113,7 @@ export const executeSLA = async({SLA}) => {
               bucketField = `${bucketField}.keyword`;
             }
             let bucketsAgg = agg[`agg_${type}_${bucketField}`];
-            if(isNestedField) {
+            if (isNestedField) {
               bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
             }
             const {buckets} = bucketsAgg;
@@ -124,7 +126,7 @@ export const executeSLA = async({SLA}) => {
                 size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
               const result = buckets.slice(from, size);
               // console.log('result', result);
-              const promiseArr = result.map(async(b) => {
+              const promiseArr = result.map(async (b) => {
                 let
                   tag = '',
                   key = b.key;
@@ -223,7 +225,7 @@ const checkSLA = (slaId) => {
   }
 };
 
-const addWorkplaceSuggester = async(next, total = 0) => {
+const addWorkplaceSuggester = async (next, total = 0) => {
   /* Fetch groups from fb@work */
   const {adminWorkplace} = Meteor.settings.facebook;
   try {
@@ -296,11 +298,212 @@ const addWorkplaceSuggester = async(next, total = 0) => {
     })
 };
 
+const parseAlarmName = (alarmName) => {
+  check(alarmName, String);
+  const [system, service, metric] = alarmName.split('-');
+  return {system, service, metric};
+};
+
+const parseStateReason = (state, stateReason) => {
+  check(state, String);
+  check(stateReason, String);
+
+  let stateValue = 0;
+  if (state === 'ALARM') {
+    stateValue = Number(S(stateReason).between('[', ']').s.split(' ')[0]);
+    console.log('stateValue', stateValue);
+  }
+  return {stateValue};
+};
+
+const processAlarmData = (message) => {
+  check(message, Object);
+  const {
+    AlarmName, AlarmDescription,
+    NewStateValue: state, NewStateReason: stateReason,
+    StateChangeTime: timestamp,
+    // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
+  } = message;
+  // console.log('Message', AlarmName, state, stateReason, timestamp);
+
+  const {system, service, metric} = parseAlarmName(AlarmName);
+  const {stateValue} = parseStateReason(state, stateReason);
+
+  return {
+    name: AlarmName,
+    system,
+    service,
+    metric,
+    state,
+    stateValue,
+    detail: stateReason,
+    timestamp
+  };
+};
+
+const getAlarmMethod = (stateValue, conditions) => {
+  // check(stateValue, String);
+  // check(conditions, [Object]);
+
+  let alarmMethod = 'note';
+  const maxCond = conditions.length;
+
+  // First condition matched, first method applied
+  for (let i = 0; i < maxCond; i++) {
+    const {value, method} = conditions[i];
+    if (stateValue >= value) {
+      alarmMethod = method;
+      return {alarmMethod};
+    }
+  }
+
+  return {alarmMethod};
+};
+
+const getContactsInfo = (contacts) => {
+  let contactsInfo = [];
+
+  if (!_.isEmpty(contacts)) {
+    const {Accounts} = require('meteor/accounts-base');
+
+    const contactsInfo = Accounts.users
+      .find(
+        {_id: {$in: contacts}},
+        {fields: {profile: true, "services.google.email": true}})
+      .fetch();
+
+    if (!_.isEmpty(contactsInfo)) {
+      return {
+        contactsInfo: contactsInfo.map(c => ({
+          name: c.profile.name,
+          email: c.services.google.email,
+          phone: c.profile.phone
+        }))
+      };
+    }
+  }
+
+  return {contactsInfo};
+};
+
+const notifyBySMS = (content) => {
+  try {
+    const
+      request = require('request'),
+      {url, auth, json} = Meteor.settings.sms,
+      {subject, detail, timestamp, contacts} = content,
+      {contactsInfo} = getContactsInfo(contacts),
+      contactsPhone = contactsInfo.map(c => (c.phone)),
+      requestParams = {
+        url, auth, json,
+        body: {
+          to: contactsPhone,
+          type: 'text/outgoing-sms',
+          body: `${subject}\n${detail}\n${moment(timestamp).format()}`
+        }
+      };
+
+    contactsPhone.forEach(phone => {
+      /* Send SMS with Brand name of MOBIVI - very expensive */
+      requestParams.body.to = phone;
+      const result = request.post(requestParams);
+      console.log('send sms', result);
+    });
+  } catch (err) {
+    console.log('notifyBySMS', err.message);
+  }
+};
+
+const notifyByEmail = (content) => {
+  try {
+    const
+      {Email} = require('meteor/email'),
+      {buildEmailHTML} = require('/imports/api/email'),
+      {name: siteName, url: siteUrl} = Meteor.settings.public,
+      {subject, name: alarmName, state, detail, timestamp, contacts} = content,
+      data = {
+        subject,
+        color: state === 'ALARM' ? '#E7505A' : '#2f373e',
+        siteUrl,
+        siteName,
+        alarmName,
+        state,
+        detail,
+        timestamp
+      },
+      {contactsInfo} = getContactsInfo(contacts),
+      ccEmails = contactsInfo.map(c => c.email) || []
+    ;
+
+    const
+      {name: senderName, email: senderEmail} = Meteor.settings.mail.sender,
+      from = `"${senderName}" <${senderEmail}>`,
+      to = 'icare.bots@icarebenefits.com',
+      cc = ccEmails,
+      html = buildEmailHTML('notification', data);
+
+    /* Notify by email */
+    Email.send({subject, from, to, cc, html});
+
+  } catch (err) {
+    console.log('notifyByEmail', err.message);
+  }
+};
+
+const notifyBySlack = (content) => {
+  try {
+    const
+      Slack = require('slack-node'),
+      {webhookUri, username} = Meteor.settings.slack,
+      slack = new Slack(),
+      {subject, detail, timestamp, noteGroup} = content;
+
+    slack.setWebhook(webhookUri);
+
+    slack.webhook({
+      channel: `#${noteGroup}`,
+      username,
+      text: `>>> *${subject}* \n ${detail} \n <!here>: ${moment(timestamp).format()}`
+    }, (err) => {
+      if(err) {
+        console.log('notify to Slack', err.reason);
+      }
+    });
+
+  } catch (err) {
+    console.log('notifyBySlack', err.message);
+  }
+};
+
+const notifyByMethod = (method, content) => {
+  try {
+    switch (method) {
+      case 'sms': {
+        notifyBySMS(content);
+        break;
+      }
+      case 'email': {
+        notifyByEmail(content);
+        break;
+      }
+      case 'note':
+      default: {
+        notifyBySlack(content);
+      }
+    }
+  } catch (err) {
+    throw new Meteor.Error(`BOTS_NOTIFY_BY_METHOD.${method}`, err.message);
+  }
+};
+
 const Bots = {
   fistSLACheck,
   checkSLA,
   executeSLA,
   addWorkplaceSuggester,
+  processAlarmData,
+  getAlarmMethod,
+  notifyByMethod
 };
 
 /* Test checking SLA */
