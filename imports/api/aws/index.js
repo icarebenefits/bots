@@ -1,6 +1,5 @@
 import {Meteor} from 'meteor/meteor';
 import AWS from 'aws-sdk';
-import AWSMethods from './methods';
 
 const {bucketName, region, accessKey: accessKeyId, secretKey: secretAccessKey} = Meteor.settings.aws.s3;
 
