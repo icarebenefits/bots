@@ -1,0 +1,506 @@
+[
+  {
+    "system": "mifos",
+    "service": "web1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "system": "mifos",
+    "service": "web2",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "system": "mifos",
+    "service": "web3",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "system": "mifos",
+    "service": "web4",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "system": "mifos",
+    "service": "web5",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "system": "mifos",
+    "service": "web6",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "system": "magento",
+    "service": "web1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "system": "magento",
+    "service": "web2",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "system": "magento",
+    "service": "api1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "system": "magento",
+    "service": "api2",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "system": "magento",
+    "service": "api3",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "system": "magento",
+    "service": "cron1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "system": "b2b",
+    "service": "web1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "system": "b2b",
+    "service": "web2",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "system": "b2b",
+    "service": "redis1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "system": "b2b",
+    "service": "cron1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "system": "b2b",
+    "service": "gandalf1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "system": "tls",
+    "service": "web1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "tls",
+    "status": "active"
+  },
+  {
+    "system": "integration",
+    "service": "web1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "integration",
+    "status": "active"
+  },
+  {
+    "system": "monitor",
+    "service": "nagios1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "system": "bots",
+    "service": "web1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "system": "sys",
+    "service": "devops1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "system": "sys",
+    "service": "jenkins1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "system": "sys",
+    "service": "keybox1",
+    "metric": "CPUUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "sms"
+      },
+      {
+        "value": 90,
+        "method": "email"
+      },
+      {
+        "value": 80,
+        "method": "note"
+      }
+    ],
+    "noteGroup": "system",
+    "status": "active"
+  }
+]
