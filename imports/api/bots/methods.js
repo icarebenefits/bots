@@ -213,7 +213,7 @@ const notify = new ValidatedMethod({
             message = JSON.parse(data.Message);
           const {name, system, service, metric, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
           // console.log('system, service, metric, state', system, service, metric, state);
-          const SLA = MSLA.findOne({system, service, metric});
+          const SLA = MSLA.findOne({name});
           if (SLA) {
             console.log('SLA: ', SLA);
             const {conditions, noteGroup, contacts} = SLA;

@@ -164,7 +164,10 @@ const Facebook = () => {
       check(picture, Match.Maybe(String));
 
       try {
-        const accessToken = await Facebook().getAccessToken();
+        const
+          accessToken = await Facebook().getAccessToken(),
+          {formatMessage} = require('/imports/utils/defaults'),
+          {slogan} = Meteor.settings.public;
         const request = {
           method: 'POST',
           url: prefixUrl + groupId + "/feed",
@@ -172,7 +175,7 @@ const Facebook = () => {
             authorization: 'Bearer ' + accessToken
           },
           body: {
-            message,
+            message: formatMessage({message, quote: slogan}),
             "type": "status",
             formatting: "MARKDOWN"
           },
