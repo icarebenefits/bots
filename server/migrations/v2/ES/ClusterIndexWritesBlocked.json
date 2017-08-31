@@ -1,0 +1,26 @@
+[
+  {
+    "name": "all-es1-master.data-ClusterIndexWritesBlocked",
+    "conditions": [
+      {
+        "value": 1,
+        "method": "email"
+      }
+    ],
+    "operator": "GreaterThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "log-es1-master.data-ClusterIndexWritesBlocked",
+    "conditions": [
+      {
+        "value": 1,
+        "method": "email"
+      }
+    ],
+    "operator": "GreaterThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  }
+]

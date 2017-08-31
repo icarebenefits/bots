@@ -1,0 +1,50 @@
+[
+  {
+    "name": "b2b-mysql1-master-FreeStorageSpace",
+    "conditions": [
+      {
+        "value": 5000000000,
+        "method": "email"
+      }
+    ],
+    "operator": "LessThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "magento-mysql1-master-FreeStorageSpace",
+    "conditions": [
+      {
+        "value": 5000000000,
+        "method": "email"
+      }
+    ],
+    "operator": "LessThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "mifos-mysql1-master-FreeStorageSpace",
+    "conditions": [
+      {
+        "value": 5000000000,
+        "method": "email"
+      }
+    ],
+    "operator": "LessThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "tls-mysql1-master-FreeStorageSpace",
+    "conditions": [
+      {
+        "value": 5000000000,
+        "method": "email"
+      }
+    ],
+    "operator": "LessThanThreshold",
+    "noteGroup": "tls",
+    "status": "active"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "all-es1-master.data-JVMMemoryPressure",
+    "conditions": [
+      {
+        "value": 300,
+        "method": "email"
+      }
+    ],
+    "operator": "LessThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "log-es1-master.data-JVMMemoryPressure",
+    "conditions": [
+      {
+        "value": 300,
+        "method": "email"
+      }
+    ],
+    "operator": "LessThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  }
+]
