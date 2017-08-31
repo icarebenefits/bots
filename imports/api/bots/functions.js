@@ -300,8 +300,8 @@ const addWorkplaceSuggester = async (next, total = 0) => {
 
 const parseAlarmName = (alarmName) => {
   check(alarmName, String);
-  const [system, service, extraInfo, metric] = alarmName.split('-');
-  return {system, service, extraInfo, metric};
+  const nameSplited = alarmName.split('-');
+  return {metric: nameSplited[nameSplited.length - 1]};
 };
 
 const parseStateReason = (state, stateReason) => {
