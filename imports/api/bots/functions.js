@@ -322,7 +322,7 @@ const processAlarmData = (message) => {
     AlarmName, AlarmDescription,
     NewStateValue: state, NewStateReason: stateReason,
     StateChangeTime: timestamp,
-    Trigger: {Unit: stateUnit}
+    // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
   } = message;
   // console.log('Message', AlarmName, state, stateReason, timestamp);
 
@@ -337,7 +337,6 @@ const processAlarmData = (message) => {
     metric,
     state,
     stateValue,
-    stateUnit,
     detail: stateReason,
     timestamp
   };
@@ -445,17 +444,14 @@ const notifyByEmail = (content) => {
       {Email} = require('meteor/email'),
       {buildEmailHTML} = require('/imports/api/email'),
       {name: siteName, url: siteUrl} = Meteor.settings.public,
-      {subject, name: alarmName, metric, state, stateValue, stateUnit, detail, timestamp, contacts} = content,
+      {subject, name: alarmName, state, detail, timestamp, contacts} = content,
       data = {
         subject,
         color: state === 'ALARM' ? '#E7505A' : '#2f373e',
         siteUrl,
         siteName,
         alarmName,
-        metric,
         state,
-        stateValue,
-        stateUnit,
         detail,
         timestamp
       },
@@ -484,14 +480,14 @@ const notifyBySlack = (content) => {
       Slack = require('slack-node'),
       {webhookUri, username} = Meteor.settings.slack,
       slack = new Slack(),
-      {subject, name, metric, state, stateValue, stateUnit, timestamp, noteGroup} = content;
+      {subject, name, state, stateValue, timestamp, noteGroup} = content;
 
     slack.setWebhook(webhookUri);
 
     slack.webhook({
       channel: `#${noteGroup}`,
       username,
-      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n *${metric}*: ${stateValue} (${stateUnit}) \n <!here>: ${moment(timestamp).format()}`
+      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n *Value*: ${stateValue} \n <!here>: ${moment(timestamp).format()}`
     }, (err) => {
       if(err) {
         console.log('notify to Slack', err.reason);
