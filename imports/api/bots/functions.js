@@ -300,8 +300,8 @@ const addWorkplaceSuggester = async (next, total = 0) => {
 
 const parseAlarmName = (alarmName) => {
   check(alarmName, String);
-  const [system, service, metric] = alarmName.split('-');
-  return {system, service, metric};
+  const [system, service, extraInfo, metric] = alarmName.split('-');
+  return {system, service, extraInfo, metric};
 };
 
 const parseStateReason = (state, stateReason) => {
@@ -326,13 +326,14 @@ const processAlarmData = (message) => {
   } = message;
   // console.log('Message', AlarmName, state, stateReason, timestamp);
 
-  const {system, service, metric} = parseAlarmName(AlarmName);
+  const {system, service, extraInfo, metric} = parseAlarmName(AlarmName);
   const {stateValue} = parseStateReason(state, stateReason);
 
   return {
     name: AlarmName,
     system,
     service,
+    extraInfo,
     metric,
     state,
     stateValue,
@@ -341,7 +342,7 @@ const processAlarmData = (message) => {
   };
 };
 
-const getAlarmMethod = (stateValue, conditions) => {
+const getAlarmMethod = (stateValue, conditions, operator) => {
   // check(stateValue, String);
   // check(conditions, [Object]);
 
@@ -351,9 +352,32 @@ const getAlarmMethod = (stateValue, conditions) => {
   // First condition matched, first method applied
   for (let i = 0; i < maxCond; i++) {
     const {value, method} = conditions[i];
-    if (stateValue >= value) {
-      alarmMethod = method;
-      return {alarmMethod};
+    switch (operator) {
+      case 'LessThanOrEqualToThreshold': {
+        if (stateValue <= value) {
+          alarmMethod = method;
+          return {alarmMethod};
+        }
+      }
+      case 'LessThanThreshold': {
+        if (stateValue < value) {
+          alarmMethod = method;
+          return {alarmMethod};
+        }
+      }
+      case 'GreaterThanOrEqualToThreshold': {
+        if (stateValue >= value) {
+          alarmMethod = method;
+          return {alarmMethod};
+        }
+      }
+      case 'GreaterThanThreshold':
+      default: {
+        if (stateValue > value) {
+          alarmMethod = method;
+          return {alarmMethod};
+        }
+      }
     }
   }
 
@@ -456,14 +480,14 @@ const notifyBySlack = (content) => {
       Slack = require('slack-node'),
       {webhookUri, username} = Meteor.settings.slack,
       slack = new Slack(),
-      {subject, detail, timestamp, noteGroup} = content;
+      {subject, name, state, stateValue, timestamp, noteGroup} = content;
 
     slack.setWebhook(webhookUri);
 
     slack.webhook({
       channel: `#${noteGroup}`,
       username,
-      text: `>>> *${subject}* \n ${detail} \n <!here>: ${moment(timestamp).format()}`
+      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n *Value*: ${stateValue} \n <!here>: ${moment(timestamp).format()}`
     }, (err) => {
       if(err) {
         console.log('notify to Slack', err.reason);
@@ -486,11 +510,12 @@ const notifyByMethod = (method, content) => {
         notifyByEmail(content);
         break;
       }
+      // always notify to Slack
       case 'note':
       default: {
-        notifyBySlack(content);
       }
     }
+    notifyBySlack(content);
   } catch (err) {
     throw new Meteor.Error(`BOTS_NOTIFY_BY_METHOD.${method}`, err.message);
   }
