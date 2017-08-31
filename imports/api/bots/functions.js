@@ -492,7 +492,7 @@ const notifyBySlack = (content) => {
     slack.webhook({
       channel: `#${noteGroup}`,
       username,
-      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n *${metric}*: ${stateValue} (${stateUnit}) \n <!here>: ${moment(timestamp).format()}`
+      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n *${metric}*: ${stateValue} \n <!here>: ${moment(timestamp).format()}`
     }, (err) => {
       if (err) {
         console.log('notify to Slack', err.reason);
