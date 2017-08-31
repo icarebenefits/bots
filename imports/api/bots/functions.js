@@ -484,7 +484,7 @@ const notifyBySlack = (content) => {
       Slack = require('slack-node'),
       {webhookUri, username} = Meteor.settings.slack,
       slack = new Slack(),
-      {subject, name, state, stateValue, stateUnit, timestamp, noteGroup} = content;
+      {subject, name, metric, state, stateValue, stateUnit, timestamp, noteGroup} = content;
 
     slack.setWebhook(webhookUri);
 
