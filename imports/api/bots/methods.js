@@ -212,19 +212,15 @@ const notify = new ValidatedMethod({
           const
             subject = data.Subject,
             message = JSON.parse(data.Message);
-          const {name, system, service, metric, state, stateValue, stateUnit, detail, timestamp} = Bots.processAlarmData(message);
-          // console.log('system, service, metric, state', system, service, metric, state);
+          const {name, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
           const SLA = MSLA.findOne({name});
           if (SLA) {
-            console.log('SLA: ', SLA);
-            const {conditions, noteGroup, contacts} = SLA;
+            const {conditions, noteGroup, unit: stateUnit, contacts} = SLA;
             const notification = {
               subject, name, state, stateValue: accounting.format(stateValue), stateUnit,
               detail, timestamp, noteGroup, contacts
             };
             const {alarmMethod} = Bots.getAlarmMethod(stateValue, conditions);
-            // console.log('alarmMethod', alarmMethod);
-            // console.log('Notification: ', notification);
             Bots.notifyByMethod(alarmMethod, notification);
           }
         }
