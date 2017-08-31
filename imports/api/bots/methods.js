@@ -6,6 +6,7 @@ import {ESFuncs} from '/imports/api/elastic';
 import {Facebook} from '/imports/api/facebook-graph';
 import {formatMessage} from '/imports/utils/defaults';
 import {deleteExpiredIndices, deleteExpiredLog} from '/imports/api/admin';
+import accounting from 'accounting';
 
 /* Collections */
 import {MSLA} from '/imports/api/collections/monitor-sla';
@@ -211,14 +212,14 @@ const notify = new ValidatedMethod({
           const
             subject = data.Subject,
             message = JSON.parse(data.Message);
-          const {name, system, service, metric, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
+          const {name, system, service, metric, state, stateValue, stateUnit, detail, timestamp} = Bots.processAlarmData(message);
           // console.log('system, service, metric, state', system, service, metric, state);
           const SLA = MSLA.findOne({name});
           if (SLA) {
             console.log('SLA: ', SLA);
             const {conditions, noteGroup, contacts} = SLA;
             const notification = {
-              subject, name, state, stateValue,
+              subject, name, state, stateValue: accounting.format(stateValue), stateUnit,
               detail, timestamp, noteGroup, contacts
             };
             const {alarmMethod} = Bots.getAlarmMethod(stateValue, conditions);
