@@ -7,6 +7,7 @@
         "method": "email"
       }
     ],
+    "unit": "Bytes",
     "operator": "LessThanThreshold",
     "noteGroup": "b2b",
     "status": "active"
@@ -19,6 +20,7 @@
         "method": "email"
       }
     ],
+    "unit": "Bytes",
     "operator": "LessThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -31,6 +33,7 @@
         "method": "email"
       }
     ],
+    "unit": "Bytes",
     "operator": "LessThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -43,6 +46,7 @@
         "method": "email"
       }
     ],
+    "unit": "Bytes",
     "operator": "LessThanThreshold",
     "noteGroup": "tls",
     "status": "active"

@@ -7,6 +7,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -19,6 +20,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -31,6 +33,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -43,6 +46,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -55,6 +59,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -67,6 +72,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "mifos",
     "status": "active"
@@ -79,6 +85,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -91,6 +98,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -103,6 +111,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -115,6 +124,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -127,6 +137,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -139,6 +150,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "magento",
     "status": "active"
@@ -151,6 +163,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "b2b",
     "status": "active"
@@ -163,6 +176,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "b2b",
     "status": "active"
@@ -175,6 +189,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "b2b",
     "status": "active"
@@ -187,6 +202,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "b2b",
     "status": "active"
@@ -199,6 +215,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "b2b",
     "status": "active"
@@ -211,6 +228,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "tls",
     "status": "active"
@@ -223,6 +241,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "integration",
     "status": "active"
@@ -235,6 +254,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "system",
     "status": "active"
@@ -247,6 +267,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "system",
     "status": "active"
@@ -259,6 +280,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "system",
     "status": "active"
@@ -271,6 +293,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "system",
     "status": "active"
@@ -283,6 +306,7 @@
         "method": "email"
       }
     ],
+    "unit": "Percent",
     "operator": "GreaterThanThreshold",
     "noteGroup": "system",
     "status": "active"
