@@ -1,0 +1,26 @@
+[
+  {
+    "name": "all-es1-master.data-CPUUtilization",
+    "conditions": [
+      {
+        "value": 90,
+        "method": "email"
+      }
+    ],
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "log-es1-master.data-CPUUtilization",
+    "conditions": [
+      {
+        "value": 90,
+        "method": "email"
+      }
+    ],
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  }
+]
