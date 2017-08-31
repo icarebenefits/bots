@@ -24,7 +24,7 @@
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr style="background-color:{{color}}">
                   <td style="padding:20px 0 0;">
-                    <h2 style="color: #FFF">{{siteName}} Notifications - {{state}}</h2>
+                    <h2 style="color: #FFF">{{alarmName}}</h2>
                   </td>
                 </tr>
                 <tr>
@@ -43,18 +43,12 @@
                                  cellpadding="5"
                                  cellspacing="5">
                             <tr>
-                              <td style="border-top: #eee 1px solid;"><strong>Name</strong></td>
-                              <td style="border-top: #eee 1px solid; text-align: left;">
-                                {{alarmName}}
-                              </td>
-                            </tr>
-                            <tr>
                               <td style="border-top: #eee 1px solid;"><strong>State</strong></td>
                               <td style="border-top: #eee 1px solid; text-align: left;">{{state}}</td>
                             </tr>
                             <tr>
-                              <td style="border-top: #eee 1px solid;"><strong>Detail</strong></td>
-                              <td style="border-top: #eee 1px solid; text-align: left;">{{detail}}
+                              <td style="border-top: #eee 1px solid;"><strong>{{metric}}</strong></td>
+                              <td style="border-top: #eee 1px solid; text-align: left;">{{stateValue}} ({{stateUnite}})
                               </td>
                             </tr>
                             <tr>
