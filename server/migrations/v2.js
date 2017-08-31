@@ -19,7 +19,7 @@ Migrations.add({
         SwapUsage: require('./v2/RDS/SwapUsage.json')
       },
       ES: {
-        clusterIndexWritesBlocked: require('./v2/ES/clusterIndexWritesBlocked.json'),
+        ClusterIndexWritesBlocked: require('./v2/ES/ClusterIndexWritesBlocked.json'),
         "ClusterStatus.red": require('./v2/ES/ClusterStatus.red.json'),
         CPUUtilization: require('./v2/ES/CPUUtilization.json'),
         JVMMemoryPressure: require('./v2/ES/JVMMemoryPressure.json'),
