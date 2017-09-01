@@ -583,7 +583,7 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
         body._source = _source;
 
         const {hits: {hits}} = await Elastic.search({index, type, body});
-        const result = await etlFieldProcessDocuments(source, dest, field, hits, failed, updated, count);
+        const result = await etlFieldProcessDocuments(source, dest, field, hits, failed, updated);
         updated = result.updated;
         failed = result.failed;
       }
