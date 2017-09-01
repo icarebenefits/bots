@@ -443,7 +443,7 @@ const notifyByEmail = (content) => {
     const
       {Email} = require('meteor/email'),
       {buildEmailHTML} = require('/imports/api/email'),
-      {name: siteName, url: siteUrl} = Meteor.settings.public,
+      {name: siteName, url: siteUrl, slogan} = Meteor.settings.public,
       {subject, name: alarmName, state, stateValue, stateUnit, detail, timestamp, contacts} = content,
       {metric} = parseAlarmName(alarmName),
       data = {
@@ -452,6 +452,7 @@ const notifyByEmail = (content) => {
         siteUrl,
         siteName,
         alarmName,
+        slogan,
         metric,
         state,
         stateValue,
