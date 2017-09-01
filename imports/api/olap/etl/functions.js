@@ -466,6 +466,68 @@ const etlFields = ({actions, source, dest, key, fields, options = {batches: 1000
 
 };
 */
+
+const etlFieldProcessDocuments = async(source, dest, field, hits, failed, updated, count = 0) => {
+  await Promise.all(hits.map(async(document) => {
+    const {_id} = document;
+    // calculate field value
+    let value, parent;
+    switch (field) {
+      case 'number_iCMs':
+      {
+        const result = await countNumberICMs(source, _id);
+        const {numberICMs} = result;
+        value = numberICMs;
+        break;
+      }
+      case 'is_activated':
+      {
+        const {parent: iCMParent} = await getICMParent(dest, _id);
+        value = document._source[field];
+        parent = iCMParent;
+        break;
+      }
+      case 'rfm':
+      {
+        const {parent: iCMParent} = await getICMParent(dest, _id);
+        value = document._source;
+        const {indices: [indexName]} = await getAliasIndices({alias: source.index});
+        value.created_at = Parser().dateFromIndexName(indexName, 'day').date;
+        parent = iCMParent;
+        break;
+      }
+    }
+
+    const doc = {
+      [`${field}`]: value
+    };
+
+    // add field into dest
+    const {index, type} = dest;
+    const updateBody = {
+      index,
+      type,
+      id: _id,
+      body: {doc}
+    };
+    let addField;
+    if (parent) {
+      if (parent !== -1) {  // only update the document has parent
+        updateBody.parent = parent;
+        addField = await Elastic.update(updateBody);
+      } else {
+        failed.push({[`${_id}`]: value});
+      }
+    } else {
+      addField = await Elastic.update(updateBody);
+    }
+    updated.push({[`${_id}`]: value, addField});
+    count++;
+  }));
+
+  return {updated, failed, count};
+};
+
 /**
  * Add a field has data calculated by calculator on source index into dest index
  * @param {Array} actions
@@ -511,75 +573,51 @@ const etlField = async({source, dest, field, options = {batches: 1000, mode: 0, 
     }
 
     const {count: total} = await Elastic.count({index, type, body});
-    for (let i = 0; i < total; i += batches) {
-      body.from = i;
-      body.size = batches;
-      body._source = _source;
+    debug && console.log(`ETL_ADDITIONAL_FIELD.STATUS.${field}`, {total});
 
-      const {hits: {hits}} = await Elastic.search({index, type, body});
-      await Promise.all(hits.map(async(document) => {
-        const {_id} = document;
-        // calculate field value
-        let value, parent;
-        switch (field) {
-          case 'number_iCMs':
-          {
-            const result = await countNumberICMs(source, _id);
-            const {numberICMs} = result;
-            value = numberICMs;
-            break;
-          }
-          case 'is_activated':
-          {
-            const {parent: iCMParent} = await getICMParent(dest, _id);
-            value = document._source[field];
-            parent = iCMParent;
-            break;
-          }
-          case 'rfm':
-          {
-            const {parent: iCMParent} = await getICMParent(dest, _id);
-            value = document._source;
-            const {indices: [indexName]} = await getAliasIndices({alias: source.index});
-            value.created_at = Parser().dateFromIndexName(indexName, 'day').date;
-            parent = iCMParent;
-            break;
-          }
-        }
+    // the number of documents is less than Elastic window size
+    if(total < 10000) {
+      for (let i = 0; i < total; i += batches) {
+        body.from = i;
+        body.size = batches;
+        body._source = _source;
 
-        const doc = {
-          [`${field}`]: value
-        };
+        const {hits: {hits}} = await Elastic.search({index, type, body});
+        const result = await etlFieldProcessDocuments(source, dest, field, hits, failed, updated, count);
+        updated = result.updated;
+        failed = result.failed;
+      }
+    } else {
+      // handle for the number of documents is greater than Elastic window size
+      const {public: {elastic: {scroll}}} = Meteor.settings;
+      let count = 0, scrollId = '';
+      body.size = 100;
 
-        // add field into dest
-        const {index, type} = dest;
-        const updateBody = {
-          index,
-          type,
-          id: _id,
-          body: {doc}
-        };
-        let addField;
-        if (parent) {
-          if (parent !== -1) {  // only update the document has parent
-            updateBody.parent = parent;
-            addField = await Elastic.update(updateBody);
-          } else {
-            failed.push({[`${_id}`]: value});
-          }
-        } else {
-          addField = await Elastic.update(updateBody);
-        }
-        updated.push({[`${_id}`]: value, addField});
-      }));
+      const {hits: {hits, total}, _scroll_id} = await Elastic.search({index, type, scroll, body});
+      const result = await etlFieldProcessDocuments(source, dest, field, hits, failed, updated, count);
+      updated = result.updated;
+      failed = result.failed;
+      count = result.count;
+      debug && console.log(`ETL_ADDITIONAL_FIELD.STATUS.${field}`, {count});
+      scrollId = _scroll_id;
+      while (count < total) {
+        const {hits: {hits}, _scroll_id} = await Elastic.scroll({scrollId, scroll});
+        const result = await etlFieldProcessDocuments(source, dest, field, hits, failed, updated, count);
+        updated = result.updated;
+        failed = result.failed;
+        count = result.count;
+        scrollId = _scroll_id;
+
+        debug && console.log(`ETL_ADDITIONAL_FIELD.STATUS.${field}`, {count});
+      }
     }
 
-    debug && console.log('ETL_ADDITIONAL_FIELD.UPDATED', updated);
-    debug && console.log('ETL_ADDITIONAL_FIELD.FAILED', failed);
+    debug && console.log(`ETL_ADDITIONAL_FIELD.UPDATED.${field}`, updated);
+    debug && console.log(`ETL_ADDITIONAL_FIELD.FAILED.${field}`, failed);
 
     return {total, updated: updated.length, failed: failed.length};
   } catch (err) {
-    throw new Meteor.Error('ETL_ADDITIONAL_FIELD', err.message);
+    throw new Meteor.Error(`ETL_ADDITIONAL_FIELD.${field}`, err.message);
   }
 };
 
