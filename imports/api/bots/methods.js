@@ -220,7 +220,7 @@ const notify = new ValidatedMethod({
               subject, name, state, stateValue: accounting.format(stateValue), stateUnit,
               detail, timestamp, noteGroup, contacts
             };
-            const {alarmMethod} = Bots.getAlarmMethod(stateValue, conditions);
+            const {alarmMethod} = Bots.getAlarmMethod(state, stateValue, conditions);
             Bots.notifyByMethod(alarmMethod, notification);
           }
         }
