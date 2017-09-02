@@ -342,12 +342,20 @@ const processAlarmData = (message) => {
   };
 };
 
-const getAlarmMethod = (stateValue, conditions, operator) => {
+const getAlarmMethod = (state, stateValue, conditions, operator) => {
   // check(stateValue, String);
   // check(conditions, [Object]);
 
   let alarmMethod = 'note';
   const maxCond = conditions.length;
+
+  // Handle OK state
+  if(state === 'OK') {
+    if(!_.isEmpty(conditions)) {
+      alarmMethod = conditions[0].method;
+    }
+    return {alarmMethod};
+  }
 
   // First condition matched, first method applied
   for (let i = 0; i < maxCond; i++) {
@@ -414,7 +422,7 @@ const notifyBySMS = (content) => {
   try {
     const
       request = require('request'),
-      {url, auth, json} = Meteor.settings.sms,
+      {sms: {url, auth, json}, public: {env}} = Meteor.settings,
       {subject, detail, timestamp, contacts} = content,
       {contactsInfo} = getContactsInfo(contacts),
       contactsPhone = contactsInfo.map(c => (c.phone)),
@@ -430,8 +438,10 @@ const notifyBySMS = (content) => {
     contactsPhone.forEach(phone => {
       /* Send SMS with Brand name of MOBIVI - very expensive */
       requestParams.body.to = phone;
-      const result = request.post(requestParams);
-      console.log('send sms', result);
+      if(env !== 'dev') {
+        const result = request.post(requestParams);
+        console.log('send sms', result);
+      }
     });
   } catch (err) {
     console.log('notifyBySMS', err.message);
@@ -443,7 +453,7 @@ const notifyByEmail = (content) => {
     const
       {Email} = require('meteor/email'),
       {buildEmailHTML} = require('/imports/api/email'),
-      {name: siteName, url: siteUrl, slogan} = Meteor.settings.public,
+      {name: siteName, url: siteUrl, slogan, env} = Meteor.settings.public,
       {subject, name: alarmName, state, stateValue, stateUnit, detail, timestamp, contacts} = content,
       {metric} = parseAlarmName(alarmName),
       data = {
@@ -455,7 +465,7 @@ const notifyByEmail = (content) => {
         slogan,
         metric,
         state,
-        stateValue,
+        stateValue: (state !== 'OK' ? stateValue : null),
         stateUnit,
         detail,
         timestamp
@@ -464,6 +474,9 @@ const notifyByEmail = (content) => {
       ccEmails = contactsInfo.map(c => c.email) || []
     ;
 
+    console.log('contactsInfo', contactsInfo);
+    console.log('ccEmails', ccEmails);
+
     const
       {name: senderName, email: senderEmail} = Meteor.settings.mail.sender,
       from = `"${senderName}" <${senderEmail}>`,
@@ -471,8 +484,10 @@ const notifyByEmail = (content) => {
       cc = ccEmails,
       html = buildEmailHTML('notification', data);
 
+    console.log('email content', {subject, from, to, cc});
+
     /* Notify by email */
-    Email.send({subject, from, to, cc, html});
+    (env !== 'dev') && Email.send({subject, from, to, cc, html});
 
   } catch (err) {
     console.log('notifyByEmail', err.message);
@@ -483,17 +498,20 @@ const notifyBySlack = (content) => {
   try {
     const
       Slack = require('slack-node'),
-      {webhookUri, username} = Meteor.settings.slack,
+      {slack: {webhookUri, username}, public: {env}} = Meteor.settings,
       slack = new Slack(),
       {subject, name, state, stateValue, stateUnit, timestamp, noteGroup} = content,
+      channel = env === 'dev' ? '#test' : `#${noteGroup}`,
       {metric} = parseAlarmName(name);
+
+    console.log('stateUnit', stateUnit);
 
     slack.setWebhook(webhookUri);
 
     slack.webhook({
-      channel: `#${noteGroup}`,
+      channel,
       username,
-      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n *${metric}*: ${stateValue} \n <!here>: ${moment(timestamp).format()}`
+      text: `>>> *${subject}* \n *Name*: ${name} \n *State*: ${state} \n ${(state !== 'OK') ? `*${metric}*: ${stateValue} \n` : ''} <!here>: ${moment(timestamp).format()}`
     }, (err) => {
       if (err) {
         console.log('notify to Slack', err.reason);
