@@ -1,5 +1,18 @@
 [
   {
+    "name": "mifos-web1-test-CPUUtilization",
+    "conditions": [
+      {
+        "value": 90,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "test",
+    "status": "active"
+  },
+  {
     "name": "mifos-web1-CPUUtilization",
     "conditions": [
       {
