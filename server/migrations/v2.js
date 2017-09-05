@@ -5,11 +5,14 @@ import {Accounts} from 'meteor/accounts-base';
 
 Migrations.add({
   version: 2,
-  name: "Create Monitoring SLA - EC2/CPUUtilization",
+  name: "Create Monitoring SLA",
   up() {
     const SLA_DEFINITIONS = {
       EC2: {
-        CPUUtilization: require('./v2/EC2/CPUUtilization.json')
+        CPUUtilization: require('./v2/EC2/CPUUtilization.json'),
+        MemoryUtilization: require('./v2/EC2/MemoryUtilization.json'),
+        SwapUtilization: require('./v2/EC2/SwapUtilization.json'),
+        DiskSpaceUtilization: require('./v2/EC2/DiskSpaceUtilization.json')
       },
       RDS: {
         CPUUtilization: require('./v2/RDS/CPUUtilization.json'),
@@ -30,6 +33,7 @@ Migrations.add({
     const
       contactDefaults = ['tan.ktm@icarebenefits.com', 'hai.tdd@mobivi.vn', 'chris@icarebenefits.com'],
       CONTACT_GROUPS = {
+        test: ['icare.bots@icarebenefits.com'],
         system: [...contactDefaults],
         netsuite: [...contactDefaults, 'nam.ph@icarebenefits.com', 'duc.bv@icarebenefits.com'],
         mifos: [...contactDefaults, 'binh.pt@mobivi.vn'],
