@@ -1,0 +1,314 @@
+[
+  {
+    "name": "mifos-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web2-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web3-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web4-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web5-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web6-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "magento-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-web2-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-api1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-api2-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-api3-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-cron1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "b2b-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-redis1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-cron1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-gandalf1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "tls-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "tls",
+    "status": "active"
+  },
+  {
+    "name": "integration-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "integration",
+    "status": "active"
+  },
+  {
+    "name": "monitor-nagios1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "bots-web1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-devops1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-jenkins1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-keybox1-MemoryUtilization",
+    "conditions": [
+      {
+        "value": 100,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  }
+]

@@ -1,0 +1,314 @@
+[
+  {
+    "name": "mifos-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web2-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web3-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web4-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web5-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web6-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "magento-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-web2-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-api1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-api2-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-api3-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "magento-cron1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "magento",
+    "status": "active"
+  },
+  {
+    "name": "b2b-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-redis1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-cron1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-gandalf1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "tls-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "tls",
+    "status": "active"
+  },
+  {
+    "name": "integration-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "integration",
+    "status": "active"
+  },
+  {
+    "name": "monitor-nagios1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "bots-web1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 90,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-devops1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-jenkins1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-keybox1-SwapUtilization",
+    "conditions": [
+      {
+        "value": 70,
+        "method": "email"
+      }
+    ],
+    "unit": "Percent",
+    "operator": "GreaterThanThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  }
+]
