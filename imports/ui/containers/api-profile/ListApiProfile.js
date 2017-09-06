@@ -6,16 +6,38 @@ import _ from 'lodash';
 import moment from 'moment';
 
 /* Collections */
-import {ApiProfile} from '/imports/api/collections/api-profile';
+import {ApiProfile, Methods as ApiProfileMethods} from '/imports/api/collections/api-profile';
 
 /* Components */
 import {List} from '/imports/ui/components';
 import {Spinner} from '/imports/ui/components/common';
 
+/* Notify */
+import * as Notify from '/imports/api/notifications';
+
 class ListApiProfile extends Component {
+  constructor() {
+    super();
 
-  _onRemoveApiProfile() {
+    this.handleActions = this.handleActions.bind(this);
+  }
 
+  _onRemoveApiProfile(_id) {
+    ApiProfileMethods.remove.call({_id}, (err) => {
+      if(err) {
+        return Notify.error('LIST_API.remove', err.reason);
+      }
+      return Notify.info('LIST_API.remove', 'success');
+    });
+  }
+
+  handleActions(action, _id) {
+    switch (action) {
+      case 'remove':
+        return this._onRemoveApiProfile(_id);
+      default:
+        return Notify.error({title: 'LIST_API', message: `Action: ${action} is unsupported.`});
+    }
   }
 
   render() {
@@ -24,14 +46,15 @@ class ListApiProfile extends Component {
       const
         {apiList} = this.props,
         list = {
+          noContentLabel: 'API Profile',
           headers: ['Name', 'Endpoint', 'Profile', 'Created at'],
-          data: [[]],
+          data: [],
           readonly: true,
           actions: [
             {
               id: 'remove', label: '',
               icon: 'fa fa-times', className: 'btn-danger',
-              onClick: this._onRemoveApiProfile
+              onClick: this.handleActions
             }],
           handleDoubleClick: () => {
           },
@@ -65,8 +88,6 @@ class ListApiProfile extends Component {
           ]
         }));
       }
-
-      console.log('list', list);
 
       return (
         <div className="col-md-12">

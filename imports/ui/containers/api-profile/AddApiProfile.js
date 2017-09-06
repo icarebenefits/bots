@@ -15,6 +15,9 @@ class AddApiProfile extends Component {
     super();
 
     this.state = {
+      name: '',
+      endpoint: '',
+      profile: '',
       profiles: []
     };
 
@@ -28,6 +31,10 @@ class AddApiProfile extends Component {
 
     this._onAdd = this._onAdd.bind(this);
     this._getApiProfile = this._getApiProfile.bind(this);
+  }
+
+  _cleanUpAddApiProfileFields() {
+
   }
 
   _getApiProfile() {
@@ -49,13 +56,14 @@ class AddApiProfile extends Component {
         return Notify.error({title: 'CREATE_API', message: err.reason});
       }
       Notify.info({title: 'CREATE_API', message: 'Success'});
+      this._cleanUpAddApiProfileFields();
     });
 
     return Notify.info({title: 'ADD_API_PROFIILE', message: 'gonna add API Profile'})
   }
 
   render() {
-    const {profiles} = this.state;
+    const {name, endpoint, profile, profiles} = this.state;
     return (
       <div className="col-md-12">
         {/* information */}
@@ -66,7 +74,7 @@ class AddApiProfile extends Component {
                 <FormInput
                   ref="name"
                   type="text"
-                  value={''}
+                  value={name}
                   className="form-control input-medium"
                   placeholder="API name"
                   handleOnChange={() => {}}
@@ -76,7 +84,7 @@ class AddApiProfile extends Component {
                 <FormInput
                   ref="endpoint"
                   type="text"
-                  value={''}
+                  value={endpoint}
                   className="form-control input-medium"
                   placeholder="API endpoint"
                   handleOnChange={() => {}}
@@ -86,7 +94,7 @@ class AddApiProfile extends Component {
                 <Suggest
                   ref="profile"
                   options={profiles}
-                  defaultValue={''}
+                  defaultValue={profile}
                   placeHolder="API profile"
                   handleOnChange={value => console.log('profile', value)}
                 />

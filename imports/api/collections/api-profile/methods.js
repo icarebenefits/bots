@@ -7,6 +7,9 @@ import ApiProfile from './api-profile';
 
 const Methods = {};
 
+/**
+ * Definition for Mixins which will be applied for API Profile Methods
+ */
 const mixins = {
   mixins: [LoggedInMixin],
   checkRoles: {
@@ -24,6 +27,9 @@ const mixins = {
   }
 };
 
+/**
+ * Method get Profiles which defined in Meteor.settings
+ */
 Methods.getProfile = new ValidatedMethod({
   name: 'api_profile.getProfile',
   ...mixins,
@@ -80,6 +86,26 @@ Methods.create = new ValidatedMethod({
       return result;
     } catch (err) {
       throw new Meteor.Error('API_PROFILE.create', err.message);
+    }
+  }
+});
+
+
+Methods.remove = new ValidatedMethod({
+  name: 'api_profile.remove',
+  ...mixins,
+  validate: new SimpleSchema({
+    _id: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id
+    }
+  }).validator(),
+  run({_id}) {
+    try {
+      const result = ApiProfile.remove({_id});
+      return result;
+    } catch(err) {
+      throw new Meteor.Error('API_PROFILE.remove', err.message);
     }
   }
 });
