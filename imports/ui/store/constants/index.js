@@ -8,6 +8,7 @@ export const SLOGANS = {
 export const TABS = {
   setup: [
     {id: 'workplace', name: 'Workplace'},
+    {id: 'api', name: 'API Profile'},
     {id: 'sla', name: 'SLA'},
     {id: 'rfm', name: 'RFM'}
   ],
@@ -48,7 +49,8 @@ export const AGGS_OPTIONS = [
   {name: 'sum', label: 'sum'},
   {name: 'max', label: 'max'},
   {name: 'min', label: 'min'},
-  {name: 'avg', label: 'average'}
+  {name: 'avg', label: 'average'},
+  {name: 'rest', label: 'rest call'}
 ];
 /* SCHEDULER OPTIONS */
 export const SCHEDULER_OPTIONS = {
@@ -96,10 +98,16 @@ export const SCHEDULER_OPTIONS = {
         {name: '00', label: '00'}, {name: '10', label: '10'}, {name: '20', label: '20'},
         {name: '30', label: '30'}, {name: '40', label: '40'}, {name: '50', label: '50'}
       ],
-      every: [
-        {name: '', label: ''}, {name: 'days', label: 'days'},
-        {name: 'weeks', label: 'weeks'}, {name: 'months', label: 'months'}
-      ]
+      every: {
+        normalUser: [
+          {name: '', label: ''}, {name: 'days', label: 'days'},
+          {name: 'weeks', label: 'weeks'}, {name: 'months', label: 'months'}
+        ],
+        superAdminUser: [
+          {name: '', label: ''}, {name: 'hours', label: 'hours'}, {name: 'days', label: 'days'},
+          {name: 'weeks', label: 'weeks'}, {name: 'months', label: 'months'}
+        ]
+      }
     }
   },
   secondPart: {

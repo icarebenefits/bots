@@ -181,6 +181,7 @@ SLAs.schema = new SimpleSchema({
   },
   "message.variables.$.summaryType": {
     type: String,
+    allowedValues: ['value_count', 'sum', 'max', 'min', 'avg', 'rest'],
     optional: true
   },
   "message.variables.$.group": {

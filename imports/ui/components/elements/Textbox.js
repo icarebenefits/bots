@@ -7,7 +7,7 @@ export class Textbox extends Component {
   }
   
   render() {
-    const {multiline = false, className, value, handleOnChange, placeholder, height = 50} = this.props;
+    const {multiline = false, className, value, type, handleOnChange, placeholder, height = 50} = this.props;
     if(multiline) {
       return (
         <textarea
@@ -23,7 +23,7 @@ export class Textbox extends Component {
     }
     return (
       <input
-        type="text"
+        type={type || 'text'}
         ref="input"
         className={className}
         defaultValue={value}

@@ -113,6 +113,7 @@ tmeasday:check-npm-versions@0.3.1
 tmeasday:publish-counts@0.8.0
 tmeasday:test-reporter-helpers@0.2.1
 tracker@1.1.2
+tunifight:loggedin-mixin@0.1.0
 twbs:bootstrap@3.3.6
 ui@1.0.13
 underscore@1.0.10
