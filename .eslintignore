@@ -7,3 +7,8 @@ private/*
 public/*
 imports/api/notifications/index.js
 imports/api/bots/methods.js
+imports/api/email/index.js
+imports/ui/components/google/maps/lib/*
+imports/ui/templates/*
+imports/utils/canvas2image.js
+imports/ui/components/google/maps/components/Polyline.js

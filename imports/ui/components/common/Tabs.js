@@ -62,9 +62,7 @@ Tabs.propTypes = {
 };
 
 const mapStateToProps = state => {
-  const
-    isSuperAdmin = Session.get('isSuperAdmin'),
-    {pageControl: {tabs, showTabs, activeTab, country}} = state;
+  const {pageControl: {tabs, showTabs, activeTab, country}} = state;
 
   return {
     country,

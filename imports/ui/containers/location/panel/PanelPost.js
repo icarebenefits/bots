@@ -78,7 +78,6 @@ class PanelPost extends Component {
     }
   }
 }
-;
 
 PanelPost.propTypes = {
   visible: PropTypes.bool,

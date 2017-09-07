@@ -34,10 +34,9 @@ Functions.updateToken = (_id, token) => {
 /**
  * Function Promise getAccessToken from an api profile
  * @param {String} profile - profile name to search from Meteor.settings
- * @param {String} _id - api profile Id in ApiProfile Collection
  * @returns {Promise.<*>}
  */
-Functions.getAccessToken = async (profile, _id) => {
+Functions.getAccessToken = async (profile) => {
   try {
     const options = Meteor.settings.profile[profile];
 
@@ -45,7 +44,7 @@ Functions.getAccessToken = async (profile, _id) => {
     if (statusCode === 200) {
       if (body) {
         // Add token into API Profile
-        const result = await Functions.updateToken(profile, profile);
+        await Functions.updateToken(profile, profile);
         return body;
       }
     } else {

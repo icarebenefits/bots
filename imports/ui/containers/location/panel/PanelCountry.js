@@ -48,7 +48,7 @@ class PanelCountry extends Component {
       </div>
     );
   }
-};
+}
 
 PanelCountry.propTypes = {
   visible: PropTypes.bool,

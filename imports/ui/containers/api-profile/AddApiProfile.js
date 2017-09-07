@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
+// import PropTypes from 'prop-types';
 
 /* Collections */
 import {Methods as ApiProfileMethods} from '/imports/api/collections/api-profile';

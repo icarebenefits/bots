@@ -104,7 +104,10 @@ class ListApiProfile extends Component {
   }
 }
 
-ListApiProfile.propTypes = {};
+ListApiProfile.propTypes = {
+  ready: PropTypes.bool,
+  apiList: PropTypes.array
+};
 
 const ListApiProfileContainer = createContainer(() => {
   const

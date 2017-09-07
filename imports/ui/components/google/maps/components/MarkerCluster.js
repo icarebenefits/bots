@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import MarkerClusterer from 'marker-clusterer-plus';
-import _ from 'lodash';
 
 class MarkerCluster extends Component {
 

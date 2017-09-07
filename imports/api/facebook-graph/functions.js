@@ -2,6 +2,7 @@ import {Meteor} from 'meteor/meteor';
 import {check, Match} from 'meteor/check';
 import RequestPromise from 'request-promise';
 import validate from 'validate.js';
+import _ from 'lodash';
 
 const Facebook = () => {
   const {personalId, appToken, prefixUrl} = Meteor.settings.facebook;

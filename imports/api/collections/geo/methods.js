@@ -1,7 +1,6 @@
 import {Meteor} from 'meteor/meteor';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
-import _ from 'lodash';
 
 /* Collections */
 import GEO_SLA from './geo';
@@ -134,7 +133,7 @@ Methods.create = new ValidatedMethod({
       defaultValue: 'draft'
     },
   }).validator(),
-  run({_id, name, description, workplace, frequency, condition, gmap, type = 'field_sales'}) {
+  run({name, description, workplace, frequency, condition, gmap}) {
     try {
       const geoSLAId = GEO_SLA.insert({
         name,
@@ -145,17 +144,7 @@ Methods.create = new ValidatedMethod({
         gmap,
         status: 'draft'
       });
-      // if (status === 'active') {
-      //   const freqText = getScheduleText(frequency);
-      //   const jobParams = {
-      //     name,
-      //     freqText,
-      //     info: {method: 'bots.elastic', slaId: _id},
-      //     country
-      //   };
-      //   const createResult = await createJob(jobParams);
-      //   return {_id, createResult};
-      // }
+
       return {geoSLAId};
     } catch (err) {
       throw new Meteor.Error('GEO_SLA_CREATE', err.message);
@@ -285,9 +274,9 @@ Methods.update = new ValidatedMethod({
       defaultValue: 'draft'
     },
   }).validator(),
-  run({_id, name, description, workplace, frequency, condition, gmap, type = 'field_sales'}) {
+  run({_id, name, description, workplace, frequency, condition, gmap}) {
     try {
-      const result = GEO_SLA.update({_id}, {
+      GEO_SLA.update({_id}, {
         $set: {
           name,
           description,
@@ -298,17 +287,6 @@ Methods.update = new ValidatedMethod({
           status: 'draft'
         }
       });
-      // if (status === 'active') {
-      //   const freqText = getScheduleText(frequency);
-      //   const jobParams = {
-      //     name,
-      //     freqText,
-      //     info: {method: 'bots.elastic', slaId: _id},
-      //     country
-      //   };
-      //   const createResult = await createJob(jobParams);
-      //   return {_id, createResult};
-      // }
       return {_id};
     } catch (err) {
       throw new Meteor.Error('GEO_SLA_UPDATE', err.message);

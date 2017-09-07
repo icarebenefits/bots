@@ -32,7 +32,7 @@ class InfoWindow extends React.Component {
   }
 
   renderInfoWindow() {
-    let {map, google, mapCenter} = this.props;
+    let {google} = this.props;
 
     if (!google || !google.maps) {
       return;

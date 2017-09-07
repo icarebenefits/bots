@@ -1,3 +1,4 @@
+import {Meteor} from 'meteor/meteor';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import accounting from 'accounting';
@@ -30,7 +31,7 @@ class StatisticBox extends Component {
       {countries} = Meteor.settings.public,
       {
         purchases, locations,
-        topFSSize, topBestFS, topWorstFS,
+        topFSSize, topWorstFS, // topBestFS,
       } = this.props,
       timeFormat = 'MM/DD/YYYY HH:mm',
       commonProps = {
@@ -63,7 +64,7 @@ class StatisticBox extends Component {
       purchaseDataSets = [], // temporary purchase Data Sets
       locationDataSets = [], // temporary location Data Sets
       summaryDataSets = [], // datasets for summary chart
-      topBestDataSets = [], // datasets for top best FS chart
+      //topBestDataSets = [], // datasets for top best FS chart
       topWorstDataSets = []; // datasets for top worst FS chart
 
     // purchaseDataSets: collect data
@@ -190,7 +191,7 @@ class StatisticBox extends Component {
       biggestPurchase,
       biggestPurchaseCountry,
       summaryDataSets,
-      topBestDataSets,
+      // topBestDataSets,
       topWorstDataSets
     };
   }
@@ -204,7 +205,7 @@ class StatisticBox extends Component {
       } = this.props,
       {
         totalPurchases, biggestPurchase, biggestPurchaseCountry,
-        summaryDataSets, topBestDataSets, topWorstDataSets
+        summaryDataSets, //topBestDataSets, topWorstDataSets
       } = this._getStatisticState(),
       timeRangeLabel = this.props.getTimeRangeLabel(this.props.timeRange),
       countryLabel = this.props.getCountryLabel(this.props.country),
