@@ -1,13 +1,17 @@
+import {Meteor} from 'meteor/meteor';
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import {createContainer} from 'meteor/react-meteor-data';
 import _ from 'lodash';
 
+/* Collections */
+import {ApiProfile} from '/imports/api/collections/api-profile';
+/* Components */
 import {
-  Checkbox,
-  Selectbox,
-  SelectboxGrouped,
-  FormInput,
-  Button,
+  Checkbox, Selectbox, SelectboxGrouped,
+  FormInput, Button,
 } from '../elements';
+import {Spinner} from '/imports/ui/components/common';
 import {Field} from '/imports/api/fields';
 
 /* CONSTANTS */
@@ -25,7 +29,7 @@ class Variable extends Component {
         Fields = Field()[group]().field,
         {id: name, name: label} = Field()[group]().props(),
         listFields = Object.keys(Fields());
-      if(isNestedField && bucket) {
+      if (isNestedField && bucket) {
         Fields = Fields()[ngroup]().field;
         listFields = Object.keys(Fields());
       }
@@ -35,7 +39,7 @@ class Variable extends Component {
         .filter(f => Fields()[f]().props().type === 'number')
         .map(f => {
           const {id: name, name: label} = Fields()[f]().props();
-          if(isNestedField && bucket) {
+          if (isNestedField && bucket) {
             return {
               name: `${ngroup}.${name}`,
               label: `${ngroup} ${label}`
@@ -58,69 +62,127 @@ class Variable extends Component {
   }
 
   render() {
-    const
-      {
-        id,
-        useBucket,
-        bucketGroup,
-        isNestedField,
-        variable: {bucket, summaryType = '', group = '', field = '', name = ''},
-        handlers: {
-          handleFieldChange,
-          handleRemoveRow,
-        },
-      } = this.props,
-      filters = this._getFilters(bucket, useBucket, bucketGroup, isNestedField);
-    return (
-      <tr>
-        {useBucket && (
+    const {ready} = this.props;
+    if (ready) {
+      const
+        {
+          id,
+          useBucket,
+          bucketGroup,
+          isNestedField,
+          variable: {bucket, summaryType = '', apiProfile = '', group = '', field = '', name = ''},
+          handlers: {
+            handleFieldChange,
+            handleRemoveRow,
+          },
+          apiProfiles,
+          isSuperAdmin
+        } = this.props,
+        usedRestCall = (summaryType === 'rest') || false,
+        filters = this._getFilters(bucket, useBucket, bucketGroup, isNestedField);
+      let listApiProfiles = [{name: '', label: ''}];
+
+      if (!_.isEmpty(apiProfiles)) {
+        listApiProfiles = [
+          ...listApiProfiles,
+          ...apiProfiles.map(p => ({name: p._id, label: p.name}))
+        ];
+      }
+
+      return (
+        <tr>
+          {useBucket && (
+            <td data-row={id}>
+              <Checkbox
+                className="form-control"
+                disabled={usedRestCall}
+                value={bucket}
+                handleOnChange={value => handleFieldChange(id, 'bucket', value)}
+              />
+            </td>
+          )}
           <td data-row={id}>
-            <Checkbox
+            <Selectbox
               className="form-control"
-              value={bucket}
-              handleOnChange={value => handleFieldChange(id, 'bucket', value)}
+              value={summaryType}
+              options={isSuperAdmin ? AGGS_OPTIONS.superAdminUser : AGGS_OPTIONS.normalUser}
+              handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
             />
           </td>
-        )}
-        <td data-row={id}>
-          <Selectbox
-            className="form-control"
-            value={summaryType}
-            options={[
-                {name: '', label: ''},
-                ...AGGS_OPTIONS
-              ]}
-            handleOnChange={value => handleFieldChange(id, 'summaryType', value)}
-          />
-        </td>
-        <td data-row={id}>
-          <SelectboxGrouped
-            className="form-control"
-            value={field === 'total' ? `${group}-total` : field}
-            grpOptions={filters}
-            handleOnChange={value => handleFieldChange(id, 'field', value)}
-          />
-        </td>
-        <td data-row={id}>
-          <FormInput
-            className="form-control"
-            value={name}
-            handleOnChange={value => handleFieldChange(id, 'name', value)}
-          />
-        </td>
-        <td data-row={id}>
-          <div>
-            <Button
-              onClick={e => {e.preventDefault(); handleRemoveRow(id);}}
-              className="btn-danger"
-            >Remove</Button>
-          </div>
-        </td>
-      </tr>
-    );
+          <td data-row={id}>
+            <SelectboxGrouped
+              disabled={usedRestCall}
+              className="form-control"
+              value={field === 'total' ? `${group}-total` : field}
+              grpOptions={filters}
+              handleOnChange={value => handleFieldChange(id, 'field', value)}
+            />
+          </td>
+          {isSuperAdmin && (
+            <td data-row={id}>
+              <Selectbox
+                className="form-control"
+                disabled={!usedRestCall}
+                value={apiProfile}
+                options={listApiProfiles}
+                handleOnChange={value => handleFieldChange(id, 'apiProfile', value)}
+              />
+            </td>
+          )}
+          <td data-row={id}>
+            <FormInput
+              className="form-control"
+              value={name}
+              handleOnChange={value => handleFieldChange(id, 'name', value)}
+            />
+          </td>
+          <td data-row={id}>
+            <div>
+              <Button
+                onClick={e => {
+                  e.preventDefault();
+                  handleRemoveRow(id);
+                }}
+                className="btn-danger"
+              >Remove</Button>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    return (<tr><td><div><Spinner/></div></td></tr>);
   }
 }
 
-Variable.propTypes = {};
+Variable.propTypes = {
+  ready: PropTypes.bool,
+  apiProfiles: PropTypes.array,
+  useBucket: PropTypes.bool,
+  bucketGroup: PropTypes.string,
+  isNestedField: PropTypes.bool,
+  variable: PropTypes.shape({
+    bucket: PropTypes.bool,
+    summaryType: PropTypes.string,
+    apiProfile: PropTypes.string,
+    group: PropTypes.group,
+    field: PropTypes.string,
+    name: PropTypes.string
+  }),
+  isSuperAdmin: PropTypes.bool,
+  handlers: PropTypes.shape({
+    handleFieldChange: PropTypes.func,
+    handleRemoveRow: PropTypes.func
+  })
+};
 
-export default Variable
+const VariableContainer = createContainer(() => {
+  const
+    sub = Meteor.subscribe('api_profile_list'),
+    ready = sub.ready(),
+    apiProfiles = ApiProfile.find().fetch();
+
+  return {ready, apiProfiles};
+}, Variable);
+
+export default VariableContainer

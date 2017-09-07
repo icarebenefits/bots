@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {Session} from 'meteor/session';
 import {FlowRouter} from 'meteor/kadira:flow-router';
 import {connect} from 'react-redux';
 import _ from 'lodash';
@@ -21,6 +22,11 @@ const Tabs = (props) => {
           {tabs.map(tab => {
             const {id, name} = tab;
             const isActive = activeTab === id;
+
+            // only show api tab for super-admin users
+            if(id === 'api' && !Session.get('isSuperAdmin'))
+              return null;
+
             return (
               <li
                 className={classNames({
@@ -56,7 +62,10 @@ Tabs.propTypes = {
 };
 
 const mapStateToProps = state => {
-  const {pageControl: {tabs, showTabs, activeTab, country}} = state;
+  const
+    isSuperAdmin = Session.get('isSuperAdmin'),
+    {pageControl: {tabs, showTabs, activeTab, country}} = state;
+
   return {
     country,
     tabs,

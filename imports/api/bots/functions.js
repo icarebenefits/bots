@@ -5,6 +5,7 @@ import _ from 'lodash';
 import S from 'string';
 import moment from 'moment';
 import {Promise} from 'meteor/promise';
+import PromiseRequest from 'request-promise';
 // collections
 import {SLAs} from '../collections/slas';
 // fields
@@ -15,6 +16,7 @@ import {QueryBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';
 import {ESFuncs} from '../elastic';
+import {Functions as ApiProfileFunctions} from '/imports/api/collections/api-profile';
 // utils
 import {formatMessage} from '/imports/utils/defaults';
 
@@ -36,155 +38,198 @@ const fistSLACheck = () => {
  * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
 export const executeSLA = async ({SLA}) => {
-  const {Elastic} = require('../elastic');
-  const {Facebook} = require('/imports/api/facebook-graph');
-  if (_.isEmpty(SLA)) {
-    throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
-  }
-  const {name, conditions, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
-  let queries = [], tags = [];
-
-  /* validate conditions and message */
-  // if (_.isEmpty(conditions)) {
-  //   throw new Meteor.Error('EXECUTE_SLA', 'Conditions is required');
-  // }
-  if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
-    throw new Meteor.Error('EXECUTE_SLA', 'Message is required.');
-  }
-
-  /* For every variable - build appropriated query
-   * and get the aggregation result */
-  const vars = {};
-  const
-    {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
-    index = `${indexPrefix}_${country}_${env}`;
-
-  const promiseArray = variables.map(async (aggregation) => {
+  try {
     const
-      {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
-      {type} = Field()[group]().elastic();
+      {Elastic} = require('../elastic'),
+      {Facebook} = require('/imports/api/facebook-graph');
+    if (_.isEmpty(SLA)) {
+      throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
+    }
+    const {name, conditions, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
+    let queries = [], tags = [];
 
-    const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
-    const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+    /* validate conditions and message */
+    // if (_.isEmpty(conditions)) {
+    //   throw new Meteor.Error('EXECUTE_SLA', 'Conditions is required');
+    // }
+    if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+      throw new Meteor.Error('EXECUTE_SLA', 'Message is required.');
+    }
 
-    if (error || aggsErr) {
-      throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
-    } else {
-      // build the query
-      const ESQuery = {
-        query,
-        aggs,
-        size: 0 // just need the result of total and aggregation, no need to fetch ES documents
-      };
+    /* For every variable - build appropriated query
+     * and get the aggregation result */
+    const vars = {};
+    const
+      {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
+      index = `${indexPrefix}_${country}_${env}`;
 
-      queries.push({index, type, ESQuery});
-      // validate query before run
-      const {valid} = await Elastic.indices.validateQuery({
-        index,
-        type,
-        body: {query}
-      });
-      if (!valid) {
-        throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
-      } else {
-        let agg = {};
-        try {
-          const {aggregations} = await Elastic.search({
+    // Get Value for vars that isn't in rest call type
+    const promiseArray = variables
+      .filter(agg => (agg.summaryType !== 'rest')) // don't build Elastic Aggs Query for type rest call
+      .map(async (aggregation) => {
+        const
+          {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
+          {type} = Field()[group]().elastic();
+
+        const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
+        const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+
+        if (error || aggsErr) {
+          throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
+        } else {
+          // build the query
+          const ESQuery = {
+            query,
+            aggs,
+            size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+          };
+
+          queries.push({index, type, ESQuery});
+          // validate query before run
+          const {valid} = await Elastic.indices.validateQuery({
             index,
             type,
-            body: ESQuery
+            body: {query}
           });
-          agg = aggregations;
-        } catch (err) {
-          throw new Meteor.Error('BUILD_AGGS_QUERY', `Failed: ${err.message}`);
-        }
-
-        if (!_.isEmpty(agg)) {
-          const ESField = getESField(aggType, group, field, bucket.isNestedField && applyBucket, bucket.field);
-
-          if (useBucket && applyBucket) {
-            const {type, group, field, options, isNestedField} = bucket;
-            let bucketField = getESField('', group, field, bucket.isNestedField && applyBucket, bucket.field);
-            if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
-              throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
-            }
-
-            if (type === 'terms') {
-              bucketField = `${bucketField}.keyword`;
-            }
-            let bucketsAgg = agg[`agg_${type}_${bucketField}`];
-            if (isNestedField) {
-              bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
-            }
-            const {buckets} = bucketsAgg;
-            if (!_.isEmpty(buckets)) {
-              let mess = '';
-              // limit the number of buckets return
-              const
-                from = 0,
-                {tagBy} = options,
-                size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
-              const result = buckets.slice(from, size);
-              // console.log('result', result);
-              const promiseArr = result.map(async (b) => {
-                let
-                  tag = '',
-                  key = b.key;
-                const value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0);
-                if (type === 'date_histogram') {
-                  key = moment(key).format('LL');
-                }
-                mess = `${mess} \n - ${key}: ${value} \n`;
-                // tag member if tagBy is setup
-                if (!_.isEmpty(tagBy)) {
-                  if (tagBy === field) {
-                    tag = await Facebook().tagMember('', key);
-                    // for testing
-                    // tag = await Facebook().tagMember('', 'tan.ktm@icarebenefits.com');
-
-                  } else {
-                    tag = await Facebook().tagMember('', value);
-                    // for testing
-                    // tag = await Facebook().tagMember('', 'chris@icarebenefits.com');
-                    // if (!_.isEmpty(tag))
-                    //   tags.push(tag);
-                  }
-                  if (!_.isEmpty(tag))
-                    tags.push(tag);
-                }
-              });
-              await Promise.all(promiseArr);
-              vars[name] = mess;
-            } else {
-              vars[name] = 'No result.';
-            }
+          if (!valid) {
+            throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
           } else {
-            const {value} = agg[`agg_${aggType}_${ESField.replace('.', '_')}`];
-            vars[name] = accounting.formatNumber(value, 0);
+            let agg = {};
+            try {
+              const {aggregations} = await Elastic.search({
+                index,
+                type,
+                body: ESQuery
+              });
+              agg = aggregations;
+            } catch (err) {
+              throw new Meteor.Error('BUILD_AGGS_QUERY', `Failed: ${err.message}`);
+            }
+
+            if (!_.isEmpty(agg)) {
+              const ESField = getESField(aggType, group, field, bucket.isNestedField && applyBucket, bucket.field);
+
+              if (useBucket && applyBucket) {
+                const {type, group, field, options, isNestedField} = bucket;
+                let bucketField = getESField('', group, field, bucket.isNestedField && applyBucket, bucket.field);
+                if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
+                  throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
+                }
+
+                if (type === 'terms') {
+                  bucketField = `${bucketField}.keyword`;
+                }
+                let bucketsAgg = agg[`agg_${type}_${bucketField}`];
+                if (isNestedField) {
+                  bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
+                }
+                const {buckets} = bucketsAgg;
+                if (!_.isEmpty(buckets)) {
+                  let mess = '';
+                  // limit the number of buckets return
+                  const
+                    from = 0,
+                    {tagBy} = options,
+                    size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
+                  const result = buckets.slice(from, size);
+                  // console.log('result', result);
+                  const promiseArr = result.map(async (b) => {
+                    let
+                      tag = '',
+                      key = b.key;
+                    const value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0);
+                    if (type === 'date_histogram') {
+                      key = moment(key).format('LL');
+                    }
+                    mess = `${mess} \n - ${key}: ${value} \n`;
+                    // tag member if tagBy is setup
+                    if (!_.isEmpty(tagBy)) {
+                      if (tagBy === field) {
+                        tag = await Facebook().tagMember('', key);
+                        // for testing
+                        // tag = await Facebook().tagMember('', 'tan.ktm@icarebenefits.com');
+
+                      } else {
+                        tag = await Facebook().tagMember('', value);
+                        // for testing
+                        // tag = await Facebook().tagMember('', 'chris@icarebenefits.com');
+                        // if (!_.isEmpty(tag))
+                        //   tags.push(tag);
+                      }
+                      if (!_.isEmpty(tag))
+                        tags.push(tag);
+                    }
+                  });
+                  await Promise.all(promiseArr);
+                  vars[name] = mess;
+                } else {
+                  vars[name] = 'No result.';
+                }
+              } else {
+                const {value} = agg[`agg_${aggType}_${ESField.replace('.', '_')}`];
+                vars[name] = accounting.formatNumber(value, 0);
+              }
+            }
           }
         }
-      }
+      });
+    await Promise.all(promiseArray);
+
+    // Get values for vars that is in rest call type
+    const promiseArrayRestCall = variables
+      .filter(agg => (agg.summaryType === 'rest'))
+      .map(async (restInfo) => {
+        const {apiProfile: _id, name} = restInfo;
+        const apiProfile = await ApiProfileFunctions.getProfile(_id);
+        if(!_.isEmpty(apiProfile)) {
+          let {endpoint, token} = apiProfile;
+          if(!token) {
+            // get access token
+            const
+              {profile} = apiProfile,
+              options = Meteor.settings.profile[profile];
+
+            token = await PromiseRequest(options);
+            // ApiProfile.update({_id}, {$set: {token}});
+          }
+          if(token) {
+            const options = {
+              method: 'GET',
+              uri: endpoint,
+              headers: {
+                authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              qs: {country},
+              json: true
+            };
+
+            vars[name] = await PromiseRequest(options);
+          }
+        }
+      });
+    await Promise.all(promiseArrayRestCall);
+
+    const {lastUpdatedDate: lastUpdatedOn, timezone} = await ESFuncs.getIndexingDate({alias: index, country})
+
+    /* Build message */
+    let message = `## ${name} \n`;
+    message = message + format(messageTemplate, vars);
+    message = formatMessage({message, quote: `Data was last updated on: ${lastUpdatedOn} (${timezone})`});
+
+    // tag members
+    if (!_.isEmpty(tags)) {
+      message += `\n ${tags.join()}`;
     }
-  });
-  await Promise.all(promiseArray);
 
-  const {lastUpdatedDate: lastUpdatedOn, timezone} = await ESFuncs.getIndexingDate({alias: index, country})
-
-  /* Build message */
-  let message = `## ${name} \n`;
-  message = message + format(messageTemplate, vars);
-  message = formatMessage({message, quote: `Data was last updated on: ${lastUpdatedOn} (${timezone})`});
-
-  // tag members
-  if (!_.isEmpty(tags)) {
-    message += `\n ${tags.join()}`;
+    return {
+      executed: true,
+      message,
+      queries
+    };
+  } catch(err) {
+    throw new Meteor.Error('EXECUTE_SLA', err.message);
   }
-
-  return {
-    executed: true,
-    message,
-    queries
-  };
 };
 
 /**
@@ -350,8 +395,8 @@ const getAlarmMethod = (state, stateValue, conditions, operator) => {
   const maxCond = conditions.length;
 
   // Handle OK state
-  if(state === 'OK') {
-    if(!_.isEmpty(conditions)) {
+  if (state === 'OK') {
+    if (!_.isEmpty(conditions)) {
       alarmMethod = conditions[0].method;
     }
     return {alarmMethod};
@@ -438,7 +483,7 @@ const notifyBySMS = (content) => {
     contactsPhone.forEach(phone => {
       /* Send SMS with Brand name of MOBIVI - very expensive */
       requestParams.body.to = phone;
-      if(env !== 'dev') {
+      if (env !== 'dev') {
         const result = request.post(requestParams);
         console.log('send sms', result);
       }

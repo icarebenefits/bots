@@ -15,6 +15,8 @@ import '/imports/api/collections/users/register.server';
 import '/imports/api/collections/rfm/register.server';
 import '/imports/api/collections/workplaces';
 import '/imports/api/collections/geo/register.server';
+import '/imports/api/collections/monitor-sla/register.server';
+import '/imports/api/collections/api-profile/register.server';
 
 /**
  * Fields

@@ -17,10 +17,7 @@ import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 
 /* Components */
 import {ListPlace} from '/imports/ui/containers';
-import {PageSideBar} from '/imports/ui/components';
-import {Button, Suggest} from '/imports/ui/components/elements';
-
-import {Label} from '/imports/ui/components/elements';
+import {Label, Button, Suggest} from '/imports/ui/components/elements';
 import {Spinner} from '/imports/ui/components/common';
 
 
@@ -180,10 +177,9 @@ class Workplaces extends Component {
           <div className="portlet-body">
             <div className="row" style={{marginBottom: 20}}>
               <div className="col-md-12">
-                <Label
-                  className="col-md-4 bold uppercase pull-left"
-                  value="Add workplace: "
-                />
+                <div className="note note-info">
+                  <h4 className="block uppercase">Add workplace</h4>
+                </div>
               </div>
             </div>
             <div className="row">
@@ -288,10 +284,9 @@ class Workplaces extends Component {
           <div className="portlet-body">
             <div className="row" style={{marginBottom: 20}}>
               <div className="col-md-12">
-                <Label
-                  className="col-md-4 bold uppercase pull-left"
-                  value="List workplaces: "
-                />
+                <div className="note note-info">
+                  <h4 className="block uppercase">List workplaces</h4>
+                </div>
               </div>
             </div>
             <div className="row">
@@ -312,10 +307,6 @@ class Workplaces extends Component {
     if (ready) {
       return (
         <div className="page-content-row">
-          <PageSideBar
-            options={[]}
-            active="work"
-          />
           <div className="page-content-col">
             <div className="note note-info">
               <h2>

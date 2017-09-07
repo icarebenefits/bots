@@ -363,7 +363,7 @@ const buildNestedAggregation = (useBucket, bucket, agg) => {
 
     /* validate aggs params */
     // summaryType
-    const allowedAggs = AGGS_OPTIONS.map(o => o.name);
+    const allowedAggs = AGGS_OPTIONS.superAdminUser.map(o => o.name);
     if (allowedAggs.indexOf(summaryType) === -1) {
       throw new Meteor.Error('VALIDATE_SUMMARY_TYPE', `${summaryType} unsupported.`);
     }
@@ -440,7 +440,7 @@ const buildNormalAggregation = (useBucket, bucket, agg) => {
 
     /* validate aggs params */
     // summaryType
-    const allowedAggs = AGGS_OPTIONS.map(o => o.name);
+    const allowedAggs = AGGS_OPTIONS.superAdminUser.map(o => o.name);
     if (allowedAggs.indexOf(summaryType) === -1) {
       throw new Meteor.Error('VALIDATE_SUMMARY_TYPE', `${summaryType} unsupported.`);
     }

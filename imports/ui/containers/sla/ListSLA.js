@@ -28,6 +28,7 @@ import {SLAs as SLACollection} from '/imports/api/collections/slas';
 import {Countries as CountriesCollection} from '/imports/api/collections/countries';
 
 /* Components */
+import {Spinner} from '/imports/ui/components/common';
 import {List, Toolbar, ListFooter} from '/imports/ui/components';
 import {FormInput, Dialog} from '/imports/ui/components/elements';
 
@@ -322,7 +323,7 @@ class ListSLA extends Component {
       );
     } else {
       return (
-        <div>Loading...</div>
+        <div><Spinner/></div>
       );
     }
   }

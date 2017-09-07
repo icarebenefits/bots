@@ -37,6 +37,8 @@ export const initiatePage = (context) => {
     route: {name}
   } = context;
 
+  console.log('trigger initiatePage isSuperAdmin: ', Session.get('isSuperAdmin'));
+
   // country
   Store.dispatch(Actions.setCountry(country));
   // slogan
