@@ -27,11 +27,34 @@ const mixins = {
   }
 };
 
+
 /**
- * Method get Profiles which defined in Meteor.settings
+ * Method get profile base on _id (client - server)
+ * @param {String} _id
  */
 Methods.getProfile = new ValidatedMethod({
   name: 'api_profile.getProfile',
+  validate: new SimpleSchema({
+    _id: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id
+    }
+  }).validator(),
+  run({_id}) {
+    try {
+      const result = ApiProfile.findOne({_id});
+      return result;
+    } catch(err) {
+      throw new Meteor.Error('API_PROFILE.getProfile', err.message);
+    }
+  }
+});
+
+/**
+ * Method get all Profiles which defined in Meteor.settings (client - server)
+ */
+Methods.getAllProfiles = new ValidatedMethod({
+  name: 'api_profile.getAllProfiles',
   ...mixins,
   validate: null,
   run() {
@@ -47,7 +70,7 @@ Methods.getProfile = new ValidatedMethod({
         return {profiles};
       }
     } catch (err) {
-      throw new Meteor.Error('API_PROFILE.getProfile', err.message);
+      throw new Meteor.Error('API_PROFILE.getAllProfiles', err.message);
     }
   }
 });
@@ -90,7 +113,10 @@ Methods.create = new ValidatedMethod({
   }
 });
 
-
+/**
+ * Method Remove API Profile (client - server)
+ * @param {String} _id
+ */
 Methods.remove = new ValidatedMethod({
   name: 'api_profile.remove',
   ...mixins,

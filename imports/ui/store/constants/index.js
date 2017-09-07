@@ -44,14 +44,25 @@ export const TOOLBARS = {
   }
 };
 /* AGGS OPTIONS */
-export const AGGS_OPTIONS = [
-  {name: 'value_count', label: 'count'},
-  {name: 'sum', label: 'sum'},
-  {name: 'max', label: 'max'},
-  {name: 'min', label: 'min'},
-  {name: 'avg', label: 'average'},
-  {name: 'rest', label: 'rest call'}
-];
+export const AGGS_OPTIONS = {
+  normalUser: [
+    {name: '', label: ''},
+    {name: 'value_count', label: 'count'},
+    {name: 'sum', label: 'sum'},
+    {name: 'max', label: 'max'},
+    {name: 'min', label: 'min'},
+    {name: 'avg', label: 'average'}
+  ],
+  superAdminUser: [
+    {name: '', label: ''},
+    {name: 'value_count', label: 'count'},
+    {name: 'sum', label: 'sum'},
+    {name: 'max', label: 'max'},
+    {name: 'min', label: 'min'},
+    {name: 'avg', label: 'average'},
+    {name: 'rest', label: 'rest call'}
+  ]
+};
 /* SCHEDULER OPTIONS */
 export const SCHEDULER_OPTIONS = {
   firstPart: {

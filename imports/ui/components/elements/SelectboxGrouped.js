@@ -14,12 +14,13 @@ export class SelectboxGrouped extends Component {
   }
 
   render() {
-    const {value, defaultValue, className, handleOnChange, grpOptions} = this.props;
+    const {value, defaultValue, className, disabled, handleOnChange, grpOptions} = this.props;
 
     return (
       <select
         ref="select"
         value={value}
+        disabled={disabled}
         defaultValue={defaultValue}
         className={classNames('select2', className)}
         onChange={e => handleOnChange({value: e.target.value, groupId: this._getGroupId(this.refs.select)})}

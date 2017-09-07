@@ -184,6 +184,10 @@ SLAs.schema = new SimpleSchema({
     allowedValues: ['value_count', 'sum', 'max', 'min', 'avg', 'rest'],
     optional: true
   },
+  "message.variables.$.apiProfile": {
+    type: String,
+    optional: true
+  },
   "message.variables.$.group": {
     type: String,
     optional: true

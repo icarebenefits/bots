@@ -21,7 +21,7 @@ class AddApiProfile extends Component {
       profiles: []
     };
 
-    ApiProfileMethods.getProfile.call((err, res) => {
+    ApiProfileMethods.getAllProfiles.call((err, res) => {
       if(err) {
         return Notify.error({title: 'GET_PROFILES', message: err.reason});
       }
