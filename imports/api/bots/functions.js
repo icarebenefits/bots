@@ -5,7 +5,6 @@ import _ from 'lodash';
 import S from 'string';
 import moment from 'moment';
 import {Promise} from 'meteor/promise';
-import PromiseRequest from 'request-promise';
 // collections
 import {SLAs} from '../collections/slas';
 // fields
@@ -179,20 +178,16 @@ export const executeSLA = async ({SLA}) => {
     const promiseArrayRestCall = variables
       .filter(agg => (agg.summaryType === 'rest'))
       .map(async (restInfo) => {
-        const {apiProfile: _id, name} = restInfo;
-        const apiProfile = await ApiProfileFunctions.getProfile(_id);
-        if(!_.isEmpty(apiProfile)) {
-          let {endpoint, token} = apiProfile;
-          if(!token) {
-            // get access token
-            const
-              {profile} = apiProfile,
-              options = Meteor.settings.profile[profile];
-
-            token = await PromiseRequest(options);
-            // ApiProfile.update({_id}, {$set: {token}});
+        const {apiProfile: apiProfileId, name} = restInfo;
+        const apiProfile = await ApiProfileFunctions.getProfile(apiProfileId);
+        if (!_.isEmpty(apiProfile)) {
+          let {profile, endpoint, token} = apiProfile;
+          // get access token if API Profile doesn't have yet
+          if (!token) {
+            token = await ApiProfileFunctions.getAccessToken(profile, apiProfileId);
           }
-          if(token) {
+
+          if (token) {
             const options = {
               method: 'GET',
               uri: endpoint,
@@ -201,10 +196,10 @@ export const executeSLA = async ({SLA}) => {
                 'Content-Type': 'application/json'
               },
               qs: {country},
+              resolveWithFullResponse: true,
               json: true
             };
-
-            vars[name] = await PromiseRequest(options);
+            vars[name] = await ApiProfileFunctions.callRestApi({profile, options});
           }
         }
       });
@@ -227,8 +222,12 @@ export const executeSLA = async ({SLA}) => {
       message,
       queries
     };
-  } catch(err) {
-    throw new Meteor.Error('EXECUTE_SLA', err.message);
+  } catch ({message}) {
+    await notifyToAdmin({
+      title: `EXECUTE_SLA.${SLA.country}.${SLA.name}`,
+      message
+    });
+    throw new Meteor.Error('EXECUTE_SLA', message);
   }
 };
 
@@ -260,13 +259,25 @@ const checkSLA = (slaId) => {
           }
         })
         .catch(err => {
-          throw new Meteor.Error('EXECUTE_SLA', err.message);
+          notifyToAdmin({
+            title: `CHECK_SLA.${slaId}`,
+            message: err.message
+          });
+          throw new Meteor.Error('CHECK_SLA', err.message);
         });
     } else {
-      throw new Meteor.Error('EXECUTE_SLA', 'SLA not found.');
+      notifyToAdmin({
+        title: `CHECK_SLA.${slaId}`,
+        message: 'SLA not found.'
+      });
+      throw new Meteor.Error('CHECK_SLA', 'SLA not found.');
     }
   } catch (err) {
-    throw new Meteor.Error('EXECUTE_SLA', err.message);
+    notifyToAdmin({
+      title: `CHECK_SLA.${slaId}`,
+      message: err.message
+    });
+    throw new Meteor.Error('CHECK_SLA', err.message);
   }
 };
 
@@ -274,6 +285,7 @@ const addWorkplaceSuggester = async (next, total = 0) => {
   /* Fetch groups from fb@work */
   const {adminWorkplace} = Meteor.settings.facebook;
   try {
+    const res = await Facebook().fetchGroups(next);
     const {data, paging: {next}} = JSON.parse(res);
     if (_.isEmpty(data)) {
       const message = formatMessage({
@@ -281,20 +293,20 @@ const addWorkplaceSuggester = async (next, total = 0) => {
         heading1: 'addWorkplaceSuggester.NoGroupFound',
         code: res
       });
-      Facebook().postMessage(adminWorkplace, message);
+      await Facebook().postMessage(adminWorkplace, message);
     } else {
       /* index suggester */
       const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
       total += await ESFuncs.indexSuggests({index, type, data});
       if (next) {
-        addWorkplaceSuggester(next, total);
+        await addWorkplaceSuggester(next, total);
       } else {
         const message = formatMessage({
           message: '',
           heading1: 'addWorkplaceSuggester.IndexedSuggests',
           code: {total}
         });
-        Facebook().postMessage(adminWorkplace, message);
+        await Facebook().postMessage(adminWorkplace, message);
       }
     }
   } catch (err) {
@@ -303,44 +315,8 @@ const addWorkplaceSuggester = async (next, total = 0) => {
       heading1: 'addWorkplaceSuggester.Error',
       code: err.message
     });
-    Facebook().postMessage(adminWorkplace, message);
+    await Facebook().postMessage(adminWorkplace, message);
   }
-  Facebook().fetchGroups(next)
-    .then(
-      res => {
-        const {data, paging: {next}} = JSON.parse(res);
-        if (_.isEmpty(data)) {
-          const message = formatMessage({
-            message: '',
-            heading1: 'addWorkplaceSuggester.NoGroupFound',
-            code: res
-          });
-          Facebook().postMessage(adminWorkplace, message);
-        } else {
-          /* index suggester */
-          const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
-          total += ESFuncs.indexSuggests({index, type, data});
-          if (next) {
-            addWorkplaceSuggester(next, total);
-          } else {
-            const message = formatMessage({
-              message: '',
-              heading1: 'addWorkplaceSuggester.IndexedSuggests',
-              code: {total}
-            });
-            Facebook().postMessage(adminWorkplace, message);
-          }
-        }
-      }
-    )
-    .catch(e => {
-      const message = formatMessage({
-        message: '',
-        heading1: 'addWorkplaceSuggester.Error',
-        code: e
-      });
-      Facebook().postMessage(adminWorkplace, message);
-    })
 };
 
 const parseAlarmName = (alarmName) => {
@@ -364,7 +340,7 @@ const parseStateReason = (state, stateReason) => {
 const processAlarmData = (message) => {
   check(message, Object);
   const {
-    AlarmName, AlarmDescription,
+    AlarmName,// AlarmDescription,
     NewStateValue: state, NewStateReason: stateReason,
     StateChangeTime: timestamp,
     // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
@@ -411,18 +387,21 @@ const getAlarmMethod = (state, stateValue, conditions, operator) => {
           alarmMethod = method;
           return {alarmMethod};
         }
+        break;
       }
       case 'LessThanThreshold': {
         if (stateValue < value) {
           alarmMethod = method;
           return {alarmMethod};
         }
+        break;
       }
       case 'GreaterThanOrEqualToThreshold': {
         if (stateValue >= value) {
           alarmMethod = method;
           return {alarmMethod};
         }
+        break;
       }
       case 'GreaterThanThreshold':
       default: {
@@ -488,8 +467,11 @@ const notifyBySMS = (content) => {
         console.log('send sms', result);
       }
     });
-  } catch (err) {
-    console.log('notifyBySMS', err.message);
+  } catch ({message}) {
+    notifyToAdmin({
+      title: `NOTIFY_BY_SMS.${content.name}`,
+      message
+    });
   }
 };
 
@@ -534,8 +516,11 @@ const notifyByEmail = (content) => {
     /* Notify by email */
     (env !== 'dev') && Email.send({subject, from, to, cc, html});
 
-  } catch (err) {
-    console.log('notifyByEmail', err.message);
+  } catch ({message}) {
+    notifyToAdmin({
+      title: `NOTIFY_BY_EMAIL.${content.name}`,
+      message
+    });
   }
 };
 
@@ -563,8 +548,26 @@ const notifyBySlack = (content) => {
       }
     });
 
-  } catch (err) {
-    console.log('notifyBySlack', err.message);
+  } catch ({message}) {
+    notifyToAdmin({
+      title: `NOTIFY_BY_SLACK.${content.name}`,
+      message
+    });
+  }
+};
+
+const notifyToAdmin = async ({title, message}) => {
+  try {
+    const
+      {adminWorkplace} = Meteor.settings.facebook,
+      {Facebook} = require('/imports/api/facebook-graph'),
+      {formatMessage} = require('/imports/utils'),
+      mess = formatMessage({message: '', heading2: title,}) + ` ${message}`;
+
+    const result = await Facebook().postMessage(adminWorkplace, mess);
+    return result;
+  } catch(err) {
+    throw new Meteor.Error('BOTS.notifyToAdmin', err.message);
   }
 };
 
@@ -580,15 +583,13 @@ const notifyByMethod = (method, content) => {
         break;
       }
       // always notify to Slack
-      case 'note':
-      default: {
-      }
     }
     notifyBySlack(content);
   } catch (err) {
     throw new Meteor.Error(`BOTS_NOTIFY_BY_METHOD.${method}`, err.message);
   }
 };
+
 
 const Bots = {
   fistSLACheck,
@@ -597,6 +598,7 @@ const Bots = {
   addWorkplaceSuggester,
   processAlarmData,
   getAlarmMethod,
+  notifyToAdmin,
   notifyByMethod
 };
 

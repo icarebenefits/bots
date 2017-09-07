@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import {Methods as ApiProfileMethods} from '/imports/api/collections/api-profile';
 
 /* Components */
-import {Suggest, FormInput, Button} from '/imports/ui/components/elements';
+import {Selectbox, FormInput, Button} from '/imports/ui/components/elements';
 /* Notify */
 import * as Notify from '/imports/api/notifications';
 
@@ -91,10 +91,11 @@ class AddApiProfile extends Component {
                 />
               </div>
               <div className="col-md-3 pull-left" style={{marginTop: 2, paddingRight: 0}}>
-                <Suggest
+                <Selectbox
                   ref="profile"
+                  className="form-control"
                   options={profiles}
-                  defaultValue={profile}
+                  value={profile}
                   placeHolder="API profile"
                   handleOnChange={value => console.log('profile', value)}
                 />

@@ -61,7 +61,7 @@ Methods.getAllProfiles = new ValidatedMethod({
     try {
       if (!this.isSimulation) {
         const {profile} = Meteor.settings;
-        let profiles = [];
+        let profiles = [{name: '', label: ''}];
 
         if (!_.isEmpty(profile)) {
           profiles = Object.keys(profile).map(p => ({name: p, label: p}));
@@ -109,6 +109,32 @@ Methods.create = new ValidatedMethod({
       return result;
     } catch (err) {
       throw new Meteor.Error('API_PROFILE.create', err.message);
+    }
+  }
+});
+
+/**
+ * Method update Token for a profile (client - server)
+ * @param {String} _id
+ * @param {String} token
+ */
+Methods.updateToken = new ValidatedMethod({
+  name: 'api_profile.updateToken',
+  validate: new SimpleSchema({
+    _id: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id
+    },
+    token: {
+      type: String
+    }
+  }).validator(),
+  run({_id, token}) {
+    try {
+      const result = ApiProfile.update({_id}, {$set: {token}});
+      return result;
+    } catch(err) {
+      throw new Meteor.Error('API_PROFILE.updateToken', err.message);
     }
   }
 });
