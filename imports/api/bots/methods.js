@@ -201,6 +201,9 @@ const cleanupLog = new ValidatedMethod({
   }
 });
 
+/**
+ * Method Notify for Monitor SLA (server only)
+ */
 const notify = new ValidatedMethod({
   name: 'bots.notify',
   validate: null,
@@ -215,13 +218,20 @@ const notify = new ValidatedMethod({
           const {name, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
           const SLA = MSLA.findOne({name});
           if (SLA) {
-            const {conditions, noteGroup, unit: stateUnit, contacts} = SLA;
+            const {_id, conditions, noteGroup, unit: stateUnit, contacts, lastAlarmMethod} = SLA;
             const notification = {
               subject, name, state, stateValue: accounting.format(stateValue), stateUnit,
               detail, timestamp, noteGroup, contacts
             };
-            const {alarmMethod} = Bots.getAlarmMethod(state, stateValue, conditions);
-            Bots.notifyByMethod(alarmMethod, notification);
+            let method = lastAlarmMethod || 'note';
+            if(state !== 'OK') {
+              const {alarmMethod} = Bots.getAlarmMethod(state, stateValue, conditions);
+              method = alarmMethod;
+            }
+
+            Bots.notifyByMethod(method, notification);
+            // Update lastAlarmMethod for current SLA
+            MSLA.update({_id}, {$set: {lastAlarmMethod: method}});
           }
         }
       }

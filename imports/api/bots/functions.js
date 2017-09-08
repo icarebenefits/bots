@@ -364,19 +364,9 @@ const processAlarmData = (message) => {
 };
 
 const getAlarmMethod = (state, stateValue, conditions, operator) => {
-  // check(stateValue, String);
-  // check(conditions, [Object]);
 
   let alarmMethod = 'note';
   const maxCond = conditions.length;
-
-  // Handle OK state
-  if (state === 'OK') {
-    if (!_.isEmpty(conditions)) {
-      alarmMethod = conditions[0].method;
-    }
-    return {alarmMethod};
-  }
 
   // First condition matched, first method applied
   for (let i = 0; i < maxCond; i++) {
