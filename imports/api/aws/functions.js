@@ -1,9 +1,12 @@
+import {Meteor} from 'meteor/meteor';
 import {check} from 'meteor/check';
-import {Promise} from 'meteor/promise';
 import {S3} from './';
 
-
-
+/**
+ * Create S3 Album
+ * @param albumName
+ * @param callback
+ */
 export const createAlbum = (albumName, callback) => {
   check(albumName, String);
   albumName = albumName.trim();
@@ -36,6 +39,9 @@ export const createAlbum = (albumName, callback) => {
   });
 };
 
+/**
+ *
+ */
 export const getLists = () => {
   const params = {
     Bucket: 'icbbots-stage',
@@ -50,6 +56,10 @@ export const getLists = () => {
   });
 };
 
+/**
+ * Delete photo in S3
+ * @param photoKey
+ */
 export const deletePhoto = (photoKey = 'images/fs_location_canvas.png') => {
   S3.deleteObject({Key: photoKey}, function(err, data) {
     if (err) {

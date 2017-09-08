@@ -1,20 +1,24 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {Session} from 'meteor/session';
 
 /* Components */
 import Variable from './Variable';
 
 class Summary extends Component {
   render() {
-    const {useBucket = false, bucketGroup, isNestedField = false, variables = [], handlers} = this.props;
+    const
+      isSuperAdmin = Session.get('isSuperAdmin'),
+      {useBucket = false, bucketGroup, isNestedField = false, variables = [], handlers} = this.props;
 
     return (
       <table className="table table-striped">
         <thead>
         <tr>
-          {useBucket && (<th>Bucket</th>)}
+          {useBucket && <th>Bucket</th>}
           <th>Type</th>
           <th>Field</th>
+          {isSuperAdmin && <th>API Profile</th>}
           <th>Variable</th>
           <th>Actions</th>
         </tr>
@@ -28,6 +32,7 @@ class Summary extends Component {
             isNestedField={isNestedField}
             useBucket={useBucket}
             variable={variable}
+            isSuperAdmin={isSuperAdmin}
             handlers={handlers}
           />
         ))}

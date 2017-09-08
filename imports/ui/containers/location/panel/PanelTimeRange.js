@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import dateMath from '@elastic/datemath';
 import moment from 'moment';
 
 // components
@@ -196,7 +195,6 @@ class PanelTimeRange extends Component {
     );
   }
 }
-;
 
 PanelTimeRange.propTypes = {
   visible: PropTypes.bool,

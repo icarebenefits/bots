@@ -448,6 +448,10 @@ Methods.validateConditions = new ValidatedMethod({
       type: String,
       optional: true,
     },
+    "variables.$.apiProfile": {
+      type: String,
+      optional: true,
+    },
     "variables.$.group": {
       type: String,
       optional: true,

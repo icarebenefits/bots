@@ -127,7 +127,7 @@ class Location extends Component {
         break;
       }
       case 'relative': {
-        const {from, to} = Parser().elasticRelativeParts(timeRange.from, timeRange.to);
+        const {from} = Parser().elasticRelativeParts(timeRange.from, timeRange.to);
         label = `${from.count} ${TIME_RANGE_CONST[timeRange.mode].options.filter(r => r.name === from.unit)[0].label}`;
         break;
       }

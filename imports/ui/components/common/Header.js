@@ -1,15 +1,9 @@
 import React from 'react';
 import {connect} from 'react-redux';
 
-import {
-  Logo,
-  TopBarActions,
-  Tabs,
-} from './';
-
-import {PAGE_SHOW_TAB} from '/imports/ui/store/constants';
+/* Components */
+import {Logo, TopBarActions, Tabs} from './';
 import {toggleNav} from '/imports/ui/store/actions';
-
 
 const Header = (props) => {
   const {slogan = '', showTabs, onToggleNav} = props;

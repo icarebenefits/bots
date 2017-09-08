@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {Migrations} from 'meteor/percolate:migrations';
 import {MSLA} from '/imports/api/collections/monitor-sla';
 import {Accounts} from 'meteor/accounts-base';

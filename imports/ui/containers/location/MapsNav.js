@@ -11,8 +11,6 @@ import {
 } from './panel';
 // constants
 import {NAV_CONST} from './CONSTANTS';
-// Functions
-import {Parser} from '/imports/utils';
 
 class MapsNav extends Component {
   constructor(props) {

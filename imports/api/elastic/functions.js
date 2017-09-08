@@ -57,7 +57,7 @@ const indexSuggests = async({index, type, data}) => {
         names.shift();
       }
 
-      const result = await Elastic.index({
+      await Elastic.index({
         index, type, id, body: {
           suggest: {
             input

@@ -30,7 +30,7 @@ class HeatMap extends React.Component {
 
   renderHeatMap() {
     let {
-      map, google, positions, mapCenter, icon, gradient, radius, opacity
+      map, google, positions, gradient, radius, opacity
     } = this.props;
 
     if (!google) {

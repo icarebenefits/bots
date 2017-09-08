@@ -1,5 +1,7 @@
+import {Meteor} from 'meteor/meteor';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
+import Facebook from './functions';
 
 const addPhoto = new ValidatedMethod({
   name: 'graph.post',
@@ -29,8 +31,29 @@ const addPhoto = new ValidatedMethod({
   }
 });
 
+const postToWorkplace = new ValidatedMethod({
+  name: 'graph.postMessage',
+  validate: new SimpleSchema({
+    groupId: {
+      type: Number
+    },
+    message: {
+      type: String
+    }
+  }).validator(),
+  async run({groupId, message}) {
+    try {
+      const result = await Facebook().postMessage(groupId, message);
+      return result;
+    } catch (err) {
+      throw new Meteor.Error('FB_GRAPH.postToWorkplace', err.message);
+    }
+  }
+});
+
 const Methods = {
-  addPhoto
+  addPhoto,
+  postToWorkplace
 };
 
 export default Methods

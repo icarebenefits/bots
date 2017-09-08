@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {later} from 'meteor/mrt:later';
 import momentTZ from 'moment-timezone';
+import {Session} from 'meteor/session';
 import _ from 'lodash';
 
 import {
@@ -115,7 +116,8 @@ class ScheduleBuilder extends Component {
       {firstPart, secondPart} = SCHEDULER_OPTIONS,
       {preps, range, unit, preps2, range2} = this.state,
       {hasValidate} = this.props,
-      userTZ = `GMT ${momentTZ().tz(momentTZ.tz.guess()).format('Z')}`;
+      userTZ = `GMT ${momentTZ().tz(momentTZ.tz.guess()).format('Z')}`,
+      isSuperAdmin = Session.get('isSuperAdmin');
 
     return (
       <div className="col-md-12">
@@ -176,7 +178,11 @@ class ScheduleBuilder extends Component {
                 type="select"
                 className="form-control"
                 value={unit}
-                options={firstPart.unitOpts[preps]}
+                options={preps !== 'every' ?
+                  firstPart.unitOpts[preps] :
+                  (isSuperAdmin ?
+                    firstPart.unitOpts[preps].superAdminUser :
+                    firstPart.unitOpts[preps].normalUser)}
                 handleOnChange={value => this._handleFieldChange('unit', value)}
               />
             </div>

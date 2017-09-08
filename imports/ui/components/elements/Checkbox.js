@@ -9,11 +9,12 @@ export class Checkbox extends Component {
   }
 
   render() {
-    const {className, value, handleOnChange} = this.props;
+    const {className, value, disabled, handleOnChange} = this.props;
     return (
       <input 
         type="checkbox"
         ref="checkbox"
+        disabled={disabled}
         className={classNames('', className)}
         checked={value}
         onChange={e => handleOnChange(e.target.checked)}

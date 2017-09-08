@@ -15,6 +15,7 @@ import {QueryBuilder} from '../query-builder';
 import format from 'string-template';
 import Methods from '../collections/slas/methods';
 import {ESFuncs} from '../elastic';
+import {Functions as ApiProfileFunctions} from '/imports/api/collections/api-profile';
 // utils
 import {formatMessage} from '/imports/utils/defaults';
 
@@ -36,155 +37,198 @@ const fistSLACheck = () => {
  * @return {{check: boolean, notify: boolean, message: string, queries: Array}}
  */
 export const executeSLA = async ({SLA}) => {
-  const {Elastic} = require('../elastic');
-  const {Facebook} = require('/imports/api/facebook-graph');
-  if (_.isEmpty(SLA)) {
-    throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
-  }
-  const {name, conditions, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
-  let queries = [], tags = [];
-
-  /* validate conditions and message */
-  // if (_.isEmpty(conditions)) {
-  //   throw new Meteor.Error('EXECUTE_SLA', 'Conditions is required');
-  // }
-  if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
-    throw new Meteor.Error('EXECUTE_SLA', 'Message is required.');
-  }
-
-  /* For every variable - build appropriated query
-   * and get the aggregation result */
-  const vars = {};
-  const
-    {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
-    index = `${indexPrefix}_${country}_${env}`;
-
-  const promiseArray = variables.map(async (aggregation) => {
+  try {
     const
-      {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
-      {type} = Field()[group]().elastic();
+      {Elastic} = require('../elastic'),
+      {Facebook} = require('/imports/api/facebook-graph');
+    if (_.isEmpty(SLA)) {
+      throw new Meteor.Error('EXECUTE_SLA', 'SLA is required.');
+    }
+    const {name, conditions, message: {useBucket, bucket, variables, messageTemplate}, country} = SLA;
+    let queries = [], tags = [];
 
-    const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
-    const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+    /* validate conditions and message */
+    // if (_.isEmpty(conditions)) {
+    //   throw new Meteor.Error('EXECUTE_SLA', 'Conditions is required');
+    // }
+    if (_.isEmpty(variables) || _.isEmpty(messageTemplate)) {
+      throw new Meteor.Error('EXECUTE_SLA', 'Message is required.');
+    }
 
-    if (error || aggsErr) {
-      throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
-    } else {
-      // build the query
-      const ESQuery = {
-        query,
-        aggs,
-        size: 0 // just need the result of total and aggregation, no need to fetch ES documents
-      };
+    /* For every variable - build appropriated query
+     * and get the aggregation result */
+    const vars = {};
+    const
+      {elastic: {indexPrefix}, public: {env}} = Meteor.settings,
+      index = `${indexPrefix}_${country}_${env}`;
 
-      queries.push({index, type, ESQuery});
-      // validate query before run
-      const {valid} = await Elastic.indices.validateQuery({
-        index,
-        type,
-        body: {query}
-      });
-      if (!valid) {
-        throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
-      } else {
-        let agg = {};
-        try {
-          const {aggregations} = await Elastic.search({
+    // Get Value for vars that isn't in rest call type
+    const promiseArray = variables
+      .filter(agg => (agg.summaryType !== 'rest')) // don't build Elastic Aggs Query for type rest call
+      .map(async (aggregation) => {
+        const
+          {summaryType: aggType, group, field, name, bucket: applyBucket} = aggregation,
+          {type} = Field()[group]().elastic();
+
+        const {error, query: {query}} = QueryBuilder('conditions').build(conditions, aggregation);
+        const {error: aggsErr, aggs} = QueryBuilder('aggregation').build(useBucket, bucket, aggregation);
+
+        if (error || aggsErr) {
+          throw new Meteor.Error('BUILD_ES_QUERY_FAILED', error);
+        } else {
+          // build the query
+          const ESQuery = {
+            query,
+            aggs,
+            size: 0 // just need the result of total and aggregation, no need to fetch ES documents
+          };
+
+          queries.push({index, type, ESQuery});
+          // validate query before run
+          const {valid} = await Elastic.indices.validateQuery({
             index,
             type,
-            body: ESQuery
+            body: {query}
           });
-          agg = aggregations;
-        } catch (err) {
-          throw new Meteor.Error('BUILD_AGGS_QUERY', `Failed: ${err.message}`);
-        }
-
-        if (!_.isEmpty(agg)) {
-          const ESField = getESField(aggType, group, field, bucket.isNestedField && applyBucket, bucket.field);
-
-          if (useBucket && applyBucket) {
-            const {type, group, field, options, isNestedField} = bucket;
-            let bucketField = getESField('', group, field, bucket.isNestedField && applyBucket, bucket.field);
-            if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
-              throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
-            }
-
-            if (type === 'terms') {
-              bucketField = `${bucketField}.keyword`;
-            }
-            let bucketsAgg = agg[`agg_${type}_${bucketField}`];
-            if (isNestedField) {
-              bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
-            }
-            const {buckets} = bucketsAgg;
-            if (!_.isEmpty(buckets)) {
-              let mess = '';
-              // limit the number of buckets return
-              const
-                from = 0,
-                {tagBy} = options,
-                size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
-              const result = buckets.slice(from, size);
-              // console.log('result', result);
-              const promiseArr = result.map(async (b) => {
-                let
-                  tag = '',
-                  key = b.key;
-                const value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0);
-                if (type === 'date_histogram') {
-                  key = moment(key).format('LL');
-                }
-                mess = `${mess} \n - ${key}: ${value} \n`;
-                // tag member if tagBy is setup
-                if (!_.isEmpty(tagBy)) {
-                  if (tagBy === field) {
-                    tag = await Facebook().tagMember('', key);
-                    // for testing
-                    // tag = await Facebook().tagMember('', 'tan.ktm@icarebenefits.com');
-
-                  } else {
-                    tag = await Facebook().tagMember('', value);
-                    // for testing
-                    // tag = await Facebook().tagMember('', 'chris@icarebenefits.com');
-                    // if (!_.isEmpty(tag))
-                    //   tags.push(tag);
-                  }
-                  if (!_.isEmpty(tag))
-                    tags.push(tag);
-                }
-              });
-              await Promise.all(promiseArr);
-              vars[name] = mess;
-            } else {
-              vars[name] = 'No result.';
-            }
+          if (!valid) {
+            throw new Meteor.Error('VALIDATE_ES_QUERY_FAILED', JSON.stringify(query));
           } else {
-            const {value} = agg[`agg_${aggType}_${ESField.replace('.', '_')}`];
-            vars[name] = accounting.formatNumber(value, 0);
+            let agg = {};
+            try {
+              const {aggregations} = await Elastic.search({
+                index,
+                type,
+                body: ESQuery
+              });
+              agg = aggregations;
+            } catch (err) {
+              throw new Meteor.Error('BUILD_AGGS_QUERY', `Failed: ${err.message}`);
+            }
+
+            if (!_.isEmpty(agg)) {
+              const ESField = getESField(aggType, group, field, bucket.isNestedField && applyBucket, bucket.field);
+
+              if (useBucket && applyBucket) {
+                const {type, group, field, options, isNestedField} = bucket;
+                let bucketField = getESField('', group, field, bucket.isNestedField && applyBucket, bucket.field);
+                if (_.isEmpty(type) || _.isEmpty(group) || _.isEmpty(field)) {
+                  throw new Meteor.Error('buildAggregation', `Bucket is missing data.`);
+                }
+
+                if (type === 'terms') {
+                  bucketField = `${bucketField}.keyword`;
+                }
+                let bucketsAgg = agg[`agg_${type}_${bucketField}`];
+                if (isNestedField) {
+                  bucketsAgg = agg[bucketField.split('.')[0]][`agg_${type}_${bucketField}`];
+                }
+                const {buckets} = bucketsAgg;
+                if (!_.isEmpty(buckets)) {
+                  let mess = '';
+                  // limit the number of buckets return
+                  const
+                    from = 0,
+                    {tagBy} = options,
+                    size = options.size || Meteor.settings.public.elastic.aggregation.bucket.terms.size;
+                  const result = buckets.slice(from, size);
+                  // console.log('result', result);
+                  const promiseArr = result.map(async (b) => {
+                    let
+                      tag = '',
+                      key = b.key;
+                    const value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0);
+                    if (type === 'date_histogram') {
+                      key = moment(key).format('LL');
+                    }
+                    mess = `${mess} \n - ${key}: ${value} \n`;
+                    // tag member if tagBy is setup
+                    if (!_.isEmpty(tagBy)) {
+                      if (tagBy === field) {
+                        tag = await Facebook().tagMember('', key);
+                        // for testing
+                        // tag = await Facebook().tagMember('', 'tan.ktm@icarebenefits.com');
+
+                      } else {
+                        tag = await Facebook().tagMember('', value);
+                        // for testing
+                        // tag = await Facebook().tagMember('', 'chris@icarebenefits.com');
+                        // if (!_.isEmpty(tag))
+                        //   tags.push(tag);
+                      }
+                      if (!_.isEmpty(tag))
+                        tags.push(tag);
+                    }
+                  });
+                  await Promise.all(promiseArr);
+                  vars[name] = mess;
+                } else {
+                  vars[name] = 'No result.';
+                }
+              } else {
+                const {value} = agg[`agg_${aggType}_${ESField.replace('.', '_')}`];
+                vars[name] = accounting.formatNumber(value, 0);
+              }
+            }
           }
         }
-      }
+      });
+    await Promise.all(promiseArray);
+
+    // Get values for vars that is in rest call type
+    const promiseArrayRestCall = variables
+      .filter(agg => (agg.summaryType === 'rest'))
+      .map(async (restInfo) => {
+        const {apiProfile: apiProfileId, name} = restInfo;
+        const apiProfile = await ApiProfileFunctions.getProfile(apiProfileId);
+        if (!_.isEmpty(apiProfile)) {
+          let {profile, endpoint, token} = apiProfile;
+          // get access token if API Profile doesn't have yet
+          if (!token) {
+            token = await ApiProfileFunctions.getAccessToken(profile, apiProfileId);
+          }
+
+          if (token) {
+            const options = {
+              method: 'GET',
+              uri: endpoint,
+              headers: {
+                authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              qs: {country},
+              resolveWithFullResponse: true,
+              json: true
+            };
+            vars[name] = await ApiProfileFunctions.callRestApi({profile, options});
+          }
+        }
+      });
+    await Promise.all(promiseArrayRestCall);
+
+    const {lastUpdatedDate: lastUpdatedOn, timezone} = await ESFuncs.getIndexingDate({alias: index, country})
+
+    /* Build message */
+    let message = `## ${name} \n`;
+    message = message + format(messageTemplate, vars);
+    message = formatMessage({message, quote: `Data was last updated on: ${lastUpdatedOn} (${timezone})`});
+
+    // tag members
+    if (!_.isEmpty(tags)) {
+      message += `\n ${tags.join()}`;
     }
-  });
-  await Promise.all(promiseArray);
 
-  const {lastUpdatedDate: lastUpdatedOn, timezone} = await ESFuncs.getIndexingDate({alias: index, country})
-
-  /* Build message */
-  let message = `## ${name} \n`;
-  message = message + format(messageTemplate, vars);
-  message = formatMessage({message, quote: `Data was last updated on: ${lastUpdatedOn} (${timezone})`});
-
-  // tag members
-  if (!_.isEmpty(tags)) {
-    message += `\n ${tags.join()}`;
+    return {
+      executed: true,
+      message,
+      queries
+    };
+  } catch ({message}) {
+    await notifyToAdmin({
+      title: `EXECUTE_SLA.${SLA.country}.${SLA.name}`,
+      message
+    });
+    throw new Meteor.Error('EXECUTE_SLA', message);
   }
-
-  return {
-    executed: true,
-    message,
-    queries
-  };
 };
 
 /**
@@ -215,13 +259,25 @@ const checkSLA = (slaId) => {
           }
         })
         .catch(err => {
-          throw new Meteor.Error('EXECUTE_SLA', err.message);
+          notifyToAdmin({
+            title: `CHECK_SLA.${slaId}`,
+            message: err.message
+          });
+          throw new Meteor.Error('CHECK_SLA', err.message);
         });
     } else {
-      throw new Meteor.Error('EXECUTE_SLA', 'SLA not found.');
+      notifyToAdmin({
+        title: `CHECK_SLA.${slaId}`,
+        message: 'SLA not found.'
+      });
+      throw new Meteor.Error('CHECK_SLA', 'SLA not found.');
     }
   } catch (err) {
-    throw new Meteor.Error('EXECUTE_SLA', err.message);
+    notifyToAdmin({
+      title: `CHECK_SLA.${slaId}`,
+      message: err.message
+    });
+    throw new Meteor.Error('CHECK_SLA', err.message);
   }
 };
 
@@ -229,6 +285,7 @@ const addWorkplaceSuggester = async (next, total = 0) => {
   /* Fetch groups from fb@work */
   const {adminWorkplace} = Meteor.settings.facebook;
   try {
+    const res = await Facebook().fetchGroups(next);
     const {data, paging: {next}} = JSON.parse(res);
     if (_.isEmpty(data)) {
       const message = formatMessage({
@@ -236,20 +293,20 @@ const addWorkplaceSuggester = async (next, total = 0) => {
         heading1: 'addWorkplaceSuggester.NoGroupFound',
         code: res
       });
-      Facebook().postMessage(adminWorkplace, message);
+      await Facebook().postMessage(adminWorkplace, message);
     } else {
       /* index suggester */
       const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
       total += await ESFuncs.indexSuggests({index, type, data});
       if (next) {
-        addWorkplaceSuggester(next, total);
+        await addWorkplaceSuggester(next, total);
       } else {
         const message = formatMessage({
           message: '',
           heading1: 'addWorkplaceSuggester.IndexedSuggests',
           code: {total}
         });
-        Facebook().postMessage(adminWorkplace, message);
+        await Facebook().postMessage(adminWorkplace, message);
       }
     }
   } catch (err) {
@@ -258,44 +315,8 @@ const addWorkplaceSuggester = async (next, total = 0) => {
       heading1: 'addWorkplaceSuggester.Error',
       code: err.message
     });
-    Facebook().postMessage(adminWorkplace, message);
+    await Facebook().postMessage(adminWorkplace, message);
   }
-  Facebook().fetchGroups(next)
-    .then(
-      res => {
-        const {data, paging: {next}} = JSON.parse(res);
-        if (_.isEmpty(data)) {
-          const message = formatMessage({
-            message: '',
-            heading1: 'addWorkplaceSuggester.NoGroupFound',
-            code: res
-          });
-          Facebook().postMessage(adminWorkplace, message);
-        } else {
-          /* index suggester */
-          const {suggester: {workplace: {index, type}}} = Meteor.settings.elastic;
-          total += ESFuncs.indexSuggests({index, type, data});
-          if (next) {
-            addWorkplaceSuggester(next, total);
-          } else {
-            const message = formatMessage({
-              message: '',
-              heading1: 'addWorkplaceSuggester.IndexedSuggests',
-              code: {total}
-            });
-            Facebook().postMessage(adminWorkplace, message);
-          }
-        }
-      }
-    )
-    .catch(e => {
-      const message = formatMessage({
-        message: '',
-        heading1: 'addWorkplaceSuggester.Error',
-        code: e
-      });
-      Facebook().postMessage(adminWorkplace, message);
-    })
 };
 
 const parseAlarmName = (alarmName) => {
@@ -319,7 +340,7 @@ const parseStateReason = (state, stateReason) => {
 const processAlarmData = (message) => {
   check(message, Object);
   const {
-    AlarmName, AlarmDescription,
+    AlarmName,// AlarmDescription,
     NewStateValue: state, NewStateReason: stateReason,
     StateChangeTime: timestamp,
     // Trigger: {MetricName, Namespace, Dimensions: [{name: dName, value: dValue}]}
@@ -343,19 +364,9 @@ const processAlarmData = (message) => {
 };
 
 const getAlarmMethod = (state, stateValue, conditions, operator) => {
-  // check(stateValue, String);
-  // check(conditions, [Object]);
 
   let alarmMethod = 'note';
   const maxCond = conditions.length;
-
-  // Handle OK state
-  if(state === 'OK') {
-    if(!_.isEmpty(conditions)) {
-      alarmMethod = conditions[0].method;
-    }
-    return {alarmMethod};
-  }
 
   // First condition matched, first method applied
   for (let i = 0; i < maxCond; i++) {
@@ -366,18 +377,21 @@ const getAlarmMethod = (state, stateValue, conditions, operator) => {
           alarmMethod = method;
           return {alarmMethod};
         }
+        break;
       }
       case 'LessThanThreshold': {
         if (stateValue < value) {
           alarmMethod = method;
           return {alarmMethod};
         }
+        break;
       }
       case 'GreaterThanOrEqualToThreshold': {
         if (stateValue >= value) {
           alarmMethod = method;
           return {alarmMethod};
         }
+        break;
       }
       case 'GreaterThanThreshold':
       default: {
@@ -438,13 +452,16 @@ const notifyBySMS = (content) => {
     contactsPhone.forEach(phone => {
       /* Send SMS with Brand name of MOBIVI - very expensive */
       requestParams.body.to = phone;
-      if(env !== 'dev') {
+      if (env !== 'dev') {
         const result = request.post(requestParams);
         console.log('send sms', result);
       }
     });
-  } catch (err) {
-    console.log('notifyBySMS', err.message);
+  } catch ({message}) {
+    notifyToAdmin({
+      title: `NOTIFY_BY_SMS.${content.name}`,
+      message
+    });
   }
 };
 
@@ -489,8 +506,11 @@ const notifyByEmail = (content) => {
     /* Notify by email */
     (env !== 'dev') && Email.send({subject, from, to, cc, html});
 
-  } catch (err) {
-    console.log('notifyByEmail', err.message);
+  } catch ({message}) {
+    notifyToAdmin({
+      title: `NOTIFY_BY_EMAIL.${content.name}`,
+      message
+    });
   }
 };
 
@@ -518,8 +538,26 @@ const notifyBySlack = (content) => {
       }
     });
 
-  } catch (err) {
-    console.log('notifyBySlack', err.message);
+  } catch ({message}) {
+    notifyToAdmin({
+      title: `NOTIFY_BY_SLACK.${content.name}`,
+      message
+    });
+  }
+};
+
+const notifyToAdmin = async ({title, message}) => {
+  try {
+    const
+      {adminWorkplace} = Meteor.settings.facebook,
+      {Facebook} = require('/imports/api/facebook-graph'),
+      {formatMessage} = require('/imports/utils'),
+      mess = formatMessage({message: '', heading2: title,}) + ` ${message}`;
+
+    const result = await Facebook().postMessage(adminWorkplace, mess);
+    return result;
+  } catch(err) {
+    throw new Meteor.Error('BOTS.notifyToAdmin', err.message);
   }
 };
 
@@ -535,15 +573,13 @@ const notifyByMethod = (method, content) => {
         break;
       }
       // always notify to Slack
-      case 'note':
-      default: {
-      }
     }
     notifyBySlack(content);
   } catch (err) {
     throw new Meteor.Error(`BOTS_NOTIFY_BY_METHOD.${method}`, err.message);
   }
 };
+
 
 const Bots = {
   fistSLACheck,
@@ -552,6 +588,7 @@ const Bots = {
   addWorkplaceSuggester,
   processAlarmData,
   getAlarmMethod,
+  notifyToAdmin,
   notifyByMethod
 };
 

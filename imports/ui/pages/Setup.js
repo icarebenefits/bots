@@ -1,13 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {Session} from 'meteor/session';
 // pages
-import {WorkplacesPage, SLAsPage, RFMPage} from '/imports/ui/pages';
+import {WorkplacesPage, ApiPage, SLAsPage, RFMPage, ErrorPage} from '/imports/ui/pages';
 
 const Setup = (props) => {
   switch (props.activeTab) {
     case 'workplace':
       return <WorkplacesPage />;
+    case 'api': {
+      if(Session.get('isSuperAdmin')) {
+        return <ApiPage />;
+      }
+      return <ErrorPage/>;
+    }
     case 'sla':
       return <SLAsPage />;
     case 'rfm':
@@ -15,7 +22,6 @@ const Setup = (props) => {
     default:
       return <WorkplacesPage />;
   }
-
 };
 
 Setup.propTypes = {
