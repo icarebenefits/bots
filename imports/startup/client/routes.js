@@ -13,7 +13,6 @@ import {
   SetupPage,
   AccessListPage,
   LocationPage,
-  LocationSamplePage,
   ErrorPage,
 } from '/imports/ui/pages';
 
@@ -95,7 +94,7 @@ const userRoutes = FlowRouter.group({
 
 userRoutes.route('/setup/:country', {
   name: 'setup',
-  action(params) {
+  action() {
     return mount(MainLayout, {
       content() {
         return <SetupPage />;
@@ -106,7 +105,7 @@ userRoutes.route('/setup/:country', {
 
 userRoutes.route('/maps', {
   name: 'maps',
-  action(params) {
+  action() {
     return mount(MainLayout, {
       content() {
         return <LocationPage />;

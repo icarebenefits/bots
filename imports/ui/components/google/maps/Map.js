@@ -276,7 +276,6 @@ class Map extends React.Component {
     )
   }
 }
-;
 
 Map.propTypes = {
   google: PropTypes.object,

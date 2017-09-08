@@ -14,7 +14,7 @@ import {
   Dialog, Checkbox
 } from '/imports/ui/components/elements';
 
-import {NoContent} from '/imports/ui/components/common';
+import {NoContent, Spinner} from '/imports/ui/components/common';
 import {ConditionsBuilder, ScheduleBuilder, MessageBuilder} from '/imports/ui/components';
 
 /* Collections */
@@ -732,7 +732,7 @@ class SingleSLA extends Component {
       );
     } else {
       return (
-        <div>Loading...</div>
+        <div><Spinner/></div>
       );
     }
   }

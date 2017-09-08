@@ -94,18 +94,26 @@ Validators.slaMessage = (message) => {
   } else {
     let mess = '';
     variables.forEach((v, i) => {
-      const {summaryType, group, field, name} = v;
+      const {summaryType, apiProfile, group, field, name} = v;
       if (_.isEmpty(summaryType)) {
         mess = `type is required in row ${i + 1}.`;
         return;
       }
-      if (_.isEmpty(field)) {
-        mess = `field is required in row ${i + 1}.`;
-        return;
-      }
-      if (_.isEmpty(group)) {
-        mess = `field is unsupported in row ${i + 1}.`;
-        return;
+      // validate for type rest call
+      if(summaryType === 'rest') {
+        if(_.isEmpty(apiProfile)) {
+          mess = `API profile is required in row ${i + 1}.`;
+          return;
+        }
+      } else {
+        if (_.isEmpty(field)) {
+          mess = `field is required in row ${i + 1}.`;
+          return;
+        }
+        if (_.isEmpty(group)) {
+          mess = `field is unsupported in row ${i + 1}.`;
+          return;
+        }
       }
       if (_.isEmpty(name)) {
         mess = `variable is required in row ${i + 1}.`;

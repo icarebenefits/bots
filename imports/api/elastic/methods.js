@@ -40,7 +40,6 @@ Methods.search = new ValidatedMethod({
         const {ElasticClient: Elastic} = require('/imports/api/elastic');
 
         const searchResult = await Elastic.search({index, type, body});
-        const {total, hits} = searchResult;
         return {
           ready: true,
           ...searchResult
