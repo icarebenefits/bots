@@ -5,7 +5,6 @@ import PromiseRequest from 'request-promise';
 
 
 import Methods from './methods';
-import {Bots} from '/imports/api/bots';
 
 const Functions = {};
 
@@ -36,7 +35,7 @@ Functions.updateToken = (_id, token) => {
  * @param {String} profile - profile name to search from Meteor.settings
  * @returns {Promise.<*>}
  */
-Functions.getAccessToken = async (profile) => {
+Functions.getAccessToken = async (profile, _id) => {
   try {
     const options = Meteor.settings.profile[profile];
 
@@ -44,21 +43,21 @@ Functions.getAccessToken = async (profile) => {
     if (statusCode === 200) {
       if (body) {
         // Add token into API Profile
-        await Functions.updateToken(profile, profile);
+        await Functions.updateToken(_id, body);
         return body;
       }
     } else {
       // post whole response to workplace
-      await Bots.notifyToAdmin({
-        title: `API_PROFILE.getAccessToken.${profile}`,
-        message: `Get access Token failed with statusCode: ${statusCode}, body: ${body}`
-      });
+      // await Bots.notifyToAdmin({
+      //   title: `API_PROFILE.getAccessToken.${profile}`,
+      //   message: `Get access Token failed with statusCode: ${statusCode}, body: ${body}`
+      // });
     }
   } catch ({message}) {
-    await Bots.notifyToAdmin({
-      title: `API_PROFILE.getAccessToken.${profile}`,
-      message
-    });
+    // await Bots.notifyToAdmin({
+    //   title: `API_PROFILE.getAccessToken.${profile}`,
+    //   message
+    // });
     throw new Meteor.Error('API_PROFILE.getAccessToken', message);
   }
 };
@@ -78,24 +77,24 @@ Functions.callRestApi = async ({profile, options}, count = 0) => {
           return Functions.callRestApi({profile, options}, count);
         } else {
           // post to workplace
-          await Bots.notifyToAdmin({
-            title: `API_PROFILE.callRestApi.${profile}`,
-            message: `Renew token failed ${count} times.`
-          });
+          // await Bots.notifyToAdmin({
+          //   title: `API_PROFILE.callRestApi.${profile}`,
+          //   message: `Renew token failed ${count} times.`
+          // });
         }
       }
     } else {
       // post to workplace whole response message
-      await Bots.notifyToAdmin({
-        title: `API_PROFILE.callRestApi.${profile}`,
-        message: `Call Rest API failed with statusCode: ${statusCode}, body: ${body}`
-      });
+      // await Bots.notifyToAdmin({
+      //   title: `API_PROFILE.callRestApi.${profile}`,
+      //   message: `Call Rest API failed with statusCode: ${statusCode}, body: ${body}`
+      // });
     }
   } catch ({message}) {
-    await Bots.notifyToAdmin({
-      title: `API_PROFILE.callRestApi.${profile}.${options.uri}`,
-      message
-    });
+    // await Bots.notifyToAdmin({
+    //   title: `API_PROFILE.callRestApi.${profile}.${options.uri}`,
+    //   message
+    // });
     throw new Meteor.Error('API_PROFILE.callRestApi', message);
   }
 };
