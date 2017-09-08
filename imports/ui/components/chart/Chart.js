@@ -9,7 +9,7 @@ class Chart extends Component {
       ctx = this.refs.chart,
       {config} = this.props;
 
-    const chart = this.chart = new ChartJS(ctx, config);
+    this.chart = new ChartJS(ctx, config);
   }
 
   componentDidUpdate() {

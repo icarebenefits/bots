@@ -63,7 +63,7 @@ class FieldSalesRevenue extends Component {
               id: "y-axis-revenue",
               ticks: {
                 // Include a dollar sign in the ticks
-                callback: function (value, index, values) {
+                callback: function (value) {
                   return `$${accounting.format(value)}`;
                 }
               }
@@ -77,7 +77,7 @@ class FieldSalesRevenue extends Component {
               id: "y-axis-location",
               ticks: {
                 // Include a dollar sign in the ticks
-                callback: function (value, index, values) {
+                callback: function (value) {
                   return `${accounting.format(value)}`;
                 }
               }

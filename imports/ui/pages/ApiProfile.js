@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 
 /* Components */
-import {Label} from '/imports/ui/components/elements';
 import {AddApiProfile, ListApiProfile} from '/imports/ui/containers';
 
 class ApiProfileComponent extends Component {

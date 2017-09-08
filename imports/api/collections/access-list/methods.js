@@ -2,6 +2,7 @@ import {Meteor} from 'meteor/meteor';
 import {SimpleSchema} from 'meteor/aldeed:simple-schema';
 import {ValidatedMethod} from 'meteor/mdg:validated-method';
 import {IDValidator} from '/imports/utils';
+import _ from 'lodash';
 
 /* Collections */
 import {Logger} from '/imports/api/collections/logger';

@@ -17,7 +17,7 @@ import {WorkplaceGroups} from '/imports/api/collections/workplaces';
 
 /* Components */
 import {ListPlace} from '/imports/ui/containers';
-import {Label, Button, Suggest} from '/imports/ui/components/elements';
+import {Button, Suggest} from '/imports/ui/components/elements';
 import {Spinner} from '/imports/ui/components/common';
 
 

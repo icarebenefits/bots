@@ -92,6 +92,11 @@ MSLA.schema = new SimpleSchema({
     type: Date,
     optional: true
   },
+  lastAlarmMethod: {
+    type: String,
+    defaultValue: 'note',
+    allowedValues: ['note', 'email', 'sms']
+  },
   searchText: {
     type: String,
     optional: true
