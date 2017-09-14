@@ -3,8 +3,8 @@
     "name": "b2b-mysql1-master-FreeStorageSpace",
     "conditions": [
       {
-        "value": 5000000000,
-        "method": "email"
+        "value": 1000000000,
+        "method": "sms"
       }
     ],
     "unit": "Bytes",
@@ -16,8 +16,8 @@
     "name": "magento-mysql1-master-FreeStorageSpace",
     "conditions": [
       {
-        "value": 5000000000,
-        "method": "email"
+        "value": 1000000000,
+        "method": "sms"
       }
     ],
     "unit": "Bytes",
@@ -29,8 +29,8 @@
     "name": "mifos-mysql1-master-FreeStorageSpace",
     "conditions": [
       {
-        "value": 5000000000,
-        "method": "email"
+        "value": 1000000000,
+        "method": "sms"
       }
     ],
     "unit": "Bytes",
@@ -42,8 +42,8 @@
     "name": "tls-mysql1-master-FreeStorageSpace",
     "conditions": [
       {
-        "value": 5000000000,
-        "method": "email"
+        "value": 1000000000,
+        "method": "sms"
       }
     ],
     "unit": "Bytes",

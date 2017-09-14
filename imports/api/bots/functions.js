@@ -368,7 +368,7 @@ const getAlarmMethod = (state, stateValue, conditions, operator) => {
   let alarmMethod = 'note';
   const maxCond = conditions.length;
 
-  // First condition matched, first method applied
+  // The first condition matched, the first method applied
   for (let i = 0; i < maxCond; i++) {
     const {value, method} = conditions[i];
     switch (operator) {

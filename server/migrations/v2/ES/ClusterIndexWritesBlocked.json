@@ -4,7 +4,7 @@
     "conditions": [
       {
         "value": 1,
-        "method": "email"
+        "method": "sms"
       }
     ],
     "unit": "Count",
@@ -17,7 +17,7 @@
     "conditions": [
       {
         "value": 1,
-        "method": "email"
+        "method": "sms"
       }
     ],
     "unit": "Count",
