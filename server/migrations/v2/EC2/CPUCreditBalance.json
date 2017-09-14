@@ -1,0 +1,197 @@
+[
+  {
+    "name": "mifos-web1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web2-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "mifos-web4-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "b2b-web1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-web2-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-redis1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-cron1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "b2b-gandalf1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "tls-web1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "tls",
+    "status": "active"
+  },
+  {
+    "name": "integration-web1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "integration",
+    "status": "active"
+  },
+  {
+    "name": "monitor-nagios1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "bots-web1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-devops1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-jenkins1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  },
+  {
+    "name": "sys-keybox1-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "system",
+    "status": "active"
+  }
+]

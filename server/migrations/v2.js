@@ -9,16 +9,17 @@ Migrations.add({
     const SLA_DEFINITIONS = {
       EC2: {
         CPUUtilization: require('./v2/EC2/CPUUtilization.json'),
+        CPUCreditBalance: require('./v2/EC2/CPUCreditBalance.json'),
         MemoryUtilization: require('./v2/EC2/MemoryUtilization.json'),
         SwapUtilization: require('./v2/EC2/SwapUtilization.json'),
         DiskSpaceUtilization: require('./v2/EC2/DiskSpaceUtilization.json')
       },
       RDS: {
         CPUUtilization: require('./v2/RDS/CPUUtilization.json'),
+        CPUCreditBalance: require('./v2/RDS/CPUCreditBalance.json'),
         DatabaseConnections: require('./v2/RDS/DatabaseConnections.json'),
         FreeableMemory: require('./v2/RDS/FreeableMemory.json'),
-        FreeStorageSpace: require('./v2/RDS/FreeStorageSpace.json'),
-        SwapUsage: require('./v2/RDS/SwapUsage.json')
+        FreeStorageSpace: require('./v2/RDS/FreeStorageSpace.json')
       },
       ES: {
         ClusterIndexWritesBlocked: require('./v2/ES/ClusterIndexWritesBlocked.json'),
@@ -27,10 +28,13 @@ Migrations.add({
         JVMMemoryPressure: require('./v2/ES/JVMMemoryPressure.json'),
         FreeStorageSpace: require('./v2/ES/FreeStorageSpace.json'),
         AutomatedSnapshotFailure: require('./v2/ES/AutomatedSnapshotFailure.json')
+      },
+      SQS: {
+        ApproximateNumberOfMessagesVisible: require('./v2/SQS/ApproximateNumberOfMessagesVisible.json')
       }
     };
     const
-      contactDefaults = ['tan.ktm@icarebenefits.com', 'hai.tdd@mobivi.vn', 'chris@icarebenefits.com'],
+      contactDefaults = ['tan.ktm@icarebenefits.com', 'hai.tdd@mobivi.vn', 'minhluan.vo@mobivi.vn'],
       CONTACT_GROUPS = {
         test: ['icare.bots@icarebenefits.com'],
         system: [...contactDefaults],
@@ -39,7 +43,11 @@ Migrations.add({
         magento: [...contactDefaults, 'bao.nq@icarebenefits.com'],
         b2b: [...contactDefaults, 'khoa.le@icarebenefits.com'],
         tls: [...contactDefaults, 'khoa.le@icarebenefits.com', 'hau.tc@mobivi.vn'],
-        integration: [...contactDefaults]
+        integration: [...contactDefaults],
+        sqs: [...contactDefaults,
+          'nam.ph@icarebenefits.com', 'duc.bv@icarebenefits.com', 'binh.pt@mobivi.vn',
+          'bao.nq@icarebenefits.com', 'khoa.le@icarebenefits.com'
+        ]
       };
 
     Object.keys(SLA_DEFINITIONS).forEach(group => {

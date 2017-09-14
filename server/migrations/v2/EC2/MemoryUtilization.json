@@ -169,7 +169,7 @@
     "status": "active"
   },
   {
-    "name": "b2b-web1-MemoryUtilization",
+    "name": "b2b-web2-MemoryUtilization",
     "conditions": [
       {
         "value": 100,

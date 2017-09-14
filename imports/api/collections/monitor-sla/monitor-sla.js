@@ -31,20 +31,12 @@ const MSLA = new MonitorSLACollection('monitor_sla');
 
 MSLA.schema = new SimpleSchema({
   name: {
-    type: String
+    type: String,
+    unique: true
   },
   description: {
     type: String,
     optional: true
-  },
-  system: {
-    type: String
-  },
-  service: {
-    type: String
-  },
-  metric: {
-    type: String
   },
   conditions: {
     type: [Object],
@@ -66,6 +58,13 @@ MSLA.schema = new SimpleSchema({
     type: [String],
     minCount: 1,
     regEx: SimpleSchema.RegEx.Id
+  },
+  unit: {
+    type: String
+  },
+  operator: {
+    type: String,
+    allowedValues: ["GreaterThanOrEqualToThreshold", "GreaterThanThreshold", "LessThanThreshold", "LessThanOrEqualToThreshold"]
   },
   status: {
     type: String,
@@ -94,8 +93,8 @@ MSLA.schema = new SimpleSchema({
   },
   lastAlarmMethod: {
     type: String,
-    defaultValue: 'note',
-    allowedValues: ['note', 'email', 'sms']
+    allowedValues: ['note', 'email', 'sms'],
+    optional: true
   },
   searchText: {
     type: String,

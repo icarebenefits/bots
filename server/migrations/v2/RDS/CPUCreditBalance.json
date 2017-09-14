@@ -1,0 +1,41 @@
+[
+  {
+    "name": "b2b-mysql1-master-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "b2b",
+    "status": "active"
+  },
+  {
+    "name": "mifos-mysql1-master-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "mifos",
+    "status": "active"
+  },
+  {
+    "name": "tls-mysql1-master-CPUCreditBalance",
+    "conditions": [
+      {
+        "value": 5,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "tls",
+    "status": "active"
+  }
+]
