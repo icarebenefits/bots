@@ -8,7 +8,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "mifos",
     "status": "active"
   },
@@ -21,7 +21,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "mifos",
     "status": "active"
   },
@@ -34,7 +34,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "mifos",
     "status": "active"
   },
@@ -47,7 +47,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "mifos",
     "status": "active"
   },
@@ -60,7 +60,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "mifos",
     "status": "active"
   },
@@ -73,7 +73,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "mifos",
     "status": "active"
   },
@@ -86,7 +86,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "magento",
     "status": "active"
   },
@@ -99,7 +99,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "magento",
     "status": "active"
   },
@@ -112,7 +112,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "magento",
     "status": "active"
   },
@@ -125,7 +125,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "magento",
     "status": "active"
   },
@@ -138,7 +138,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "magento",
     "status": "active"
   },
@@ -151,7 +151,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "magento",
     "status": "active"
   },
@@ -164,7 +164,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "b2b",
     "status": "active"
   },
@@ -177,7 +177,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "b2b",
     "status": "active"
   },
@@ -190,7 +190,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "b2b",
     "status": "active"
   },
@@ -203,7 +203,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "b2b",
     "status": "active"
   },
@@ -216,7 +216,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "b2b",
     "status": "active"
   },
@@ -229,7 +229,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "tls",
     "status": "active"
   },
@@ -242,7 +242,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "integration",
     "status": "active"
   },
@@ -255,7 +255,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   },
@@ -268,7 +268,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   },
@@ -281,7 +281,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   },
@@ -294,7 +294,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   },
@@ -307,7 +307,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "GreaterThanThreshold",
+    "operator": "GreaterThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   }
