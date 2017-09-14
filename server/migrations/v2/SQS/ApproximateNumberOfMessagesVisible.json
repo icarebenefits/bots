@@ -1,0 +1,132 @@
+[
+  {
+    "name": "SQS Item Fulfillment Error",
+    "conditions": [
+      {
+        "value": 1000,
+        "method": "sms"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS Sales Order Error",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS Inventory Item Hang",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS Employee Error",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS Inventory Item Error",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS KH Sales Order Hang",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS KH Shipment Hang",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS Shipment Error",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS KH Employee Hang",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  },
+  {
+    "name": "SQS KH Item Fulfillment Hang",
+    "conditions": [
+      {
+        "value": 50,
+        "method": "email"
+      }
+    ],
+    "unit": "Count",
+    "operator": "LessThanOrEqualToThreshold",
+    "noteGroup": "sqs",
+    "status": "active"
+  }
+]

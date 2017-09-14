@@ -3,8 +3,8 @@
     "name": "all-es1-master.data-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
