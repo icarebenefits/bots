@@ -52,7 +52,7 @@
     "status": "active"
   },
   {
-    "name": "b2b-web1-CPUCreditBalance",
+    "name": "b2b-web2-CPUCreditBalance",
     "conditions": [
       {
         "value": 5,
