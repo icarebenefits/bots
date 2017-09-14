@@ -169,7 +169,7 @@
     "status": "active"
   },
   {
-    "name": "b2b-web1-SwapUtilization",
+    "name": "b2b-web2-SwapUtilization",
     "conditions": [
       {
         "value": 100,

@@ -182,7 +182,7 @@
     "status": "active"
   },
   {
-    "name": "b2b-web1-CPUUtilization",
+    "name": "b2b-web2-CPUUtilization",
     "conditions": [
       {
         "value": 100,

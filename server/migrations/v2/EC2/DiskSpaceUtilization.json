@@ -169,7 +169,7 @@
     "status": "active"
   },
   {
-    "name": "b2b-web1-DiskSpaceUtilization",
+    "name": "b2b-web2-DiskSpaceUtilization",
     "conditions": [
       {
         "value": 100,

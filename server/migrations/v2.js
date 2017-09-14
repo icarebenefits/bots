@@ -43,7 +43,11 @@ Migrations.add({
         magento: [...contactDefaults, 'bao.nq@icarebenefits.com'],
         b2b: [...contactDefaults, 'khoa.le@icarebenefits.com'],
         tls: [...contactDefaults, 'khoa.le@icarebenefits.com', 'hau.tc@mobivi.vn'],
-        integration: [...contactDefaults]
+        integration: [...contactDefaults],
+        sqs: [...contactDefaults,
+          'nam.ph@icarebenefits.com', 'duc.bv@icarebenefits.com', 'binh.pt@mobivi.vn',
+          'bao.nq@icarebenefits.com', 'khoa.le@icarebenefits.com'
+        ]
       };
 
     Object.keys(SLA_DEFINITIONS).forEach(group => {
