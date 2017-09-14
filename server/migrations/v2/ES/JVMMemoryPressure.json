@@ -8,7 +8,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "LessThanThreshold",
+    "operator": "LessThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   },
@@ -21,7 +21,7 @@
       }
     ],
     "unit": "Percent",
-    "operator": "LessThanThreshold",
+    "operator": "LessThanOrEqualToThreshold",
     "noteGroup": "system",
     "status": "active"
   }
