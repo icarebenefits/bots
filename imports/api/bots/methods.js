@@ -210,7 +210,6 @@ const notify = new ValidatedMethod({
   run({data}) {
     try {
       if (data) {
-        // console.log('processing alarm Data');
         if (data.Message) {
           const
             subject = data.Subject,
@@ -218,14 +217,14 @@ const notify = new ValidatedMethod({
           const {name, state, stateValue, detail, timestamp} = Bots.processAlarmData(message);
           const SLA = MSLA.findOne({name});
           if (SLA) {
-            const {_id, conditions, noteGroup, unit: stateUnit, contacts, lastAlarmMethod} = SLA;
+            const {_id, conditions, noteGroup, unit: stateUnit, operator, contacts, lastAlarmMethod} = SLA;
             const notification = {
               subject, name, state, stateValue: accounting.format(stateValue), stateUnit,
               detail, timestamp, noteGroup, contacts
             };
             let method = lastAlarmMethod || 'note';
             if(state !== 'OK') {
-              const {alarmMethod} = Bots.getAlarmMethod(state, stateValue, conditions);
+              const {alarmMethod} = Bots.getAlarmMethod(state, stateValue, conditions, operator);
               method = alarmMethod;
             }
 
