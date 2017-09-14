@@ -3,8 +3,8 @@
     "name": "b2b-mysql1-master-DatabaseConnections",
     "conditions": [
       {
-        "value": 200,
-        "method": "email"
+        "value": 250,
+        "method": "sms"
       }
     ],
     "unit": "Count",
@@ -16,8 +16,8 @@
     "name": "magento-mysql1-master-DatabaseConnections",
     "conditions": [
       {
-        "value": 200,
-        "method": "email"
+        "value": 250,
+        "method": "sms"
       }
     ],
     "unit": "Count",
@@ -29,8 +29,8 @@
     "name": "mifos-mysql1-master-DatabaseConnections",
     "conditions": [
       {
-        "value": 200,
-        "method": "email"
+        "value": 250,
+        "method": "sms"
       }
     ],
     "unit": "Count",
@@ -42,8 +42,8 @@
     "name": "tls-mysql1-master-DatabaseConnections",
     "conditions": [
       {
-        "value": 200,
-        "method": "email"
+        "value": 250,
+        "method": "sms"
       }
     ],
     "unit": "Count",

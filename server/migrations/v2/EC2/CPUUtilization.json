@@ -3,8 +3,8 @@
     "name": "mifos-web1-test-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -16,8 +16,8 @@
     "name": "mifos-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -29,8 +29,8 @@
     "name": "mifos-web2-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -42,8 +42,8 @@
     "name": "mifos-web3-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -55,8 +55,8 @@
     "name": "mifos-web4-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -68,8 +68,8 @@
     "name": "mifos-web5-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -81,8 +81,8 @@
     "name": "mifos-web6-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -94,8 +94,8 @@
     "name": "magento-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -107,8 +107,8 @@
     "name": "magento-web2-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -120,8 +120,8 @@
     "name": "magento-api1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -133,8 +133,8 @@
     "name": "magento-api2-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -146,8 +146,8 @@
     "name": "magento-api3-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -159,8 +159,8 @@
     "name": "magento-cron1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -172,8 +172,8 @@
     "name": "b2b-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -185,8 +185,8 @@
     "name": "b2b-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -198,8 +198,8 @@
     "name": "b2b-redis1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -211,8 +211,8 @@
     "name": "b2b-cron1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -224,8 +224,8 @@
     "name": "b2b-gandalf1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -237,8 +237,8 @@
     "name": "tls-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -250,8 +250,8 @@
     "name": "integration-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -263,8 +263,8 @@
     "name": "monitor-nagios1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -276,8 +276,8 @@
     "name": "bots-web1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -289,8 +289,8 @@
     "name": "sys-devops1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -302,8 +302,8 @@
     "name": "sys-jenkins1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
@@ -315,8 +315,8 @@
     "name": "sys-keybox1-CPUUtilization",
     "conditions": [
       {
-        "value": 90,
-        "method": "email"
+        "value": 100,
+        "method": "sms"
       }
     ],
     "unit": "Percent",
