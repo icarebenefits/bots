@@ -34,7 +34,7 @@ Migrations.add({
       }
     };
     const
-      contactDefaults = ['tan.ktm@icarebenefits.com', 'hai.tdd@mobivi.vn', 'minhluan.vo@mobivi.vn'],
+      contactDefaults = ['tan.ktm@icarebenefits.com', 'hai.tdd@mobivi.vn'],
       CONTACT_GROUPS = {
         test: ['icare.bots@icarebenefits.com'],
         system: [...contactDefaults],
@@ -46,7 +46,7 @@ Migrations.add({
         integration: [...contactDefaults],
         sqs: [...contactDefaults,
           'nam.ph@icarebenefits.com', 'duc.bv@icarebenefits.com', 'binh.pt@mobivi.vn',
-          'bao.nq@icarebenefits.com', 'khoa.le@icarebenefits.com'
+          'bao.nq@icarebenefits.com'
         ]
       };
 
