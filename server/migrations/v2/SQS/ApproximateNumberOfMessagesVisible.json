@@ -8,7 +8,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -21,7 +21,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -34,7 +34,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -47,7 +47,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -60,7 +60,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -73,7 +73,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -86,7 +86,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -99,7 +99,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -112,7 +112,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   },
@@ -125,7 +125,7 @@
       }
     ],
     "unit": "Count",
-    "operator": "LessThanOrEqualToThreshold",
+    "operator": "GreaterThanThreshold",
     "noteGroup": "sqs",
     "status": "active"
   }
