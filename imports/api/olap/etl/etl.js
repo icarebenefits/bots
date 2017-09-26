@@ -140,6 +140,15 @@ const ETL = (country) => {
                     field: "netsuite_customer_id"
                   }
                 }
+              ],
+              must_not: [
+                {
+                  "term": {
+                    "so_number": {
+                      "value": "kyc"
+                    }
+                  }
+                }
               ]
             }
           }
