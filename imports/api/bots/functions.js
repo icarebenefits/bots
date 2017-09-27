@@ -135,8 +135,16 @@ export const executeSLA = async ({SLA}) => {
                   const promiseArr = result.map(async (b) => {
                     let
                       tag = '',
-                      key = b.key;
-                    const value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0);
+                      key = b.key,
+                      value = 0;
+
+                    // get value of agg
+                    if (b[`agg_${aggType}_${ESField.replace('.', '_')}`]) {
+                      value = accounting.formatNumber(b[`agg_${aggType}_${ESField.replace('.', '_')}`].value, 0) || 0;
+                    } else if (b[`agg_${aggType}_${ESField}`]) {
+                      value = accounting.formatNumber(b[`agg_${aggType}_${ESField}`].value, 0) || 0;
+                    }
+
                     if (type === 'date_histogram') {
                       key = moment(key).format('LL');
                     }
@@ -556,7 +564,7 @@ const notifyToAdmin = async ({title, message}) => {
 
     const result = await Facebook().postMessage(adminWorkplace, mess);
     return result;
-  } catch(err) {
+  } catch (err) {
     throw new Meteor.Error('BOTS.notifyToAdmin', err.message);
   }
 };
