@@ -406,7 +406,7 @@ const iCareMember = () => ({
       {
         props: () => ({
           id: 'icmCreatedAt',
-          name: 'Create Date',
+          name: 'Create date',
           type: 'date',
           bucket: true
         }),
