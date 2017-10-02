@@ -60,6 +60,13 @@ const Scripts = () => ({
       timesStamp: "ctx._source.remove(\"@timestamp\")",
       version: "ctx._source.remove(\"@version\")",
       type: "ctx._source.remove(\"type\")",
+    },
+    kyc: {
+      parent: "ctx._parent=ctx._source.magento_customer_id;ctx._routing=ctx._source.netsuite_customer_id",
+      country: "ctx._source.remove(\"country\")",
+      timesStamp: "ctx._source.remove(\"@timestamp\")",
+      version: "ctx._source.remove(\"@version\")",
+      type: "ctx._source.remove(\"type\")",
     }
   }
 });

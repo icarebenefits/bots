@@ -4,6 +4,7 @@ import iCareMember from './icare-member';
 // import iCMLoan from './icm-loan';
 import iCMSalesOrder from './icm-sales-order';
 import iCMTicket from './icm-ticket';
+import iCM_KYC from './icm-kyc';
 
 const Field = () => ({
   Customer,
@@ -12,6 +13,7 @@ const Field = () => ({
   // iCMLoan,
   iCMSalesOrder,
   iCMTicket,
+  iCM_KYC
 });
 
 export default Field
