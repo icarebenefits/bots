@@ -428,22 +428,22 @@ export default ETL
 
 /* Test */
 // ETL Customer
-const {Facebook} = require('/imports/api/facebook-graph');
-const {facebook: {adminWorkplace}} = Meteor.settings;
-const country = 'kh';
-console.log(`Reindexing bots data for ${country}`);
-ETL(country).customer()
-  .then(res => {
-    // console.log('res', res);
-    /* Post result to Workplace */
-    const {message} = res;
-    Facebook().postMessage(adminWorkplace, message);
-  })
-  .catch(err => {
-    console.log('err', err);
-    const message = formatMessage({heading1: 'REINDEX_CUSTOMER_INDEX', code: {error: err.message}});
-    Facebook().postMessage(adminWorkplace, message);
-  });
+// const {Facebook} = require('/imports/api/facebook-graph');
+// const {facebook: {adminWorkplace}} = Meteor.settings;
+// const country = 'kh';
+// console.log(`Reindexing bots data for ${country}`);
+// ETL(country).customer()
+//   .then(res => {
+//     // console.log('res', res);
+//     /* Post result to Workplace */
+//     const {message} = res;
+//     Facebook().postMessage(adminWorkplace, message);
+//   })
+//   .catch(err => {
+//     console.log('err', err);
+//     const message = formatMessage({heading1: 'REINDEX_CUSTOMER_INDEX', code: {error: err.message}});
+//     Facebook().postMessage(adminWorkplace, message);
+//   });
 
 // ETL RFM
 // const {Facebook} = require('/imports/api/facebook-graph');
