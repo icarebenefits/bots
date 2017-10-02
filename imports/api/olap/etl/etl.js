@@ -60,6 +60,7 @@ const ETL = (country) => {
             salesOrder: SOScripts,
             loan: loanScripts,
             ticket: ticketScripts,
+            kyc: kycScripts
           }
           } = Scripts();
         let
@@ -202,7 +203,7 @@ const ETL = (country) => {
         const reindexLoan = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexLoan', reindexLoan);
 
-        /* Ticket */
+        /* iCM - Ticket */
         source = {
           index: indices.etl.index,
           type: indices.etl.types.ticket_icare_member,
@@ -236,6 +237,41 @@ const ETL = (country) => {
         debug && console.log('dest', dest);
         const reindexTicket = await Functions().asyncReindex({source, dest, script, options});
         debug && console.log('reindexTicket', reindexTicket);
+
+        /* iCM - KYC */
+        source = {
+          index: indices.etl.index,
+          type: indices.etl.types.icm_kyc,
+          query: {
+            bool: {
+              must: [
+                {
+                  exists: {
+                    field: "magento_customer_id"
+                  }
+                },
+                {
+                  exists: {
+                    field: "netsuite_customer_id"
+                  }
+                }
+              ]
+            }
+          }
+        };
+        dest = {
+          index: indices.new.index,
+          type: indices.new.types.kyc,
+        };
+        script = {
+          lang,
+          inline: Object.keys(kycScripts)
+            .map(s => kycScripts[s])
+            .join(';')
+        };
+        debug && console.log('dest', dest);
+        const reindexKYC = await Functions().asyncReindex({source, dest, script, options});
+        debug && console.log('reindexKYC', reindexKYC);
 
         /* Change index for bots alias */
         let
@@ -312,6 +348,7 @@ const ETL = (country) => {
         message = formatMessage({message, bold: 'iCM Sales Order', code: {reindexSO}});
         message = formatMessage({message, bold: 'iCM Loan', code: {reindexLoan}});
         message = formatMessage({message, bold: 'iCM Ticket', code: {reindexTicket}});
+        message = formatMessage({message, bold: 'iCM KYC', code: {reindexKYC}});
         message = formatMessage({message, bold: 'Customer - number_iCMs', code: {etlNumberICMs}});
         message = formatMessage({message, bold: 'iCM - is_activated', code: {etlIsActivated}});
         message = formatMessage({message, bold: 'iCM - rfm', code: {etlRFM}});
@@ -393,7 +430,7 @@ export default ETL
 // ETL Customer
 // const {Facebook} = require('/imports/api/facebook-graph');
 // const {facebook: {adminWorkplace}} = Meteor.settings;
-// const country = 'la';
+// const country = 'kh';
 // console.log(`Reindexing bots data for ${country}`);
 // ETL(country).customer()
 //   .then(res => {

@@ -78,5 +78,39 @@ export const SUGGESTS = {
       {name: 'Open', label: 'Open'},
       {name: 'In Progress', label: 'In Progress'}
     ]
+  },
+  kyc: {
+    nationality: [
+      {name: 'Vietnam', label: 'Vietnam'},
+      {name: 'Cambodia', label: 'Cambodia'},
+      {name: 'Laos', label: 'Laos'},
+      {name: 'VN', label: 'VN'},
+      {name: 'Iran', label: 'Iran'},
+      {name: 'Poland', label: 'Poland'},
+      {name: 'United States', label: 'United States'},
+      {name: 'Russia', label: 'Russia'},
+      {name: 'Kazakhstan', label: 'Kazakhstan'},
+    ],
+    createdByUserRole: [
+      {name: 'FS', label: 'Field Sales'},
+      {name: 'TLS', label: 'Telesales'},
+      {name: 'ICM', label: 'iCare Member'}
+    ],
+    approvedOrRejectedByUserRole: [
+      {name: 'ICARE_STAFF', label: 'iCare Staff'},
+      {name: 'B2B_ADMIN', label: 'B2B Admin'}
+    ],
+    assignedToUserRole: [
+      {name: 'ICARE_STAFF', label: 'iCare Staff'},
+      {name: 'B2B_ADMIN', label: 'B2B Admin'}
+    ],
+    status: [
+      {name: 'initial', label: 'initial'},
+      {name: 'pending', label: 'pending'},
+      {name: 'in_progress', label: 'in progress'},
+      {name: 'awaiting_more_info', label: 'awaiting more info'},
+      {name: 'rejected', label: 'rejected'},
+      {name: 'approved', label: 'approved'}
+    ]
   }
 };
