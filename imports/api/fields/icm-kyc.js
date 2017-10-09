@@ -226,7 +226,8 @@ const iCM_KYC = () => ({
           name: 'Nationality',
           type: 'suggest',
           placeHolder: '',
-          suggests: SUGGESTS.kyc.nationality
+          suggests: SUGGESTS.kyc.nationality,
+          bucket: true
         }),
         elastic: () => ({
           field: 'nationality'
@@ -273,7 +274,8 @@ const iCM_KYC = () => ({
           id: 'kycEmail',
           name: 'Email',
           type: 'string',
-          placeHolder: ''
+          placeHolder: '',
+          bucket: true
         }),
         elastic: () => ({
           field: 'email'
@@ -282,12 +284,12 @@ const iCM_KYC = () => ({
     ),
     kycCreatedBy: () => Object.assign(
       {},
-      Standard().Number(),
+      Standard().String(),
       {
         props: () => ({
           id: 'kycCreatedBy',
           name: 'Created by Id',
-          type: 'number'
+          type: 'string'
         }),
         elastic: () => ({
           field: 'created_by'
@@ -314,10 +316,11 @@ const iCM_KYC = () => ({
       Standard().String(),
       {
         props: () => ({
-          id: 'Created by user name',
-          name: 'Email',
+          id: 'kycCreatedByUserName',
+          name: 'Created by user name',
           type: 'string',
-          placeHolder: ''
+          placeHolder: '',
+          bucket: true
         }),
         elastic: () => ({
           field: 'created_by_user_name'
@@ -333,7 +336,8 @@ const iCM_KYC = () => ({
           name: 'Created by user role',
           type: 'suggest',
           placeHolder: '',
-          suggests: SUGGESTS.kyc.createdByUserRole
+          suggests: SUGGESTS.kyc.createdByUserRole,
+          bucket: true
         }),
         elastic: () => ({
           field: 'created_by_user_role'
@@ -389,12 +393,12 @@ const iCM_KYC = () => ({
     ),
     kycApprovedOrRejectedBy: () => Object.assign(
       {},
-      Standard().Number(),
+      Standard().String(),
       {
         props: () => ({
           id: 'kycApprovedOrRejectedBy',
           name: 'Approved or Rejected by Id',
-          type: 'number'
+          type: 'string'
         }),
         elastic: () => ({
           field: 'approved_or_rejected_by'
@@ -424,7 +428,8 @@ const iCM_KYC = () => ({
           id: 'kycApprovedOrRejectedByUserName',
           name: 'Approved or Rejected by user name',
           type: 'string',
-          placeHolder: ''
+          placeHolder: '',
+          bucket: true
         }),
         elastic: () => ({
           field: 'approved_or_rejected_by_user_name'
@@ -440,7 +445,8 @@ const iCM_KYC = () => ({
           name: 'Approved or Rejected by user role',
           type: 'suggest',
           placeHolder: '',
-          suggests: SUGGESTS.kyc.approvedOrRejectedByUserRole
+          suggests: SUGGESTS.kyc.approvedOrRejectedByUserRole,
+          bucket: true
         }),
         elastic: () => ({
           field: 'approved_or_rejected_by_user_role'
@@ -464,12 +470,12 @@ const iCM_KYC = () => ({
     ),
     kycAssignedTo: () => Object.assign(
       {},
-      Standard().Number(),
+      Standard().String(),
       {
         props: () => ({
           id: 'kycAssignedTo',
           name: 'Assigned to user Id',
-          type: 'number'
+          type: 'string'
         }),
         elastic: () => ({
           field: 'assigned_to'
@@ -499,7 +505,8 @@ const iCM_KYC = () => ({
           id: 'kycAssignedToUserName',
           name: 'Assigned to user name',
           type: 'string',
-          placeHolder: ''
+          placeHolder: '',
+          bucket: true
         }),
         elastic: () => ({
           field: 'assigned_to_user_name'
@@ -515,7 +522,8 @@ const iCM_KYC = () => ({
           name: 'Assigned to user role',
           type: 'suggest',
           placeHolder: '',
-          suggests: SUGGESTS.kyc.assignedToUserRole
+          suggests: SUGGESTS.kyc.assignedToUserRole,
+          bucket: true
         }),
         elastic: () => ({
           field: 'assigned_to_user_role'
