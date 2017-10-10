@@ -71,8 +71,7 @@ const iCM_KYC = () => ({
           id: 'kycCreatedByUserName',
           name: 'Created by user name',
           type: 'string',
-          placeHolder: '',
-          bucket: true
+          placeHolder: ''
         }),
         elastic: () => ({
           field: 'created_by_user_name'
@@ -118,8 +117,7 @@ const iCM_KYC = () => ({
         props: () => ({
           id: 'kycModifiedAt',
           name: 'Modified date',
-          type: 'date',
-          bucket: true
+          type: 'date'
         }),
         elastic: () => ({
           field: 'modified_at'
@@ -197,8 +195,7 @@ const iCM_KYC = () => ({
           name: 'Approved or Rejected by user role',
           type: 'suggest',
           placeHolder: '',
-          suggests: SUGGESTS.kyc.approvedOrRejectedByUserRole,
-          bucket: true
+          suggests: SUGGESTS.kyc.approvedOrRejectedByUserRole
         }),
         elastic: () => ({
           field: 'approved_or_rejected_by_user_role'
@@ -274,8 +271,7 @@ const iCM_KYC = () => ({
           name: 'Assigned to user role',
           type: 'suggest',
           placeHolder: '',
-          suggests: SUGGESTS.kyc.assignedToUserRole,
-          bucket: true
+          suggests: SUGGESTS.kyc.assignedToUserRole
         }),
         elastic: () => ({
           field: 'assigned_to_user_role'
