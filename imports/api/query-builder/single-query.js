@@ -446,9 +446,9 @@ const buildNormalAggregation = (useBucket, bucket, agg) => {
     }
 
     let body = bodybuilder();
-    console.log('ESField', summaryType, group, field, bucket.isNestedField, bucket.field);
+    // console.log('ESField', summaryType, group, field, bucket.isNestedField, bucket.field);
     const ESField = getESField(summaryType, group, field);
-    console.log('ESField', ESField);
+    // console.log('ESField', ESField);
 
     if (useBucket && applyBucket) { // bucket is applied to SLA with this aggregation
       const {type, group, field, options} = bucket;
@@ -456,7 +456,7 @@ const buildNormalAggregation = (useBucket, bucket, agg) => {
         throw new Meteor.Error('VALIDATE_BUCKET_DATA', `Bucket is missing data.`);
       }
       let bucketField = getESField('', group, field);
-      console.log('bucketField', bucketField);
+      // console.log('bucketField', bucketField);
       switch (type) {
         case 'terms':
         {
@@ -513,7 +513,7 @@ const buildAggregation = (useBucket, bucket, agg) => {
   check(agg, Object);
 
   let body = {};
-  console.log('useBucket bucket agg', useBucket, bucket, agg);
+  // console.log('useBucket bucket agg', useBucket, bucket, agg);
   if (bucket) {
     // build nested aggregation
     if (bucket.isNestedField && agg.bucket) {
@@ -527,7 +527,7 @@ const buildAggregation = (useBucket, bucket, agg) => {
     body = buildNormalAggregation(useBucket, bucket, agg);
   }
 
-  console.log('body', JSON.stringify(body));
+  // console.log('body', JSON.stringify(body));
 
   return body;
 };
