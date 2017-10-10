@@ -37,8 +37,7 @@ const Operator = () => ({
     }),
     buildQuery: (query1, query2) => {
       return bodybuilder()
-        .query("bool", {"must": [query1]})
-        .query("bool", {"must": [query2]})
+        .query("bool", {"must": [query1, query2]})
         .build();
     }
   }),
@@ -51,8 +50,7 @@ const Operator = () => ({
     }),
     buildQuery: (query1, query2) => {
       return bodybuilder()
-        .query("bool", {"should": [query1]})
-        .query("bool", {"should": [query2]})
+        .query("bool", {"should": [query1, query2]})
         .build();
     }
   }),
