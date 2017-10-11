@@ -8,6 +8,10 @@ export const SUGGESTS = {
     paymentMethod: [],
     typeOfContract: [],
     bankName: [],
+    status: [
+      {name: 'active', label: 'Active'},
+      {name: 'inActive', label: 'Inactive'},
+    ],
     RFMSegment: [
       {name: 'champion', label: 'Champion'},
       {name: 'loyal customers', label: 'Loyal Customers'},

@@ -480,10 +480,10 @@ const etlFieldProcessDocuments = async(source, dest, field, hits, failed, update
         value = numberICMs;
         break;
       }
-      case 'is_activated':
+      case 'icm_app_activated':
       {
         const {parent: iCMParent} = await getICMParent(dest, _id);
-        value = document._source[field];
+        value = document._source[field] === 1 ? true : false;
         parent = iCMParent;
         break;
       }
