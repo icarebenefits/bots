@@ -312,9 +312,9 @@ const ETL = (country) => {
           type: indices.new.types.icare_member
         };
         script = {};
-        field = 'is_activated';
-        const etlIsActivated = await Functions().etlField({source, dest, field, options: {mode: 1, _source: true}});
-        debug && console.log('etlIsActivated', etlIsActivated);
+        field = 'icm_app_activated';
+        const etlICMAppActivated = await Functions().etlField({source, dest, field, options: {mode: 1, _source: true}});
+        debug && console.log('etlICMAppActivated', etlICMAppActivated);
 
         /* iCare member - rfm (RFM segmentation of iCM) */
         source = {
@@ -350,7 +350,7 @@ const ETL = (country) => {
         message = formatMessage({message, bold: 'iCM Ticket', code: {reindexTicket}});
         message = formatMessage({message, bold: 'iCM KYC', code: {reindexKYC}});
         message = formatMessage({message, bold: 'Customer - number_iCMs', code: {etlNumberICMs}});
-        message = formatMessage({message, bold: 'iCM - is_activated', code: {etlIsActivated}});
+        message = formatMessage({message, bold: 'iCM - icm_app_activated', code: {etlICMAppActivated}});
         message = formatMessage({message, bold: 'iCM - rfm', code: {etlRFM}});
         message = formatMessage({message, bold: 'Get Bots Elastic Alias', code: {getAliasIndices}});
         message = formatMessage({message, bold: 'Update Bots Elastic Alias', code: {updateAliases}});
@@ -430,7 +430,7 @@ export default ETL
 // ETL Customer
 // const {Facebook} = require('/imports/api/facebook-graph');
 // const {facebook: {adminWorkplace}} = Meteor.settings;
-// const country = 'kh';
+// const country = 'la';
 // console.log(`Reindexing bots data for ${country}`);
 // ETL(country).customer()
 //   .then(res => {

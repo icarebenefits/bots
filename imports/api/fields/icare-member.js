@@ -225,17 +225,34 @@ const iCareMember = () => ({
         }),
       }
     ),
-    icmIsActivated: () => Object.assign(
+    icmStatus: () => Object.assign(
+      {},
+      Standard().String(),
+      {
+        props: () => ({
+          id: 'icmStatus',
+          name: 'Status',
+          type: 'suggest',
+          bucket: true,
+          placeHolder: '',
+          suggests: SUGGESTS.iCareMember.status
+        }),
+        elastic: () => ({
+          field: 'status'
+        }),
+      }
+    ),
+    icmAppActivated: () => Object.assign(
       {},
       Standard().Bool(),
       {
         props: () => ({
-          id: 'icmIsActivated',
-          name: 'Is activated',
+          id: 'icmAppActivated',
+          name: 'iCM App Activated',
           type: 'bool'
         }),
         elastic: () => ({
-          field: 'is_activated'
+          field: 'icm_app_activated'
         }),
       }
     ),
