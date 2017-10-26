@@ -1,50 +1,302 @@
 {
   "public": {
-    "env": "dev"
+    "env": "prod",
+    "domain": "localhost",
+    "name": "iCare Bots",
+    "slogan": "iCare Bots, democratization of data",
+    "url": "http://bots.domain.com",
+    "jobs_server": {
+      "host": "localhost",
+      "port": 4000
+    },
+    "access_control": {
+      "role": "super-admin"
+    },
+    "log": {
+      "level": "debug"
+    },
+    "prod": {
+      "host": "bots.prod.domain.com",
+      "port": "80",
+      "user": "",
+      "password": ""
+    },
+    "elastic": {
+      "batches": 100,
+      "maxSize": 10000,
+      "scroll": "10m",
+      "aggregation": {
+        "bucket": {
+          "terms": {
+            "size": 300,
+            "missing": "Others"
+          },
+          "date_histogram": {
+            "missing": "1970-01-01"
+          }
+        }
+      },
+      "indices": {
+        "bots": {
+          "prefix": "bots",
+          "types": {
+            "salesOrder": "sales_order"
+          }
+        },
+        "geo": {
+          "prefix": "geo",
+          "types": {
+            "fieldSales": "field_sales"
+          }
+        }
+      }
+    },
+    "google": {
+      "maps": {
+        "key": "google_access_key"
+      }
+    },
+    "aws": {
+      "s3": {
+        "region": "aws_region",
+        "bucket": "bucket_name",
+        "album": "images"
+      }
+    },
+    "countries": {
+      "vn": {
+        "name": "Vietnam",
+        "timezone": "Asia/Saigon",
+        "currency": "VND",
+        "exchangeRate": 22700
+      },
+      "kh": {
+        "name": "Cambodia",
+        "timezone": "Asia/Phnom_Penh",
+        "currency": "USD",
+        "exchangeRate": 1
+      },
+      "la": {
+        "name": "Laos",
+        "timezone": "Asia/Vientiane",
+        "currency": "KIP",
+        "exchangeRate": 8200
+      }
+    },
+    "pagination": {
+      "limit": 5
+    }
   },
   "logger": {
     "file": {
-      "name": "bots",
-      "filename": "bots.log",
+      "name": "icare-bots",
+      "filename": "icare-bots.log",
       "logstash": true,
       "rotationFormat": true,
       "zippedArchive": true,
       "maxFiles": 10
     }
   },
+  "log": {
+    "level": "debug"
+  },
   "elastic": {
-    "host": "amazonaws.com",
-    "region": "aws-region",
-    "accessKey": "DK23KJEOO;PZWERRA",
-    "secretKey": "AS7T2jw23HTOEKlseirowwer23402"
+    "iCare": {
+      "host": "aws_es_domain",
+      "region": "aws_region",
+      "accessKey": "aws_access_key",
+      "secretKey": "aws_secret_key"
+    },
+    "logSystem": {
+      "host": [
+        {
+          "host": "bots.log.domain.com",
+          "port": 9200
+        }
+      ]
+    },
+    "indexPrefix": "bots",
+    "indices": {
+      "base": {
+        "prefix": "icare",
+        "types": {
+          "customer": "b2b_customer",
+          "icare_member": "customer",
+          "loan": "m_client"
+        }
+      },
+      "etl": {
+        "prefix": "etl",
+        "types": {
+          "icare_member": "icare_member",
+          "sales_order": "sales_order",
+          "ticket_icare_member": "ticket_icare_member",
+          "icm_kyc": "icm_kyc"
+        }
+      },
+      "bots": {
+        "prefix": "bots",
+        "types": {
+          "customer": "customer",
+          "icare_member": "icare_member",
+          "sales_order": "sales_order",
+          "loan": "loan",
+          "ticket": "ticket",
+          "kyc": "kyc"
+        }
+      },
+      "rfm": {
+        "prefix": "rfm",
+        "types": {
+          "year": "year"
+        },
+        "periods": {
+          "year": "now-1y"
+        }
+      }
+    },
+    "indexSuggests": {
+      "enable": false,
+      "frequency": {
+        "workplace": "at 4:00 pm"
+      }
+    },
+    "migration": {
+      "enable": false,
+      "batch": 100,
+      "frequency": {
+        "la": "at 7:00 am",
+        "kh": "at 7:05 am",
+        "vn": "at 7:10 am"
+      }
+    },
+    "indexRFM": {
+      "enable": false,
+      "frequency": {
+        "la": "at 7:10 am",
+        "kh": "at 12:05 am",
+        "vn": "at 12:10 am"
+      }
+    },
+    "suggester": {
+      "workplace": {
+        "index": "suggester_v1",
+        "type": "wp_group",
+        "alias": "suggester"
+      }
+    },
+    "reindex": {
+      "debug": true,
+      "CHECK_LIMIT": 1080,
+      "secondSleep": 30
+    },
+    "aggregation": {
+      "bucket": {
+        "terms": {
+          "size": 300
+        }
+      }
+    }
   },
   "jobs": {
-    "test": false,
+    "test": true,
     "server": {
       "ddpInfo": {
-        "host": "",
+        "host": "localhost",
         "port": 4000,
         "use_ejson": true
       },
-      "account": "bots@bots.com",
-      "pass": "123456"
+      "account": "bots_meteor_account",
+      "pass": "bots_meteor_password"
     }
   },
   "facebook": {
+    "personalId": "bots_user_id",
     "prefixUrl": "https://graph.facebook.com/",
-    "appToken": "askdfkqwoerKHOPUE&**%$^I)kdjhfskeworiuqwpsdfsadfgvxvsdfHIOTOUYT"
+    "appToken": "fb_workplace_app_token",
+    "adminWorkplace": "admin_group_id_in_fb_workplace",
+    "bots": "bots_email"
   },
-  "clients": {
-    "b2b": {
-      "id": "kd23204sfds2",
-      "secret": "sdfsdfsfsdh",
-      "username": "bots@bots.com",
-      "password": "123456",
-      "baseUrl": "http://abc.com",
-      "tenant": {
-        "Cambodia": "ca",
-        "Vietnam": "vn"
+  "access_control": {
+    "domains": [
+      "mobivi.vn",
+      "icarebenefits.com"
+    ],
+    "role": "super-admin",
+    "administrators": [
+      "tan.ktm@icarebenefits.com",
+      "chris@icarebenefits.com",
+      "minh.tran@icarebenefits.com"
+    ]
+  },
+  "admin": {
+    "cleanup": {
+      "indices": {
+        "enable": false,
+        "duration": 24,
+        "unit": "hours",
+        "frequency": "at 22:00 pm"
+      },
+      "log": {
+        "enable": false,
+        "duration": 3,
+        "unit": "months",
+        "frequency": "at 21:00 pm"
       }
     }
+  },
+  "gandalf": {
+    "domain": "gandalf.domain.com",
+    "clientId": "gandalf_client_id",
+    "clientSecret": "gandalf_client_secret",
+    "tableId": "gandalf_table_id",
+    "appId": "gandalf_app_id"
+  },
+  "aws": {
+    "s3": {
+      "bucketName": "aws_bucket_name",
+      "region": "aws_region",
+      "accessKey": "aws_s3_access_key",
+      "secretKey": "aws_s3_secret_key"
+    }
+  },
+  "sms": {
+    "url": "sms.domain.com",
+    "auth": {
+      "user": "sms_user_name",
+      "pass": "sms_password"
+    },
+    "json": true
+  },
+  "mail": {
+    "protocol": "smtps",
+    "username": "gmail_user_name",
+    "password": "gmail_password",
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "sender": {
+      "name": "iCare Bots",
+      "email": "bots_google_email"
+    }
+  },
+  "slack": {
+    "webhookUri": "slack_web_hook_uri",
+    "username": "iCareBots"
+  },
+  "profile": {
+    "magento": {
+      "method": "POST",
+      "uri": "magento_request_token_uri",
+      "qs": {
+        "username": "magento_api_user",
+        "password": "magento_api_password"
+      },
+      "resolveWithFullResponse": true,
+      "json": true
+    }
+  },
+  "migration": {
+    "enable": true,
+    "version": "latest"
   }
 }
