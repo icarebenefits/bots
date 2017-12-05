@@ -51,6 +51,20 @@ const iCMSalesOrder = () => ({
         }),
       }
     ),
+    soIsCashAdvance: () => Object.assign(
+      {},
+      Standard().Bool(),
+      {
+        props: () => ({
+          id: 'soIsCashAdvance',
+          name: 'Is Cash Advance',
+          type: 'bool'
+        }),
+        elastic: () => ({
+          field: 'is_cash_advance'
+        }),
+      }
+    ),
     soLastStatusDate: () => Object.assign(
       {},
       Standard().Date(),
