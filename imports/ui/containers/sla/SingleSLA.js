@@ -110,17 +110,17 @@ class SingleSLA extends Component {
 
     /* Field Values */
     const constraints = {
-      workplace: {
-        presence: {
-          message: 'is required.'
-        },
-      },
-      frequency: {
-        presence: {
-          message: 'is required.'
-        },
-        schedule: true
-      },
+      // workplace: {
+      //   presence: {
+      //     message: 'is required.'
+      //   },
+      // },
+      // frequency: {
+      //   presence: {
+      //     message: 'is required.'
+      //   },
+      //   schedule: true
+      // },
       conditions: {
         slaConditions: true
       },

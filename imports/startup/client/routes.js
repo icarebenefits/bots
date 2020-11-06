@@ -89,7 +89,7 @@ publicRoutes.route('/', {
 const userRoutes = FlowRouter.group({
   name: 'userRoutes',
   prefix: '/app',
-  triggersEnter: [ensureSignedIn]
+  // triggersEnter: [ensureSignedIn]
 });
 
 userRoutes.route('/setup/:country', {
@@ -116,7 +116,7 @@ userRoutes.route('/maps', {
 
 const adminRoutes = FlowRouter.group({
   prefix: '/admin',
-  triggersEnter: [ensureSignedIn, ensureIsAdmin]
+  // triggersEnter: [ensureSignedIn, ensureIsAdmin]
 });
 
 adminRoutes.route('/access-list', {

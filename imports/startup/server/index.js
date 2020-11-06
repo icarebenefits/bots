@@ -19,7 +19,7 @@ import './routes';
 // Set up some rate limiting and other important security settings.
 // import '../imports/startup/server/security.js';
 // This defines the access control for user login
-import './access-control';
+// import './access-control';
 
 // This defines all the collections, publications and methods that the application provides
 // as an API to the client.
@@ -38,16 +38,16 @@ Meteor.startup(function () {
   process.env.MAIL_URL = `${protocol}://${username}:${password}@${host}:${port}`;
 
   /* Migrations */
-  const {enable, version} = Meteor.settings.migration;
-  Migrations.config({
-    log: true,
-    logger: null,
-    logIfLatest: true,
-    collectionName: "migrations"
-  });
-  if (enable) {
-    Migrations.migrateTo(version);
-  }
+  // const {enable, version} = Meteor.settings.migration;
+  // Migrations.config({
+  //   log: true,
+  //   logger: null,
+  //   logIfLatest: true,
+  //   collectionName: "migrations"
+  // });
+  // if (enable) {
+  //   Migrations.migrateTo(version);
+  // }
 
   /* Initiation data for countries */
   if (Countries.find().count() === 0) {
@@ -56,222 +56,222 @@ Meteor.startup(function () {
     Countries.insert({code: 'la', name: 'Laos', status: 'active'});
   }
   /* Create migration data job for every country */
-  if (Meteor.settings.elastic.migration.enable) {
-    const
-      countries = Countries.find()
-        .fetch()
-        .map(c => c.code),
-      {frequency} = Meteor.settings.elastic.migration
-      ;
-    let message = '';
+  // if (Meteor.settings.elastic.migration.enable) {
+  //   const
+  //     countries = Countries.find()
+  //       .fetch()
+  //       .map(c => c.code),
+  //     {frequency} = Meteor.settings.elastic.migration
+  //     ;
+  //   let message = '';
 
-    countries.map(country => {
-      const params = {
-        name: 'migration',
-        priority: 'high',
-        freqText: frequency[country],
-        info: {
-          method: 'bots.migrateToElastic',
-          country,
-        },
-        country
-      };
-      getJobs({name: params.name, country: params.country})
-        .then(jobs => {
-          if (_.isEmpty(jobs)) {
-            return createJob(params);
-          }
-          return {};
-        })
-        .then(res => {
-          if (!_.isEmpty(res)) {
-            message = formatMessage({message, heading1: 'CREATE_JOB_MIGRATION', code: res});
-          }
-        })
-        .catch(err => {
-          message = formatMessage({message, heading1: 'CREATE_JOB_MIGRATION', code: err.message});
-        });
-    });
-  }
+  //   countries.map(country => {
+  //     const params = {
+  //       name: 'migration',
+  //       priority: 'high',
+  //       freqText: frequency[country],
+  //       info: {
+  //         method: 'bots.migrateToElastic',
+  //         country,
+  //       },
+  //       country
+  //     };
+  //     getJobs({name: params.name, country: params.country})
+  //       .then(jobs => {
+  //         if (_.isEmpty(jobs)) {
+  //           return createJob(params);
+  //         }
+  //         return {};
+  //       })
+  //       .then(res => {
+  //         if (!_.isEmpty(res)) {
+  //           message = formatMessage({message, heading1: 'CREATE_JOB_MIGRATION', code: res});
+  //         }
+  //       })
+  //       .catch(err => {
+  //         message = formatMessage({message, heading1: 'CREATE_JOB_MIGRATION', code: err.message});
+  //       });
+  //   });
+  // }
 
   /* Job index RFM */
-  if (Meteor.settings.elastic.indexRFM.enable) {
-    const
-      countries = Countries.find()
-        .fetch()
-        .map(c => c.code),
-      {frequency} = Meteor.settings.elastic.indexRFM
-      ;
-    let message = '';
+  // if (Meteor.settings.elastic.indexRFM.enable) {
+  //   const
+  //     countries = Countries.find()
+  //       .fetch()
+  //       .map(c => c.code),
+  //     {frequency} = Meteor.settings.elastic.indexRFM
+  //     ;
+  //   let message = '';
 
-    countries.map(country => {
-      const params = {
-        name: 'indexRFM',
-        priority: 'normal',
-        freqText: frequency[country],
-        info: {
-          method: 'bots.indexRFM',
-          country
-        },
-        country
-      };
-      getJobs({name: params.name, country: params.country})
-        .then(jobs => {
-          if (_.isEmpty(jobs)) {
-            return createJob(params);
-          }
-          return {};
-        })
-        .then(res => {
-          if (!_.isEmpty(res)) {
-            message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM', code: res});
-          }
-        })
-        .catch(err => {
-          message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM', code: err.message});
-        });
-    });
-  }
+  //   countries.map(country => {
+  //     const params = {
+  //       name: 'indexRFM',
+  //       priority: 'normal',
+  //       freqText: frequency[country],
+  //       info: {
+  //         method: 'bots.indexRFM',
+  //         country
+  //       },
+  //       country
+  //     };
+  //     getJobs({name: params.name, country: params.country})
+  //       .then(jobs => {
+  //         if (_.isEmpty(jobs)) {
+  //           return createJob(params);
+  //         }
+  //         return {};
+  //       })
+  //       .then(res => {
+  //         if (!_.isEmpty(res)) {
+  //           message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM', code: res});
+  //         }
+  //       })
+  //       .catch(err => {
+  //         message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_RFM', code: err.message});
+  //       });
+  //   });
+  // }
 
   /* Create index suggesters job */
-  if (Meteor.settings.elastic.indexSuggests.enable) {
-    const {frequency: {workplace: freqText}} = Meteor.settings.elastic.indexSuggests;
-    const params = {
-      name: 'indexSuggests',
-      priority: 'normal',
-      freqText,
-      info: {
-        method: 'bots.indexSuggests',
-      },
-      country: 'admin'
-    };
-    let message = '';
+  // if (Meteor.settings.elastic.indexSuggests.enable) {
+  //   const {frequency: {workplace: freqText}} = Meteor.settings.elastic.indexSuggests;
+  //   const params = {
+  //     name: 'indexSuggests',
+  //     priority: 'normal',
+  //     freqText,
+  //     info: {
+  //       method: 'bots.indexSuggests',
+  //     },
+  //     country: 'admin'
+  //   };
+  //   let message = '';
 
-    getJobs({name: params.name, country: params.country})
-      .then(jobs => {
-        if (_.isEmpty(jobs)) {
-          return createJob(params);
-        }
-        return {};
-      })
-      .then(res => {
-        if (!_.isEmpty(res)) {
-          message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_SUGGESTS', code: res});
-        }
-      })
-      .catch(err => {
-        message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_SUGGESTS', code: err.message});
-      });
+  //   getJobs({name: params.name, country: params.country})
+  //     .then(jobs => {
+  //       if (_.isEmpty(jobs)) {
+  //         return createJob(params);
+  //       }
+  //       return {};
+  //     })
+  //     .then(res => {
+  //       if (!_.isEmpty(res)) {
+  //         message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_SUGGESTS', code: res});
+  //       }
+  //     })
+  //     .catch(err => {
+  //       message = formatMessage({message, heading1: 'CREATE_JOB_INDEX_SUGGESTS', code: err.message});
+  //     });
 
-    if (!_.isEmpty(message)) {
-      const {adminWorkplace} = Meteor.settings.facebook;
-      Facebook().postMessage(adminWorkplace, message);
-    }
-  }
+  //   if (!_.isEmpty(message)) {
+  //     const {adminWorkplace} = Meteor.settings.facebook;
+  //     Facebook().postMessage(adminWorkplace, message);
+  //   }
+  // }
 
   /* Job cleanup indices */
-  if (Meteor.settings.admin.cleanup.indices.enable) {
-    const {frequency: freqText} = Meteor.settings.admin.cleanup.indices;
-    const params = {
-      name: 'cleanupIndices',
-      priority: 'normal',
-      freqText,
-      info: {
-        method: 'bots.cleanupIndices',
-      },
-      country: 'admin'
-    };
-    let message = '';
+  // if (Meteor.settings.admin.cleanup.indices.enable) {
+  //   const {frequency: freqText} = Meteor.settings.admin.cleanup.indices;
+  //   const params = {
+  //     name: 'cleanupIndices',
+  //     priority: 'normal',
+  //     freqText,
+  //     info: {
+  //       method: 'bots.cleanupIndices',
+  //     },
+  //     country: 'admin'
+  //   };
+  //   let message = '';
 
-    getJobs({name: params.name, country: params.country})
-      .then(jobs => {
-        if (_.isEmpty(jobs)) {
-          return createJob(params);
-        }
-        return {};
-      })
-      .then(res => {
-        if (!_.isEmpty(res)) {
-          message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_INDICES', code: res});
-        }
-      })
-      .catch(err => {
-        message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_INDICES', code: err.message});
-      });
+  //   getJobs({name: params.name, country: params.country})
+  //     .then(jobs => {
+  //       if (_.isEmpty(jobs)) {
+  //         return createJob(params);
+  //       }
+  //       return {};
+  //     })
+  //     .then(res => {
+  //       if (!_.isEmpty(res)) {
+  //         message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_INDICES', code: res});
+  //       }
+  //     })
+  //     .catch(err => {
+  //       message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_INDICES', code: err.message});
+  //     });
 
-    if (!_.isEmpty(message)) {
-      const {adminWorkplace} = Meteor.settings.facebook;
-      Facebook().postMessage(adminWorkplace, message);
-    }
-  }
+  //   if (!_.isEmpty(message)) {
+  //     const {adminWorkplace} = Meteor.settings.facebook;
+  //     Facebook().postMessage(adminWorkplace, message);
+  //   }
+  // }
 
   /* Job cleanup logs */
-  if (Meteor.settings.admin.cleanup.log.enable) {
-    const {frequency: freqText} = Meteor.settings.admin.cleanup.log;
-    const params = {
-      name: 'cleanupLog',
-      priority: 'normal',
-      freqText,
-      info: {
-        method: 'bots.cleanupLog',
-      },
-      country: 'admin'
-    };
-    let message = '';
+  // if (Meteor.settings.admin.cleanup.log.enable) {
+  //   const {frequency: freqText} = Meteor.settings.admin.cleanup.log;
+  //   const params = {
+  //     name: 'cleanupLog',
+  //     priority: 'normal',
+  //     freqText,
+  //     info: {
+  //       method: 'bots.cleanupLog',
+  //     },
+  //     country: 'admin'
+  //   };
+  //   let message = '';
 
-    getJobs({name: params.name, country: params.country})
-      .then(jobs => {
-        if (_.isEmpty(jobs)) {
-          return createJob(params);
-        }
-        return {};
-      })
-      .then(res => {
-        if (!_.isEmpty(res)) {
-          message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_LOG', code: res});
-        }
-      })
-      .catch(err => {
-        message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_LOG', code: err.message});
-      });
+  //   getJobs({name: params.name, country: params.country})
+  //     .then(jobs => {
+  //       if (_.isEmpty(jobs)) {
+  //         return createJob(params);
+  //       }
+  //       return {};
+  //     })
+  //     .then(res => {
+  //       if (!_.isEmpty(res)) {
+  //         message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_LOG', code: res});
+  //       }
+  //     })
+  //     .catch(err => {
+  //       message = formatMessage({message, heading1: 'CREATE_JOB_CLEANUP_LOG', code: err.message});
+  //     });
 
-    if (!_.isEmpty(message)) {
-      const {adminWorkplace} = Meteor.settings.facebook;
-      Facebook().postMessage(adminWorkplace, message);
-    }
-  }
+  //   if (!_.isEmpty(message)) {
+  //     const {adminWorkplace} = Meteor.settings.facebook;
+  //     Facebook().postMessage(adminWorkplace, message);
+  //   }
+  // }
 
   /* Initiation data for administrators */
-  const {administrators, role} = Meteor.settings.access_control;
-  const currentAdmins = Roles
-    .getUsersInRole(role, '', {fields: {_id: true, "services.google.email": true}})
-    .fetch()
-    .map(({_id, services}) => ({_id, email: services.google.email}));
+  // const {administrators, role} = Meteor.settings.access_control;
+  // const currentAdmins = Roles
+  //   .getUsersInRole(role, '', {fields: {_id: true, "services.google.email": true}})
+  //   .fetch()
+  //   .map(({_id, services}) => ({_id, email: services.google.email}));
 
-  administrators.map(email => {
-    /* add into access list */
-    if (!AccessList.find({email}).count()) {
-      DBLogger.insert({
-        name: 'accessList',
-        action: 'grant',
-        status: 'success',
-        createdBy: 'system',
-        details: {email, role}
-      });
-      AccessList.insert({email});
-    }
-    /* add into super-admin role */
-    if (Accounts.users.find({"services.google.email": email}).count()) {
-      const {_id} = Accounts.users.findOne({"services.google.email": email});
-      DBLogger.insert({name: 'role', action: 'grant', status: 'success', createdBy: 'system', details: {email, role}});
-      Roles.addUsersToRoles(_id, role);
-    }
-  });
-  /* remove user from super admin role */
-  currentAdmins.map(({_id, email}) => {
-    if (!administrators.includes(email)) {
-      DBLogger.insert({name: 'role', action: 'revoke', status: 'success', createdBy: 'system', details: {email, role}});
-      Roles.removeUsersFromRoles(_id, role);
-    }
-  });
+  // administrators.map(email => {
+  //   /* add into access list */
+  //   if (!AccessList.find({email}).count()) {
+  //     DBLogger.insert({
+  //       name: 'accessList',
+  //       action: 'grant',
+  //       status: 'success',
+  //       createdBy: 'system',
+  //       details: {email, role}
+  //     });
+  //     AccessList.insert({email});
+  //   }
+  //   /* add into super-admin role */
+  //   if (Accounts.users.find({"services.google.email": email}).count()) {
+  //     const {_id} = Accounts.users.findOne({"services.google.email": email});
+  //     DBLogger.insert({name: 'role', action: 'grant', status: 'success', createdBy: 'system', details: {email, role}});
+  //     Roles.addUsersToRoles(_id, role);
+  //   }
+  // });
+  // /* remove user from super admin role */
+  // currentAdmins.map(({_id, email}) => {
+  //   if (!administrators.includes(email)) {
+  //     DBLogger.insert({name: 'role', action: 'revoke', status: 'success', createdBy: 'system', details: {email, role}});
+  //     Roles.removeUsersFromRoles(_id, role);
+  //   }
+  // });
 });
