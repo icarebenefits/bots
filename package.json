@@ -49,7 +49,7 @@
     "babel-runtime": "^6.26.0",
     "bodybuilder": "^2.2.0",
     "bunyan": "^1.8.8",
-    "chart.js": "^2.6.0",
+    "chart.js": "^2.9.4",
     "classnames": "^2.2.5",
     "colors": "^1.1.2",
     "ddp": "^0.12.1",
